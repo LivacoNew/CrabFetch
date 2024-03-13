@@ -20,19 +20,20 @@ impl GenericCPU {
 }
 impl Display for GenericCPU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {}GHz [{}]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.tempreature)
+        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.tempreature)
     }
 }
 
 pub fn get_cpu() {
     let mut cpu = GenericCPU::new();
-    parse_proc(&mut cpu);
-    parse_frequency(&mut cpu);
+    get_basic_info(&mut cpu);
+    get_max_clock(&mut cpu);
+    get_temperature(&mut cpu);
 
     println!("{}", cpu);
 }
 
-fn parse_proc(cpu: &mut GenericCPU) {
+fn get_basic_info(cpu: &mut GenericCPU) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores and threads
     let mut file: File = match File::open("/proc/cpuinfo") {
@@ -79,8 +80,8 @@ fn parse_proc(cpu: &mut GenericCPU) {
         }
     }
 }
-fn parse_frequency(cpu: &mut GenericCPU) {
-    // Now we parse /sys/devices/system/cpu/cpu0/cpufreq
+fn get_max_clock(cpu: &mut GenericCPU) {
+    // All of this is relative to /sys/devices/system/cpu/cpu0/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS
     // - scaling_max_freq - The max freq set by the policy
@@ -117,11 +118,38 @@ fn parse_frequency(cpu: &mut GenericCPU) {
         },
     }
 
-    let freq: f32 = match contents.trim().parse::<f32>() {
-        Ok(r) => r / 1000.0,
+    match contents.trim().parse::<f32>() {
+        Ok(r) => {
+            r / 1000.0
+        },
         Err(e) => {
             0.0
         }
     };
     cpu.max_clock = freq;
+}
+fn get_temperature(cpu: &mut GenericCPU) {
+    // To get the temp I'm reading from /sys/class/thermal/thermal_zone0/temp
+    // Not sure if this is a consistent way to get the CPU temperature, but it will do for now.
+
+    let mut file: File = match File::open("/sys/class/thermal/thermal_zone0/temp") {
+        Ok(r) => r,
+        Err(e) => {
+            panic!("Can't read from /sys/class/thermal/thermal_zone0/temp - {}", e);
+        },
+    };
+    let mut contents: String = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(e) => {
+            panic!("Can't read from /sys/class/thermal/thermal_zone0/temp - {}", e);
+        },
+    }
+
+    match contents.trim().parse::<f32>() {
+        Ok(r) => {
+            cpu.tempreature = r / 1000.0;
+        },
+        Err(_) => {}
+    };
 }

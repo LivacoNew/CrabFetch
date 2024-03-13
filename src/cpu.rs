@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
-struct GenericCPU {
+pub struct GenericCPU {
     cpu_name: String,
     cores: u16,
     threads: u16,
@@ -24,13 +24,13 @@ impl Display for GenericCPU {
     }
 }
 
-pub fn get_cpu() {
+pub fn get_cpu() -> GenericCPU {
     let mut cpu = GenericCPU::new();
     get_basic_info(&mut cpu);
     get_max_clock(&mut cpu);
     get_temperature(&mut cpu);
 
-    println!("{}", cpu);
+    cpu
 }
 
 fn get_basic_info(cpu: &mut GenericCPU) {

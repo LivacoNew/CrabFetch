@@ -1,15 +1,15 @@
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
-pub struct GenericCPU {
+pub struct CPUInfo {
     cpu_name: String,
     cores: u16,
     threads: u16,
     max_clock: f32,
     tempreature: f32,
 }
-impl GenericCPU {
-    fn new() -> GenericCPU {
-        GenericCPU {
+impl CPUInfo {
+    fn new() -> CPUInfo {
+        CPUInfo {
             cpu_name: "".to_string(),
             cores: 0,
             threads: 0,
@@ -18,14 +18,14 @@ impl GenericCPU {
         }
     }
 }
-impl Display for GenericCPU {
+impl Display for CPUInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.tempreature)
     }
 }
 
-pub fn get_cpu() -> GenericCPU {
-    let mut cpu = GenericCPU::new();
+pub fn get_cpu() -> CPUInfo {
+    let mut cpu = CPUInfo::new();
     get_basic_info(&mut cpu);
     get_max_clock(&mut cpu);
     get_temperature(&mut cpu);
@@ -33,7 +33,7 @@ pub fn get_cpu() -> GenericCPU {
     cpu
 }
 
-fn get_basic_info(cpu: &mut GenericCPU) {
+fn get_basic_info(cpu: &mut CPUInfo) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores and threads
     let mut file: File = match File::open("/proc/cpuinfo") {
@@ -80,7 +80,7 @@ fn get_basic_info(cpu: &mut GenericCPU) {
         }
     }
 }
-fn get_max_clock(cpu: &mut GenericCPU) {
+fn get_max_clock(cpu: &mut CPUInfo) {
     // All of this is relative to /sys/devices/system/cpu/cpu0/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS
@@ -125,7 +125,7 @@ fn get_max_clock(cpu: &mut GenericCPU) {
         Err(_) => {}
     };
 }
-fn get_temperature(cpu: &mut GenericCPU) {
+fn get_temperature(cpu: &mut CPUInfo) {
     // To get the temp I'm reading from /sys/class/thermal/thermal_zone0/temp
     // Not sure if this is a consistent way to get the CPU temperature, but it will do for now.
 

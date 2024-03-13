@@ -1,8 +1,8 @@
-use cpu::GenericCPU;
+use cpu::CPUInfo;
 
 mod cpu;
 
 fn main() {
     // CPU
-    let cpu: GenericCPU = cpu::get_cpu();
+    let cpu: CPUInfo = cpu::get_cpu();
 }

@@ -31,7 +31,6 @@ pub fn parse() -> Configuration {
             home_dir
         }
     };
-    println!("{}", config_path_str);
 
     let mut builder = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));

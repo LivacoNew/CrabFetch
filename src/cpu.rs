@@ -120,13 +120,10 @@ fn get_max_clock(cpu: &mut GenericCPU) {
 
     match contents.trim().parse::<f32>() {
         Ok(r) => {
-            r / 1000.0
+            cpu.max_clock = r / 1000.0
         },
-        Err(e) => {
-            0.0
-        }
+        Err(_) => {}
     };
-    cpu.max_clock = freq;
 }
 fn get_temperature(cpu: &mut GenericCPU) {
     // To get the temp I'm reading from /sys/class/thermal/thermal_zone0/temp

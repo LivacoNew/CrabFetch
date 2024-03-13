@@ -1,4 +1,4 @@
-use std::{fmt::Display, fs::File, io::Read};
+use std::{fmt::Display, fs::File, io::Read, path::Path};
 
 struct GenericCPU {
     cpu_name: String,
@@ -20,11 +20,19 @@ impl GenericCPU {
 }
 impl Display for GenericCPU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {} [{}]", self.cpu_name, self.cores, self.threads, self.max_clock, self.tempreature)
+        write!(f, "{} ({}c {}t) @ {}GHz [{}]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.tempreature)
     }
 }
 
 pub fn get_cpu() {
+    let mut cpu = GenericCPU::new();
+    parse_proc(&mut cpu);
+    parse_frequency(&mut cpu);
+
+    println!("{}", cpu);
+}
+
+fn parse_proc(cpu: &mut GenericCPU) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores and threads
     let mut file: File = match File::open("/proc/cpuinfo") {
@@ -45,8 +53,6 @@ pub fn get_cpu() {
 
     // Now we parse
     // Just doing one entry as the rest are kinda redundant
-    let mut cpu = GenericCPU::new();
-
     let entry: &str = contents.split("\n\n").collect::<Vec<&str>>()[0];
     let lines: Vec<&str> = entry.split("\n").collect();
     for line in lines {
@@ -63,7 +69,7 @@ pub fn get_cpu() {
             }
         }
         if line.starts_with("siblings") {
-            cpu.threads= match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
+            cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                 Ok(r) => r,
                 Err(e) => {
                     println!("WARNING: Could not parse cpu threads: {}", e);
@@ -72,8 +78,8 @@ pub fn get_cpu() {
             }
         }
     }
-
-
+}
+fn parse_frequency(cpu: &mut GenericCPU) {
     // Now we parse /sys/devices/system/cpu/cpu0/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS
@@ -84,7 +90,38 @@ pub fn get_cpu() {
     //
     // Source: https://docs.kernel.org/admin-guide/pm/cpufreq.html
 
+    let mut freq_path: Option<&str> = None;
+    if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit").exists() {
+        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit");
+    } else if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq").exists() {
+        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq");
+    } else if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").exists() {
+        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq");
+    }
 
+    if freq_path.is_none() {
+        panic!("Could not find an appropriate path for getting CPU Frequency.");
+    }
 
-    println!("{}", cpu);
+    let mut file: File = match File::open(freq_path.unwrap()) {
+        Ok(r) => r,
+        Err(e) => {
+            panic!("Can't read from {} - {}", freq_path.unwrap(), e);
+        },
+    };
+    let mut contents: String = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(e) => {
+            panic!("Can't read from {} - {}", freq_path.unwrap(), e);
+        },
+    }
+
+    let freq: f32 = match contents.trim().parse::<f32>() {
+        Ok(r) => r / 1000.0,
+        Err(e) => {
+            0.0
+        }
+    };
+    cpu.max_clock = freq;
 }

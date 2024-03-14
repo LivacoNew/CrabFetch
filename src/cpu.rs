@@ -1,3 +1,4 @@
+use core::str;
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
 pub struct CPUInfo {
@@ -16,6 +17,16 @@ impl CPUInfo {
             max_clock: 0.0,
             temperature: 0.0
         }
+    }
+    pub fn format(&self, format: &str) -> String {
+        let mut returns: String = format.to_string();
+        returns = returns.replace("{name}", &self.cpu_name);
+        returns = returns.replace("{core_count}", &self.cores.to_string());
+        returns = returns.replace("{thread_count}", &self.threads.to_string());
+        returns = returns.replace("{max_clock_mhz}", &self.max_clock.to_string());
+        returns = returns.replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string());
+        returns = returns.replace("{temp}", &self.temperature.to_string());
+        returns
     }
 }
 impl Display for CPUInfo {

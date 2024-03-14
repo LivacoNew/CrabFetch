@@ -10,7 +10,7 @@ fn main() {
     let memory: MemoryInfo = memory::get_memory();
 
     if config.enable_cpu {
-        println!("{}", cpu);
+        println!("{}", cpu.format(&config.cpu_format));
     }
     if config.enable_memory {
         println!("{}", memory);

@@ -2,7 +2,7 @@ use core::str;
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
 pub struct CPUInfo {
-    cpu_name: String,
+    name: String,
     cores: u16,
     threads: u16,
     max_clock: f32,
@@ -11,7 +11,7 @@ pub struct CPUInfo {
 impl CPUInfo {
     fn new() -> CPUInfo {
         CPUInfo {
-            cpu_name: "".to_string(),
+            name: "".to_string(),
             cores: 0,
             threads: 0,
             max_clock: 0.0,
@@ -19,7 +19,7 @@ impl CPUInfo {
         }
     }
     pub fn format(&self, format: &str) -> String {
-        format.replace("{name}", &self.cpu_name)
+        format.replace("{name}", &self.name)
         .replace("{core_count}", &self.cores.to_string())
         .replace("{thread_count}", &self.threads.to_string())
         .replace("{max_clock_mhz}", &self.max_clock.to_string())
@@ -29,7 +29,7 @@ impl CPUInfo {
 }
 impl Display for CPUInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.temperature)
+        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.name, self.cores, self.threads, self.max_clock / 1000.0, self.temperature)
     }
 }
 
@@ -67,7 +67,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
     let lines: Vec<&str> = entry.split("\n").collect();
     for line in lines {
         if line.starts_with("model name") {
-            cpu.cpu_name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
+            cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
         }
         if line.starts_with("cpu cores") {
             cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {

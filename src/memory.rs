@@ -12,6 +12,14 @@ impl MemoryInfo {
             phys_max: 0,
         }
     }
+    pub fn format(&self, format: &str) -> String {
+        format.replace("{phys_used_kib}", &self.phys_used.to_string())
+        .replace("{phys_used_mib}", &(self.phys_used as f32 / 1024.0).to_string())
+        .replace("{phys_used_gib}", &(self.phys_used as f32 / 102400.0).to_string())
+        .replace("{phys_max_kib}", &self.phys_max.to_string())
+        .replace("{phys_max_mib}", &(self.phys_max as f32 / 1024.0).to_string())
+        .replace("{phys_max_gib}", &(self.phys_max as f32 / 102400.0).to_string())
+    }
 }
 impl Display for MemoryInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

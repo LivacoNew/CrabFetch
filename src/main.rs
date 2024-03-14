@@ -13,6 +13,6 @@ fn main() {
         println!("{}", cpu.format(&config.cpu_format));
     }
     if config.enable_memory {
-        println!("{}", memory);
+        println!("{}", memory.format(&config.memory_format));
     }
 }

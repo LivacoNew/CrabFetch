@@ -49,6 +49,7 @@ pub fn get_cpu() -> CPUInfo {
 fn get_basic_info(cpu: &mut CPUInfo) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
+    // TODO: Average the current clock so that it's not just on core 0 we're reading it
     let mut file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
         Err(e) => {

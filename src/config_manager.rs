@@ -39,10 +39,10 @@ pub fn parse() -> Configuration {
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     // Set the defaults here
     builder = builder.set_default("enable_cpu", true).unwrap();
-    builder = builder.set_default("cpu_format", "penis").unwrap();
+    builder = builder.set_default("cpu_format", "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)").unwrap();
 
     builder = builder.set_default("enable_memory", true).unwrap();
-    builder = builder.set_default("memory_format", "penis").unwrap();
+    builder = builder.set_default("memory_format", "Memory -> {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
     // Now stop.
     let config = match builder.build() {
         Ok(r) => r,

@@ -14,9 +14,7 @@ enable_cpu = true
 # {current_clock_ghz}   -> The current clock speed, in GHz.
 # {max_clock_ghz}       -> The maximum clock speed, in GHz.
 # {max_clock_mhz}       -> The maximum clock speed, in MHz.
-# {temp_c}              -> The temperature of the CPU, in celcius.
-# {temp_f}              -> The temperature of the CPU, in farenheit.
-cpu_format = "Processor > {name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz [{temp_c}°C]"
+cpu_format = "Processor > {name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 #

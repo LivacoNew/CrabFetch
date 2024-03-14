@@ -9,7 +9,6 @@ pub struct CPUInfo {
     threads: u16,
     current_clock: f32,
     max_clock: f32,
-    temperature: f32,
 }
 impl Fetchable for CPUInfo {
     fn new() -> CPUInfo {
@@ -19,7 +18,6 @@ impl Fetchable for CPUInfo {
             threads: 0,
             current_clock: 0.0,
             max_clock: 0.0,
-            temperature: 0.0
         }
     }
     fn format(&self, format: &str) -> String {
@@ -30,13 +28,11 @@ impl Fetchable for CPUInfo {
         .replace("{current_clock_ghz}", &(self.current_clock / 1000.0).to_string())
         .replace("{max_clock_mhz}", &self.max_clock.to_string())
         .replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string())
-        .replace("{temp_c}", &self.temperature.to_string())
-        .replace("{temp_f}", &(self.temperature * (9.0/5.0) + 32.0).to_string()) // lol imperial
     }
 }
 impl Display for CPUInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.name, self.cores, self.threads, self.max_clock / 1000.0, self.temperature)
+        write!(f, "{} ({}c {}t) @ {}GHz", self.name, self.cores, self.threads, self.max_clock / 1000.0)
     }
 }
 
@@ -44,7 +40,6 @@ pub fn get_cpu() -> CPUInfo {
     let mut cpu = CPUInfo::new();
     get_basic_info(&mut cpu);
     get_max_clock(&mut cpu);
-    get_temperature(&mut cpu);
 
     cpu
 }
@@ -147,31 +142,6 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     match contents.trim().parse::<f32>() {
         Ok(r) => {
             cpu.max_clock = r / 1000.0
-        },
-        Err(_) => {}
-    };
-}
-fn get_temperature(cpu: &mut CPUInfo) {
-    // To get the temp I'm reading from /sys/class/thermal/thermal_zone0/temp
-    // Not sure if this is a consistent way to get the CPU temperature, but it will do for now.
-
-    let mut file: File = match File::open("/sys/class/thermal/thermal_zone0/temp") {
-        Ok(r) => r,
-        Err(e) => {
-            panic!("Can't read from /sys/class/thermal/thermal_zone0/temp - {}", e);
-        },
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            panic!("Can't read from /sys/class/thermal/thermal_zone0/temp - {}", e);
-        },
-    }
-
-    match contents.trim().parse::<f32>() {
-        Ok(r) => {
-            cpu.temperature = r / 1000.0;
         },
         Err(_) => {}
     };

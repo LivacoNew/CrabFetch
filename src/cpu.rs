@@ -30,7 +30,8 @@ impl Fetchable for CPUInfo {
         .replace("{current_clock_ghz}", &(self.current_clock / 1000.0).to_string())
         .replace("{max_clock_mhz}", &self.max_clock.to_string())
         .replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string())
-        .replace("{temp}", &self.temperature.to_string())
+        .replace("{temp_c}", &self.temperature.to_string())
+        .replace("{temp_f}", &(self.temperature * (9.0/5.0) + 32.0).to_string()) // lol imperial
     }
 }
 impl Display for CPUInfo {

@@ -7,10 +7,16 @@
 enable_cpu = true
 
 # The format the CPU should be in. Placeholders;
-# {name} -> The name of the cpu.
-# {max_clock_ghz} -> The clock speed of the CPU, in GHz.
-# {max_clock_mhz} -> The clock speed of the CPU, in MHz.
-cpu_format = "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)"
+# {name}                -> The name of the cpu.
+# {core_count}          -> The number of cores.
+# {thread_count}        -> The number of threads.
+# {current_clock_mhz}   -> The current clock speed, in MHz.
+# {current_clock_ghz}   -> The current clock speed, in GHz.
+# {max_clock_ghz}       -> The maximum clock speed, in GHz.
+# {max_clock_mhz}       -> The maximum clock speed, in MHz.
+# {temp_c}              -> The temperature of the CPU, in celcius.
+# {temp_f}              -> The temperature of the CPU, in farenheit.
+cpu_format = "Processor > {name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz [{temp_c}°C]"
 
 
 #
@@ -22,7 +28,11 @@ cpu_format = "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock
 enable_memory = true
 
 # The format the memory should be in. Placehodlers;
-# {phys_used} -> The currently used memory.
-# {phys_max} -> The maximum memory.
-memory_format = "Memory -> {phys_used_mib}GiB / {phys_max_gib}GiB"
+# {phys_used_kib} -> The currently used memory in KiB.
+# {phys_used_mib} -> The currently used memory in MiB.
+# {phys_used_gib} -> The currently used memory in GiB.
+# {phys_max_kib} -> The maximum total memory in KiB.
+# {phys_max_mib} -> The maximum total memory in MiB.
+# {phys_max_gib} -> The maximum total memory in GiB.
+memory_format = "Memory -> {phys_used_gib}GiB / {phys_max_gib}GiB"
 

@@ -47,5 +47,5 @@ pub fn parse() -> Configuration {
         Ok(r) => r,
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
-    return deserialized;
+    deserialized
 }

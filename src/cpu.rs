@@ -5,6 +5,7 @@ pub struct CPUInfo {
     name: String,
     cores: u16,
     threads: u16,
+    current_clock: f32,
     max_clock: f32,
     temperature: f32,
 }
@@ -14,6 +15,7 @@ impl CPUInfo {
             name: "".to_string(),
             cores: 0,
             threads: 0,
+            current_clock: 0.0,
             max_clock: 0.0,
             temperature: 0.0
         }
@@ -22,6 +24,8 @@ impl CPUInfo {
         format.replace("{name}", &self.name)
         .replace("{core_count}", &self.cores.to_string())
         .replace("{thread_count}", &self.threads.to_string())
+        .replace("{current_clock_mhz}", &self.current_clock.to_string())
+        .replace("{current_clock_ghz}", &(self.current_clock / 1000.0).to_string())
         .replace("{max_clock_mhz}", &self.max_clock.to_string())
         .replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string())
         .replace("{temp}", &self.temperature.to_string())
@@ -44,7 +48,7 @@ pub fn get_cpu() -> CPUInfo {
 
 fn get_basic_info(cpu: &mut CPUInfo) {
     // Starts by reading and parsing /proc/cpuinfo
-    // This gives us the cpu name, cores and threads
+    // This gives us the cpu name, cores, threads and current clock
     let mut file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
         Err(e) => {
@@ -87,6 +91,15 @@ fn get_basic_info(cpu: &mut CPUInfo) {
                 },
             }
         }
+        if line.starts_with("cpu MHz") {
+            cpu.current_clock = match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("WARNING: Could not parse current cpu frequency: {}", e);
+                    0.0
+                },
+            }
+        }
     }
 }
 fn get_max_clock(cpu: &mut CPUInfo) {
@@ -110,7 +123,7 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     }
 
     if freq_path.is_none() {
-        panic!("Could not find an appropriate path for getting CPU Frequency.");
+        panic!("Could not find an appropriate path for getting max CPU Frequency.");
     }
 
     let mut file: File = match File::open(freq_path.unwrap()) {

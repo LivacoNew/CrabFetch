@@ -1,0 +1,28 @@
+#
+# Processor
+#
+
+# Enables displaying the CPU
+# Accepts true / false
+enable_cpu = true
+
+# The format the CPU should be in. Placeholders;
+# {name} -> The name of the cpu.
+# {max_clock_ghz} -> The clock speed of the CPU, in GHz.
+# {max_clock_mhz} -> The clock speed of the CPU, in MHz.
+cpu_format = "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)"
+
+
+#
+# Memory
+#
+
+# Enables displaying memory
+# Accepts true/false
+enable_memory = true
+
+# The format the memory should be in. Placehodlers;
+# {phys_used} -> The currently used memory.
+# {phys_max} -> The maximum memory.
+memory_format = "Memory -> {phys_used_mib}GiB / {phys_max_gib}GiB"
+

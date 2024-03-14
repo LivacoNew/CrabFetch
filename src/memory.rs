@@ -1,18 +1,20 @@
 use std::{fmt::Display, fs::File};
 use std::io::Read;
 
+use crate::Fetchable;
+
 pub struct MemoryInfo {
     phys_used: u32,
     phys_max: u32,
 }
-impl MemoryInfo {
+impl Fetchable for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {
             phys_used: 0,
             phys_max: 0,
         }
     }
-    pub fn format(&self, format: &str) -> String {
+    fn format(&self, format: &str) -> String {
         format.replace("{phys_used_kib}", &self.phys_used.to_string())
         .replace("{phys_used_mib}", &(self.phys_used as f32 / 1024.0).to_string())
         .replace("{phys_used_gib}", &(self.phys_used as f32 / 102400.0).to_string())

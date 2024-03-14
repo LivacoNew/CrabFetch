@@ -1,6 +1,8 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
+use crate::Fetchable;
+
 pub struct CPUInfo {
     name: String,
     cores: u16,
@@ -9,7 +11,7 @@ pub struct CPUInfo {
     max_clock: f32,
     temperature: f32,
 }
-impl CPUInfo {
+impl Fetchable for CPUInfo {
     fn new() -> CPUInfo {
         CPUInfo {
             name: "".to_string(),
@@ -20,7 +22,7 @@ impl CPUInfo {
             temperature: 0.0
         }
     }
-    pub fn format(&self, format: &str) -> String {
+    fn format(&self, format: &str) -> String {
         format.replace("{name}", &self.name)
         .replace("{core_count}", &self.cores.to_string())
         .replace("{thread_count}", &self.threads.to_string())

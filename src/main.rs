@@ -4,6 +4,11 @@ mod cpu;
 mod memory;
 mod config_manager;
 
+trait Fetchable {
+    fn new() -> Self;
+    fn format(&self, format: &str) -> String;
+}
+
 fn main() {
     let config: Configuration = config_manager::parse();
     let cpu: CPUInfo = cpu::get_cpu();

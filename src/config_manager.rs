@@ -5,7 +5,10 @@ use std::env;
 #[derive(Deserialize)]
 pub struct Configuration {
     pub enable_cpu: bool,
-    pub cpu_format: String
+    pub cpu_format: String,
+
+    pub enable_memory: bool,
+    pub memory_format: String
 }
 
 pub fn parse() -> Configuration {
@@ -37,6 +40,9 @@ pub fn parse() -> Configuration {
     // Set the defaults here
     builder = builder.set_default("enable_cpu", true).unwrap();
     builder = builder.set_default("cpu_format", "penis").unwrap();
+
+    builder = builder.set_default("enable_memory", true).unwrap();
+    builder = builder.set_default("memory_format", "penis").unwrap();
     // Now stop.
     let config = match builder.build() {
         Ok(r) => r,

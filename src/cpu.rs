@@ -19,14 +19,12 @@ impl CPUInfo {
         }
     }
     pub fn format(&self, format: &str) -> String {
-        let mut returns: String = format.to_string();
-        returns = returns.replace("{name}", &self.cpu_name);
-        returns = returns.replace("{core_count}", &self.cores.to_string());
-        returns = returns.replace("{thread_count}", &self.threads.to_string());
-        returns = returns.replace("{max_clock_mhz}", &self.max_clock.to_string());
-        returns = returns.replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string());
-        returns = returns.replace("{temp}", &self.temperature.to_string());
-        returns
+        format.replace("{name}", &self.cpu_name)
+        .replace("{core_count}", &self.cores.to_string())
+        .replace("{thread_count}", &self.threads.to_string())
+        .replace("{max_clock_mhz}", &self.max_clock.to_string())
+        .replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string())
+        .replace("{temp}", &self.temperature.to_string())
     }
 }
 impl Display for CPUInfo {

@@ -15,7 +15,7 @@ impl MemoryInfo {
 }
 impl Display for MemoryInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", self.phys_used / 1024, self.phys_max / 1024)
+        write!(f, "{} / {}", (self.phys_used as f32 / 102400.0), (self.phys_max as f32 / 102400.0))
     }
 }
 

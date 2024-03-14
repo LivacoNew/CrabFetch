@@ -2,6 +2,14 @@
 # E.g " > " puts "Processor > (info)"
 seperator = " > "
 
+# Title color
+# Can be; black, red, green, yellow, blue, magenta, cyan, white
+# All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
+title_color = "red"
+# Whether to bold/italic the title
+title_bold = true
+title_italic = true
+
 
 #
 # Processor

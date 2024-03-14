@@ -1,10 +1,56 @@
+use std::env;
+
+use colored::{ColoredString, Colorize};
 use config::Config;
 use serde::Deserialize;
-use std::env;
+
+// This is a hack to get the color deserializaton working
+// Essentially it uses my own enum, and to print it you need to call cfcolor_to_terminal_color
+#[derive(Deserialize, Debug)]
+pub enum CrabFetchColor {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite
+}
+pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
+    match color {
+        CrabFetchColor::Black => string.black(),
+        CrabFetchColor::Red => string.red(),
+        CrabFetchColor::Green => string.green(),
+        CrabFetchColor::Yellow => string.yellow(),
+        CrabFetchColor::Blue => todo!(),
+        CrabFetchColor::Magenta => todo!(),
+        CrabFetchColor::Cyan => todo!(),
+        CrabFetchColor::White => todo!(),
+        CrabFetchColor::BrightBlack => todo!(),
+        CrabFetchColor::BrightRed => todo!(),
+        CrabFetchColor::BrightGreen => todo!(),
+        CrabFetchColor::BrightYellow => todo!(),
+        CrabFetchColor::BrightBlue => todo!(),
+        CrabFetchColor::BrightMagenta => todo!(),
+        CrabFetchColor::BrightCyan => todo!(),
+        CrabFetchColor::BrightWhite => todo!(),
+    }
+}
+
 
 #[derive(Deserialize)]
 pub struct Configuration {
     pub seperator: String,
+    pub title_color: CrabFetchColor,
 
     pub enable_cpu: bool,
     pub cpu_title: String,

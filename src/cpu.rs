@@ -5,7 +5,7 @@ pub struct CPUInfo {
     cores: u16,
     threads: u16,
     max_clock: f32,
-    tempreature: f32,
+    temperature: f32,
 }
 impl CPUInfo {
     fn new() -> CPUInfo {
@@ -14,13 +14,13 @@ impl CPUInfo {
             cores: 0,
             threads: 0,
             max_clock: 0.0,
-            tempreature: 0.0
+            temperature: 0.0
         }
     }
 }
 impl Display for CPUInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.tempreature)
+        write!(f, "{} ({}c {}t) @ {}GHz [{}°C]", self.cpu_name, self.cores, self.threads, self.max_clock / 1000.0, self.temperature)
     }
 }
 
@@ -145,7 +145,7 @@ fn get_temperature(cpu: &mut CPUInfo) {
 
     match contents.trim().parse::<f32>() {
         Ok(r) => {
-            cpu.tempreature = r / 1000.0;
+            cpu.temperature = r / 1000.0;
         },
         Err(_) => {}
     };

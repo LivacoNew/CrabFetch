@@ -1,10 +1,17 @@
+# Title seperator character
+# E.g " > " puts "Processor > (info)"
+seperator = " > "
+
+
 #
 # Processor
 #
 
-# Enables displaying the CPU
 # Accepts true / false
 enable_cpu = true
+
+# Title for CPU
+cpu_title = "Processor"
 
 # The format the CPU should be in. Placeholders;
 # {name}                -> The name of the cpu.
@@ -14,7 +21,7 @@ enable_cpu = true
 # {current_clock_ghz}   -> The current clock speed, in GHz.
 # {max_clock_ghz}       -> The maximum clock speed, in GHz.
 # {max_clock_mhz}       -> The maximum clock speed, in MHz.
-cpu_format = "Processor > {name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
+cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 #
@@ -25,6 +32,9 @@ cpu_format = "Processor > {name} ({core_count}c {thread_count}t) @ {max_clock_gh
 # Accepts true/false
 enable_memory = true
 
+# Title for Memory
+memory_title = "Memory"
+
 # The format the memory should be in. Placehodlers;
 # {phys_used_kib} -> The currently used memory in KiB.
 # {phys_used_mib} -> The currently used memory in MiB.
@@ -32,5 +42,5 @@ enable_memory = true
 # {phys_max_kib} -> The maximum total memory in KiB.
 # {phys_max_mib} -> The maximum total memory in MiB.
 # {phys_max_gib} -> The maximum total memory in GiB.
-memory_format = "Memory -> {phys_used_gib}GiB / {phys_max_gib}GiB"
+memory_format = "{phys_used_gib}GiB / {phys_max_gib}GiB"
 

@@ -2,6 +2,7 @@
 # Accepts; hostname, cpu, memory
 modules = [
     "hostname",
+    "underline",
     "cpu",
     "memory"
 ]
@@ -31,6 +32,17 @@ hostname_title = "Hostname"
 # {hostname}            -> The hostname of the system.
 # {username}            -> The username of the current user.
 hostname_format = "{username}@{hostname}"
+
+
+#
+# Underline
+#
+
+# Length of the underline
+underline_length = 24
+
+# Whether to format the underline to the title formatting
+underline_format = true
 
 
 

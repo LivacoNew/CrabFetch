@@ -19,7 +19,7 @@ fn main() {
     let ascii = ascii::get_ascii("default");
 
     let mut line_number: u8 = 0;
-    let target_length = 48;
+    let target_length: usize = 48;
     for line in ascii.split("\n") {
         print!("{}", line);
         let remainder = target_length - line.len();
@@ -45,6 +45,11 @@ fn main() {
                     str.push_str(&hostname.format(&config.hostname_format));
                     print!("{}", str);
                 },
+                "underline" => {
+                    for _ in 0..config.underline_length {
+                        print!("-");
+                    }
+                }
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();
                     let mut str = String::new();

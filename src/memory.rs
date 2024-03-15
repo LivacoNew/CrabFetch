@@ -16,14 +16,14 @@ impl Module for MemoryInfo {
             percentage: 0.0
         }
     }
-    fn format(&self, format: &str, float_places: Option<u8>) -> String {
-        format.replace("{phys_used_kib}", &self.used.to_string())
-        .replace("{phys_used_mib}", &(self.used as f32 / 1024.0).to_string())
-        .replace("{phys_used_gib}", &(self.used as f32 / 102400.0).to_string())
-        .replace("{phys_max_kib}", &self.max.to_string())
-        .replace("{phys_max_mib}", &(self.max as f32 / 1024.0).to_string())
-        .replace("{phys_max_gib}", &(self.max as f32 / 102400.0).to_string())
-        .replace("{percent}", &self.percentage.to_string())
+    fn format(&self, format: &str, float_places: u32) -> String {
+        format.replace("{phys_used_kib}", &MemoryInfo::round(self.used as f32, float_places).to_string())
+        .replace("{phys_used_mib}", &MemoryInfo::round(self.used as f32 / 1024.0, float_places).to_string())
+        .replace("{phys_used_gib}", &MemoryInfo::round(self.used as f32 / 102400.0, float_places).to_string())
+        .replace("{phys_max_kib}", &MemoryInfo::round(self.max as f32, float_places).to_string())
+        .replace("{phys_max_mib}", &MemoryInfo::round(self.max as f32 / 1024.0, float_places).to_string())
+        .replace("{phys_max_gib}", &MemoryInfo::round(self.max as f32 / 102400.0, float_places).to_string())
+        .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
     }
 }
 impl Display for MemoryInfo {

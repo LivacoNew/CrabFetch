@@ -11,7 +11,12 @@ mod hostname;
 
 trait Module {
     fn new() -> Self;
-    fn format(&self, format: &str, float_decmials: Option<u8>) -> String;
+    fn format(&self, format: &str, float_decmials: u32) -> String;
+    // This helps the format function lol
+    fn round(number: f32, places: u32) -> f32 {
+        let power: f32 = 10_u32.pow(places) as f32;
+        (number * power).round() / power
+    }
 }
 
 fn main() {
@@ -42,7 +47,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&hostname.format(&config.hostname_format, None));
+                    str.push_str(&hostname.format(&config.hostname_format, config.decimal_places));
                     print!("{}", str);
                 },
                 "underline" => {
@@ -62,7 +67,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&cpu.format(&config.cpu_format, None));
+                    str.push_str(&cpu.format(&config.cpu_format, config.decimal_places));
                     print!("{}", str);
                 },
                 "memory" => {
@@ -77,7 +82,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&memory.format(&config.memory_format, None));
+                    str.push_str(&memory.format(&config.memory_format, config.decimal_places));
                     print!("{}", str);
                 }
                 _ => {

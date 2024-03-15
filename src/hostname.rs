@@ -14,7 +14,7 @@ impl Module for HostnameInfo {
             hostname: "".to_string(),
         }
     }
-    fn format(&self, format: &str) -> String {
+    fn format(&self, format: &str, _: u32) -> String {
         format.replace("{hostname}", &self.hostname)
         .replace("{username}", &self.username)
     }

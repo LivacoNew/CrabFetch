@@ -20,14 +20,14 @@ impl Module for CPUInfo {
             max_clock: 0.0,
         }
     }
-    fn format(&self, format: &str) -> String {
+    fn format(&self, format: &str, float_places: u32) -> String {
         format.replace("{name}", &self.name)
         .replace("{core_count}", &self.cores.to_string())
         .replace("{thread_count}", &self.threads.to_string())
         .replace("{current_clock_mhz}", &self.current_clock.to_string())
         .replace("{current_clock_ghz}", &(self.current_clock / 1000.0).to_string())
-        .replace("{max_clock_mhz}", &self.max_clock.to_string())
-        .replace("{max_clock_ghz}", &(self.max_clock / 1000.0).to_string())
+        .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock, float_places).to_string())
+        .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock / 1000.0, float_places).to_string())
     }
 }
 impl Display for CPUInfo {

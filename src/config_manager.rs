@@ -56,7 +56,7 @@ pub struct Configuration {
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
     pub title_italic: bool,
-    pub decimal_places: u8,
+    pub decimal_places: u32,
 
     pub hostname_title: String,
     pub hostname_format: String,

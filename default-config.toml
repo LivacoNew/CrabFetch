@@ -78,4 +78,5 @@ memory_title = "Memory"
 # {phys_max_kib}        -> The maximum total memory in KiB.
 # {phys_max_mib}        -> The maximum total memory in MiB.
 # {phys_max_gib}        -> The maximum total memory in GiB.
-memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB"
+# {percent}             -> Percentage of memory used
+memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"

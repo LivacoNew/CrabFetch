@@ -4,28 +4,31 @@ use std::io::Read;
 use crate::Module;
 
 pub struct MemoryInfo {
-    phys_used: u32,
-    phys_max: u32,
+    used: u32,
+    max: u32,
+    percentage: f32
 }
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {
-            phys_used: 0,
-            phys_max: 0,
+            used: 0,
+            max: 0,
+            percentage: 0.0
         }
     }
     fn format(&self, format: &str) -> String {
-        format.replace("{phys_used_kib}", &self.phys_used.to_string())
-        .replace("{phys_used_mib}", &(self.phys_used as f32 / 1024.0).to_string())
-        .replace("{phys_used_gib}", &(self.phys_used as f32 / 102400.0).to_string())
-        .replace("{phys_max_kib}", &self.phys_max.to_string())
-        .replace("{phys_max_mib}", &(self.phys_max as f32 / 1024.0).to_string())
-        .replace("{phys_max_gib}", &(self.phys_max as f32 / 102400.0).to_string())
+        format.replace("{phys_used_kib}", &self.used.to_string())
+        .replace("{phys_used_mib}", &(self.used as f32 / 1024.0).to_string())
+        .replace("{phys_used_gib}", &(self.used as f32 / 102400.0).to_string())
+        .replace("{phys_max_kib}", &self.max.to_string())
+        .replace("{phys_max_mib}", &(self.max as f32 / 1024.0).to_string())
+        .replace("{phys_max_gib}", &(self.max as f32 / 102400.0).to_string())
+        .replace("{percent}", &self.percentage.to_string())
     }
 }
 impl Display for MemoryInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", (self.phys_used as f32 / 102400.0), (self.phys_max as f32 / 102400.0))
+        write!(f, "{} / {}", (self.used as f32 / 102400.0), (self.max as f32 / 102400.0))
     }
 }
 
@@ -67,7 +70,7 @@ fn get_basic_info(memory: &mut MemoryInfo) {
         if line.starts_with("MemTotal") {
             let mut var = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
-            memory.phys_max = match var.to_string().parse::<u32>() {
+            memory.max = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
                     println!("WARNING: Could not parse total memory: {}", e);
@@ -133,5 +136,6 @@ fn get_basic_info(memory: &mut MemoryInfo) {
     }
 
     // MemUsed = Memtotal + Shmem - MemFree - Buffers - Cached - SReclaimable
-    memory.phys_used = memory.phys_max + shmem - mem_free - buffers - cached - s_reclaimable;
+    memory.used = memory.max + shmem - mem_free - buffers - cached - s_reclaimable;
+    memory.percentage = (memory.used as f32 / memory.max as f32) * 100.0;
 }

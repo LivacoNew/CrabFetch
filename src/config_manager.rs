@@ -84,6 +84,7 @@ pub fn parse() -> Configuration {
             home_dir
         }
     };
+    println!("{}", config_path_str);
 
     let mut builder = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
@@ -96,7 +97,7 @@ pub fn parse() -> Configuration {
 
     builder = builder.set_default("enable_memory", true).unwrap();
     builder = builder.set_default("memory_title", "Memory").unwrap();
-    builder = builder.set_default("memory_format", "Memory -> {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
+    builder = builder.set_default("memory_format", "Memory > {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
     // Now stop.
     let config = match builder.build() {
         Ok(r) => r,

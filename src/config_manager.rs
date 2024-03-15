@@ -51,12 +51,11 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
 pub struct Configuration {
     pub seperator: String,
     pub title_color: CrabFetchColor,
+    pub modules: Vec<String>,
 
-    pub enable_cpu: bool,
     pub cpu_title: String,
     pub cpu_format: String,
 
-    pub enable_memory: bool,
     pub memory_title: String,
     pub memory_format: String
 }
@@ -90,12 +89,11 @@ pub fn parse() -> Configuration {
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     // Set the defaults here
     builder = builder.set_default("seperator", " > ").unwrap();
+    builder = builder.set_default("modules", vec!["cpu".to_string(), "memory".to_string()]).unwrap();
 
-    builder = builder.set_default("enable_cpu", true).unwrap();
     builder = builder.set_default("cpu_title", "Processor").unwrap();
     builder = builder.set_default("cpu_format", "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)").unwrap();
 
-    builder = builder.set_default("enable_memory", true).unwrap();
     builder = builder.set_default("memory_title", "Memory").unwrap();
     builder = builder.set_default("memory_format", "Memory > {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
     // Now stop.

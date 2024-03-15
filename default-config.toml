@@ -11,12 +11,15 @@ title_bold = true
 title_italic = true
 
 
-#
-# Processor
-#
+modules = [
+    "cpu",
+    "memory"
+]
 
-# Accepts true / false
-enable_cpu = true
+
+#
+# CPU
+#
 
 # Title for CPU
 cpu_title = "Processor"
@@ -35,10 +38,6 @@ cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 #
 # Memory
 #
-
-# Enables displaying memory
-# Accepts true/false
-enable_memory = true
 
 # Title for Memory
 memory_title = "Memory"

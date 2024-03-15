@@ -1,20 +1,23 @@
+# The modules to display
+# Accepts; cpu, memory
+modules = [
+    "cpu",
+    "memory"
+]
+
+
 # Title seperator character
-# E.g " > " puts "Processor > (info)"
+# E.g " > " puts "Processor > info"
 seperator = " > "
 
 # Title color
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
-title_color = "red"
+title_color = "magenta"
 # Whether to bold/italic the title
 title_bold = true
 title_italic = true
 
-
-modules = [
-    "cpu",
-    "memory"
-]
 
 
 #
@@ -50,4 +53,3 @@ memory_title = "Memory"
 # {phys_max_mib} -> The maximum total memory in MiB.
 # {phys_max_gib} -> The maximum total memory in GiB.
 memory_format = "{phys_used_gib}GiB / {phys_max_gib}GiB"
-

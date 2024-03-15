@@ -88,8 +88,11 @@ pub fn parse() -> Configuration {
     let mut builder = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     // Set the defaults here
-    builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("modules", vec!["cpu".to_string(), "memory".to_string()]).unwrap();
+    builder = builder.set_default("seperator", " > ").unwrap();
+    builder = builder.set_default("title_color", "magenta").unwrap();
+    builder = builder.set_default("title_bold", true).unwrap();
+    builder = builder.set_default("title_italic", true).unwrap();
 
     builder = builder.set_default("cpu_title", "Processor").unwrap();
     builder = builder.set_default("cpu_format", "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)").unwrap();

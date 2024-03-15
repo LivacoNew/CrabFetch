@@ -16,7 +16,7 @@ impl Module for MemoryInfo {
             percentage: 0.0
         }
     }
-    fn format(&self, format: &str) -> String {
+    fn format(&self, format: &str, float_places: Option<u8>) -> String {
         format.replace("{phys_used_kib}", &self.used.to_string())
         .replace("{phys_used_mib}", &(self.used as f32 / 1024.0).to_string())
         .replace("{phys_used_gib}", &(self.used as f32 / 102400.0).to_string())

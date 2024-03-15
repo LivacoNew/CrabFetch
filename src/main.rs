@@ -11,7 +11,7 @@ mod hostname;
 
 trait Module {
     fn new() -> Self;
-    fn format(&self, format: &str) -> String;
+    fn format(&self, format: &str, float_decmials: Option<u8>) -> String;
 }
 
 fn main() {
@@ -42,7 +42,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&hostname.format(&config.hostname_format));
+                    str.push_str(&hostname.format(&config.hostname_format, None));
                     print!("{}", str);
                 },
                 "underline" => {
@@ -62,7 +62,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&cpu.format(&config.cpu_format));
+                    str.push_str(&cpu.format(&config.cpu_format, None));
                     print!("{}", str);
                 },
                 "memory" => {
@@ -77,7 +77,7 @@ fn main() {
                     }
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
-                    str.push_str(&memory.format(&config.memory_format));
+                    str.push_str(&memory.format(&config.memory_format, None));
                     print!("{}", str);
                 }
                 _ => {

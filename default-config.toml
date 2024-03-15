@@ -20,6 +20,9 @@ title_color = "bright_magenta"
 title_bold = true
 title_italic = true
 
+# How many decimal places to use on float values
+decimal_places = 2
+
 
 #
 # Hostname

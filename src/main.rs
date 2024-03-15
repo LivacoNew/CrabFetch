@@ -16,7 +16,7 @@ fn main() {
 
     if config.enable_cpu {
         let mut str = String::new();
-        print!("{}", &config_manager::color_string(&config.cpu_title, &config.title_color));
+        str.push_str(&config_manager::color_string(&config.cpu_title, &config.title_color).to_string());
         str.push_str(&config.seperator);
         str.push_str(&cpu.format(&config.cpu_format));
         println!("{}", str);

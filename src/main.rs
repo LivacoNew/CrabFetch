@@ -5,7 +5,7 @@ mod memory;
 mod config_manager;
 mod ascii;
 
-trait Fetchable {
+trait Module {
     fn new() -> Self;
     fn format(&self, format: &str) -> String;
 }

@@ -1,13 +1,13 @@
 use std::{fmt::Display, fs::File};
 use std::io::Read;
 
-use crate::Fetchable;
+use crate::Module;
 
 pub struct MemoryInfo {
     phys_used: u32,
     phys_max: u32,
 }
-impl Fetchable for MemoryInfo {
+impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {
             phys_used: 0,

@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
-use crate::Fetchable;
+use crate::Module;
 
 pub struct CPUInfo {
     name: String,
@@ -10,7 +10,7 @@ pub struct CPUInfo {
     current_clock: f32,
     max_clock: f32,
 }
-impl Fetchable for CPUInfo {
+impl Module for CPUInfo {
     fn new() -> CPUInfo {
         CPUInfo {
             name: "".to_string(),

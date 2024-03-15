@@ -1,5 +1,5 @@
 # The modules to display
-# Accepts; hostname, user, hostname, cpu, memory
+# Accepts; hostname, cpu, memory
 modules = [
     "hostname",
     "cpu",

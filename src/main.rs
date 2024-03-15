@@ -23,7 +23,7 @@ fn main() {
     }
     if config.enable_memory {
         let mut str = String::new();
-        print!("{}", &config_manager::color_string(&config.memory_title, &config.title_color));
+        str.push_str(&config_manager::color_string(&config.memory_title, &config.title_color).to_string());
         str.push_str(&config.seperator);
         str.push_str(&memory.format(&config.memory_format));
         println!("{}", str);

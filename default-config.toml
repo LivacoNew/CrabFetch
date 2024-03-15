@@ -1,6 +1,7 @@
 # The modules to display
-# Accepts; cpu, memory
+# Accepts; hostname, user, hostname, cpu, memory
 modules = [
+    "hostname",
     "cpu",
     "memory"
 ]
@@ -19,6 +20,19 @@ title_bold = true
 title_italic = true
 
 
+#
+# Hostname
+#
+
+# Title for Hostname
+hostname_title = "Hostname"
+
+# The format the CPU should be in. Placeholders;
+# {hostname}            -> The hostname of the system.
+# {username}            -> The username of the current user.
+hostname_format = "{username}@{hostname}"
+
+
 
 #
 # CPU
@@ -33,8 +47,8 @@ cpu_title = "Processor"
 # {thread_count}        -> The number of threads.
 # {current_clock_mhz}   -> The current clock speed, in MHz.
 # {current_clock_ghz}   -> The current clock speed, in GHz.
-# {max_clock_ghz}       -> The maximum clock speed, in GHz.
 # {max_clock_mhz}       -> The maximum clock speed, in MHz.
+# {max_clock_ghz}       -> The maximum clock speed, in GHz.
 cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
@@ -46,10 +60,10 @@ cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 memory_title = "Memory"
 
 # The format the memory should be in. Placehodlers;
-# {phys_used_kib} -> The currently used memory in KiB.
-# {phys_used_mib} -> The currently used memory in MiB.
-# {phys_used_gib} -> The currently used memory in GiB.
-# {phys_max_kib} -> The maximum total memory in KiB.
-# {phys_max_mib} -> The maximum total memory in MiB.
-# {phys_max_gib} -> The maximum total memory in GiB.
-memory_format = "{phys_used_gib}GiB / {phys_max_gib}GiB"
+# {phys_used_kib}       -> The currently used memory in KiB.
+# {phys_used_mib}       -> The currently used memory in MiB.
+# {phys_used_gib}       -> The currently used memory in GiB.
+# {phys_max_kib}        -> The maximum total memory in KiB.
+# {phys_max_mib}        -> The maximum total memory in MiB.
+# {phys_max_gib}        -> The maximum total memory in GiB.
+memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB"

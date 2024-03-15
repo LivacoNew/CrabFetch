@@ -1,4 +1,5 @@
 use colored::{ColoredString, Colorize};
+use hostname::HostnameInfo;
 
 use crate::{config_manager::Configuration, memory::MemoryInfo, cpu::CPUInfo};
 
@@ -6,6 +7,7 @@ mod cpu;
 mod memory;
 mod config_manager;
 mod ascii;
+mod hostname;
 
 trait Module {
     fn new() -> Self;
@@ -16,6 +18,7 @@ fn main() {
     let config: Configuration = config_manager::parse();
     let cpu: CPUInfo = cpu::get_cpu();
     let memory: MemoryInfo = memory::get_memory();
+    let hostname: HostnameInfo = hostname::get_hostname();
 
     let ascii = ascii::get_ascii("default");
 
@@ -30,6 +33,20 @@ fn main() {
 
         // println!("{} {}", config.modules.len(), line_number);
         if config.modules.len() > line_number as usize {
+            if config.modules[line_number as usize] == "hostname" {
+                let mut str = String::new();
+                let mut title: ColoredString = config_manager::color_string(&config.hostname_title, &config.title_color);
+                if config.title_bold {
+                    title = title.bold();
+                }
+                if config.title_italic {
+                    title = title.italic();
+                }
+                str.push_str(&title.to_string());
+                str.push_str(&config.seperator);
+                str.push_str(&hostname.format(&config.hostname_format));
+                print!("{}", str);
+            }
             if config.modules[line_number as usize] == "cpu" {
                 let mut str = String::new();
                 let mut title: ColoredString = config_manager::color_string(&config.cpu_title, &config.title_color);

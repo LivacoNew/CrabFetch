@@ -57,6 +57,9 @@ pub struct Configuration {
     pub title_bold: bool,
     pub title_italic: bool,
 
+    pub hostname_title: String,
+    pub hostname_format: String,
+
     pub cpu_title: String,
     pub cpu_format: String,
 

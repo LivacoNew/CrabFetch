@@ -16,14 +16,15 @@ pub enum CrabFetchColor {
     Magenta,
     Cyan,
     White,
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite
+    // Ignore the LSP warnings here - needs to be _ so that serde can serialize it
+    Bright_Black,
+    Bright_Red,
+    Bright_Green,
+    Bright_Yellow,
+    Bright_Blue,
+    Bright_Magenta,
+    Bright_Cyan,
+    Bright_White
 }
 pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
     match color {
@@ -35,23 +36,25 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
         CrabFetchColor::Magenta => string.magenta(),
         CrabFetchColor::Cyan => string.cyan(),
         CrabFetchColor::White => string.white(),
-        CrabFetchColor::BrightBlack => string.bright_black(),
-        CrabFetchColor::BrightRed => string.bright_red(),
-        CrabFetchColor::BrightGreen => string.bright_green(),
-        CrabFetchColor::BrightYellow => string.bright_yellow(),
-        CrabFetchColor::BrightBlue => string.bright_blue(),
-        CrabFetchColor::BrightMagenta => string.bright_magenta(),
-        CrabFetchColor::BrightCyan => string.bright_cyan(),
-        CrabFetchColor::BrightWhite => string.bright_white(),
+        CrabFetchColor::Bright_Black => string.bright_black(),
+        CrabFetchColor::Bright_Red => string.bright_red(),
+        CrabFetchColor::Bright_Green => string.bright_green(),
+        CrabFetchColor::Bright_Yellow => string.bright_yellow(),
+        CrabFetchColor::Bright_Blue => string.bright_blue(),
+        CrabFetchColor::Bright_Magenta => string.bright_magenta(),
+        CrabFetchColor::Bright_Cyan => string.bright_cyan(),
+        CrabFetchColor::Bright_White => string.bright_white(),
     }
 }
 
 
 #[derive(Deserialize)]
 pub struct Configuration {
+    pub modules: Vec<String>,
     pub seperator: String,
     pub title_color: CrabFetchColor,
-    pub modules: Vec<String>,
+    pub title_bold: bool,
+    pub title_italic: bool,
 
     pub cpu_title: String,
     pub cpu_format: String,
@@ -90,7 +93,7 @@ pub fn parse() -> Configuration {
     // Set the defaults here
     builder = builder.set_default("modules", vec!["cpu".to_string(), "memory".to_string()]).unwrap();
     builder = builder.set_default("seperator", " > ").unwrap();
-    builder = builder.set_default("title_color", "magenta").unwrap();
+    builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
 

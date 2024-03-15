@@ -13,7 +13,7 @@ seperator = " > "
 # Title color
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
-title_color = "magenta"
+title_color = "bright_magenta"
 # Whether to bold/italic the title
 title_bold = true
 title_italic = true

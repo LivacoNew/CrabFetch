@@ -3,6 +3,7 @@ use crate::{config_manager::Configuration, memory::MemoryInfo, cpu::CPUInfo};
 mod cpu;
 mod memory;
 mod config_manager;
+mod ascii;
 
 trait Fetchable {
     fn new() -> Self;
@@ -13,6 +14,10 @@ fn main() {
     let config: Configuration = config_manager::parse();
     let cpu: CPUInfo = cpu::get_cpu();
     let memory: MemoryInfo = memory::get_memory();
+
+    let ascii = ascii::get_ascii("default");
+
+    println!("{}", ascii);
 
     if config.enable_cpu {
         let mut str = String::new();

@@ -68,7 +68,10 @@ pub struct Configuration {
     pub cpu_format: String,
 
     pub memory_title: String,
-    pub memory_format: String
+    pub memory_format: String,
+
+    pub os_title: String,
+    pub os_format: String
 }
 
 pub fn parse() -> Configuration {
@@ -110,6 +113,9 @@ pub fn parse() -> Configuration {
 
     builder = builder.set_default("memory_title", "Memory").unwrap();
     builder = builder.set_default("memory_format", "Memory > {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
+
+    builder = builder.set_default("os_title", "Operating System").unwrap();
+    builder = builder.set_default("os_format", "{distro} ({kernel})").unwrap();
     // Now stop.
     let config = match builder.build() {
         Ok(r) => r,

@@ -1,13 +1,14 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
-use crate::{config_manager::Configuration, memory::MemoryInfo, cpu::CPUInfo};
+use crate::{config_manager::Configuration, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo};
 
 mod cpu;
 mod memory;
 mod config_manager;
 mod ascii;
 mod hostname;
+mod os;
 
 trait Module {
     fn new() -> Self;
@@ -83,6 +84,21 @@ fn main() {
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
                     str.push_str(&memory.format(&config.memory_format, config.decimal_places));
+                    print!("{}", str);
+                }
+                "os" => {
+                    let os: OSInfo = os::get_os();
+                    let mut str = String::new();
+                    let mut title: ColoredString = config_manager::color_string(&config.os_title, &config.title_color);
+                    if config.title_bold {
+                        title = title.bold();
+                    }
+                    if config.title_italic {
+                        title = title.italic();
+                    }
+                    str.push_str(&title.to_string());
+                    str.push_str(&config.seperator);
+                    str.push_str(&os.format(&config.os_format, config.decimal_places));
                     print!("{}", str);
                 }
                 _ => {

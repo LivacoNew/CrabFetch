@@ -3,6 +3,7 @@
 modules = [
     "hostname",
     "underline",
+    "os",
     "cpu",
     "memory"
 ]
@@ -83,3 +84,16 @@ memory_title = "Memory"
 # {phys_max_gib}        -> The maximum total memory in GiB.
 # {percent}             -> Percentage of memory used
 memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
+
+
+#
+# OS
+#
+
+# Title for OS
+os_title = "Operating System"
+
+# The format the OS should be in. Placehodlers;
+# {distro}              -> The distro name
+# {kernel}              -> The kernel version
+os_format = "{distro} ({kernel})"

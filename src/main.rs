@@ -1,7 +1,7 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
-use crate::{config_manager::Configuration, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo};
+use crate::{config_manager::Configuration, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -9,6 +9,7 @@ mod config_manager;
 mod ascii;
 mod hostname;
 mod os;
+mod uptime;
 
 trait Module {
     fn new() -> Self;
@@ -99,6 +100,21 @@ fn main() {
                     str.push_str(&title.to_string());
                     str.push_str(&config.seperator);
                     str.push_str(&os.format(&config.os_format, config.decimal_places));
+                    print!("{}", str);
+                }
+                "uptime" => {
+                    let uptime: UptimeInfo = uptime::get_uptime();
+                    let mut str = String::new();
+                    let mut title: ColoredString = config_manager::color_string(&config.uptime_title, &config.title_color);
+                    if config.title_bold {
+                        title = title.bold();
+                    }
+                    if config.title_italic {
+                        title = title.italic();
+                    }
+                    str.push_str(&title.to_string());
+                    str.push_str(&config.seperator);
+                    str.push_str(&uptime.format(&config.uptime_format, config.decimal_places));
                     print!("{}", str);
                 }
                 _ => {

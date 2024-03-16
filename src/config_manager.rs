@@ -71,7 +71,10 @@ pub struct Configuration {
     pub memory_format: String,
 
     pub os_title: String,
-    pub os_format: String
+    pub os_format: String,
+
+    pub uptime_title: String,
+    pub uptime_format: String
 }
 
 pub fn parse() -> Configuration {
@@ -116,6 +119,8 @@ pub fn parse() -> Configuration {
 
     builder = builder.set_default("os_title", "Operating System").unwrap();
     builder = builder.set_default("os_format", "{distro} ({kernel})").unwrap();
+
+    builder = builder.set_default("uptime_title", "System Uptime").unwrap();
     // Now stop.
     let config = match builder.build() {
         Ok(r) => r,

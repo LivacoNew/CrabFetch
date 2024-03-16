@@ -4,6 +4,7 @@ modules = [
     "hostname",
     "underline",
     "os",
+    "uptime",
     "cpu",
     "memory"
 ]
@@ -97,3 +98,19 @@ os_title = "Operating System"
 # {distro}              -> The distro name
 # {kernel}              -> The kernel version
 os_format = "{distro} ({kernel})"
+
+
+#
+# Uptime
+#
+
+# Title for uptime
+uptime_title = "System Uptime"
+
+# The format the uptime should be in. Placehodlers;
+# {hours}               -> The hours
+# {minutes}             -> The minutes
+# {seconds}             -> The seconds
+#
+# NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
+uptime_format = "{hours}h {minutes}m {seconds}s"

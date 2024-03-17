@@ -21,6 +21,21 @@ trait Module {
     }
 }
 
+fn style_entry(title: &str, format: &str, config: &Configuration, module: impl Module) -> String {
+    let mut str = String::new();
+    let mut title: ColoredString = config_manager::color_string(title, &config.title_color);
+    if config.title_bold {
+        title = title.bold();
+    }
+    if config.title_italic {
+        title = title.italic();
+    }
+    str.push_str(&title.to_string());
+    str.push_str(&config.seperator);
+    str.push_str(&module.format(format, config.decimal_places));
+    str
+}
+
 fn main() {
     let config: Configuration = config_manager::parse();
     let ascii = ascii::get_ascii("default");
@@ -39,18 +54,7 @@ fn main() {
             match module.as_str() {
                 "hostname" => {
                     let hostname: HostnameInfo = hostname::get_hostname();
-                    let mut str = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&config.hostname_title, &config.title_color);
-                    if config.title_bold {
-                        title = title.bold();
-                    }
-                    if config.title_italic {
-                        title = title.italic();
-                    }
-                    str.push_str(&title.to_string());
-                    str.push_str(&config.seperator);
-                    str.push_str(&hostname.format(&config.hostname_format, config.decimal_places));
-                    print!("{}", str);
+                    print!("{}", style_entry(&config.hostname_title, &config.hostname_format, &config, hostname));
                 },
                 "underline" => {
                     for _ in 0..config.underline_length {
@@ -59,63 +63,19 @@ fn main() {
                 }
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();
-                    let mut str = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&config.cpu_title, &config.title_color);
-                    if config.title_bold {
-                        title = title.bold();
-                    }
-                    if config.title_italic {
-                        title = title.italic();
-                    }
-                    str.push_str(&title.to_string());
-                    str.push_str(&config.seperator);
-                    str.push_str(&cpu.format(&config.cpu_format, config.decimal_places));
-                    print!("{}", str);
+                    print!("{}", style_entry(&config.cpu_title, &config.cpu_format, &config, cpu));
                 },
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();
-                    let mut str = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&config.memory_title, &config.title_color);
-                    if config.title_bold {
-                        title = title.bold();
-                    }
-                    if config.title_italic {
-                        title = title.italic();
-                    }
-                    str.push_str(&title.to_string());
-                    str.push_str(&config.seperator);
-                    str.push_str(&memory.format(&config.memory_format, config.decimal_places));
-                    print!("{}", str);
+                    print!("{}", style_entry(&config.memory_title, &config.memory_format, &config, memory));
                 }
                 "os" => {
                     let os: OSInfo = os::get_os();
-                    let mut str = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&config.os_title, &config.title_color);
-                    if config.title_bold {
-                        title = title.bold();
-                    }
-                    if config.title_italic {
-                        title = title.italic();
-                    }
-                    str.push_str(&title.to_string());
-                    str.push_str(&config.seperator);
-                    str.push_str(&os.format(&config.os_format, config.decimal_places));
-                    print!("{}", str);
+                    print!("{}", style_entry(&config.os_title, &config.os_format, &config, os));
                 }
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
-                    let mut str = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&config.uptime_title, &config.title_color);
-                    if config.title_bold {
-                        title = title.bold();
-                    }
-                    if config.title_italic {
-                        title = title.italic();
-                    }
-                    str.push_str(&title.to_string());
-                    str.push_str(&config.seperator);
-                    str.push_str(&uptime.format(&config.uptime_format, config.decimal_places));
-                    print!("{}", str);
+                    print!("{}", style_entry(&config.uptime_title, &config.uptime_format, &config, uptime));
                 }
                 _ => {
                     print!("Unknown module: {}", module);

@@ -1,7 +1,7 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -10,6 +10,7 @@ mod ascii;
 mod hostname;
 mod os;
 mod uptime;
+mod desktop;
 
 trait Module {
     fn new() -> Self;
@@ -100,6 +101,10 @@ fn main() {
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
                     print!("{}", style_entry(&config.uptime_title, &config.uptime_format, &config, &uptime));
+                }
+                "desktop" => {
+                    let desktop: DesktopInfo = desktop::get_desktop();
+                    print!("{}", style_entry(&config.desktop_title, &config.desktop_format, &config, &desktop));
                 }
                 _ => {
                     print!("Unknown module: {}", module);

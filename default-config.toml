@@ -4,6 +4,7 @@ modules = [
     "hostname",
     "underline",
     "os",
+    "desktop",
     "uptime",
     "cpu",
     "memory"
@@ -128,3 +129,15 @@ uptime_title = "System Uptime"
 #
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
 uptime_format = "{hours}h {minutes}m {seconds}s"
+
+
+#
+# Desktop
+#
+
+# Title for desktop
+desktop_title = "Desktop"
+
+# The format the desktop should be in. Placehodlers;
+# {desktop}             -> The name of the desktop
+desktop_format = "{desktop}"

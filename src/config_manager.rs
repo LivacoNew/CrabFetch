@@ -5,7 +5,7 @@ use config::Config;
 use serde::Deserialize;
 
 // This is a hack to get the color deserializaton working
-// Essentially it uses my own enum, and to print it you need to call cfcolor_to_terminal_color
+// Essentially it uses my own enum, and to print it you need to call color_string
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
@@ -17,7 +17,6 @@ pub enum CrabFetchColor {
     Magenta,
     Cyan,
     White,
-    // Ignore the LSP warnings here - needs to be _ so that serde can serialize it
     BrightBlack,
     BrightRed,
     BrightGreen,

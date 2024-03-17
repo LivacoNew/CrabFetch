@@ -33,6 +33,12 @@ decimal_places = 2
 # If to even bother with the ASCII?
 ascii_display = true
 
+# The colors to render the ASCII in
+# This array can be as long as the actual ASCII. Each entry represents the color at a certain %
+# E.g ["red", "green"] would render the top half as red and the bottom half as green.
+# ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
+ascii_colors = ["red", "blue", "red", "blue"]
+
 
 #
 # Hostname

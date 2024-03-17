@@ -1,7 +1,7 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
-use crate::{config_manager::Configuration, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -57,8 +57,18 @@ fn main() {
             split.insert(split.len(), "");
         }
     }
-    for line in split {
-        print!("{}", line);
+    for line in &split {
+        // Figure out the color first
+        let percentage: f32 = (line_number as f32 / split.len() as f32) as f32;
+        // print!("{}", line_number as f32 / split.len() as f32);
+        // let percentage: f32 = 1.0;
+        // https://stackoverflow.com/a/68457573
+        let index: u8 = (((config.ascii_colors.len() - 1) as f32) * percentage).round() as u8;
+        // print!(" {}-{}: {} {}", line_number, split.len(), percentage, index);
+        let colored = color_string(line, config.ascii_colors.get(index as usize).unwrap());
+
+        // Print the actual ASCII
+        print!("{}", colored);
         let remainder = target_length - (line.len() as u64);
         for _ in 0..remainder {
             print!(" ");

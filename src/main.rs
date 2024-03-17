@@ -21,7 +21,7 @@ trait Module {
     }
 }
 
-fn style_entry(title: &str, format: &str, config: &Configuration, module: impl Module) -> String {
+fn style_entry(title: &str, format: &str, config: &Configuration, module: &impl Module) -> String {
     let mut str = String::new();
     let mut title: ColoredString = config_manager::color_string(title, &config.title_color);
     if config.title_bold {
@@ -38,11 +38,24 @@ fn style_entry(title: &str, format: &str, config: &Configuration, module: impl M
 
 fn main() {
     let config: Configuration = config_manager::parse();
-    let ascii = ascii::get_ascii("default");
+
+    // Since we parse the os-release file in OS anyway, this is always called to get the
+    // ascii we want.
+    let os: OSInfo = os::get_os();
+    let ascii = ascii::get_ascii(&os.distro_id);
 
     let mut line_number: u8 = 0;
-    let target_length: usize = 48;
-    for line in ascii.split("\n") {
+    let mut target_length: usize = 48;
+
+    let mut split: Vec<&str> = ascii.split("\n").collect();
+    if split.len() < config.modules.len() {
+        // Artificially add length so that all the modules get in
+        for _ in 0..(config.modules.len() - split.len()) {
+            split.insert(split.len(), "");
+        }
+        target_length = 0;
+    }
+    for line in split {
         print!("{}", line);
         let remainder = target_length - line.len();
         for _ in 0..remainder {
@@ -54,7 +67,7 @@ fn main() {
             match module.as_str() {
                 "hostname" => {
                     let hostname: HostnameInfo = hostname::get_hostname();
-                    print!("{}", style_entry(&config.hostname_title, &config.hostname_format, &config, hostname));
+                    print!("{}", style_entry(&config.hostname_title, &config.hostname_format, &config, &hostname));
                 },
                 "underline" => {
                     for _ in 0..config.underline_length {
@@ -63,19 +76,18 @@ fn main() {
                 }
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();
-                    print!("{}", style_entry(&config.cpu_title, &config.cpu_format, &config, cpu));
+                    print!("{}", style_entry(&config.cpu_title, &config.cpu_format, &config, &cpu));
                 },
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();
-                    print!("{}", style_entry(&config.memory_title, &config.memory_format, &config, memory));
+                    print!("{}", style_entry(&config.memory_title, &config.memory_format, &config, &memory));
                 }
                 "os" => {
-                    let os: OSInfo = os::get_os();
-                    print!("{}", style_entry(&config.os_title, &config.os_format, &config, os));
+                    print!("{}", style_entry(&config.os_title, &config.os_format, &config, &os));
                 }
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
-                    print!("{}", style_entry(&config.uptime_title, &config.uptime_format, &config, uptime));
+                    print!("{}", style_entry(&config.uptime_title, &config.uptime_format, &config, &uptime));
                 }
                 _ => {
                     print!("Unknown module: {}", module);

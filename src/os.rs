@@ -5,12 +5,14 @@ use crate::Module;
 
 pub struct OSInfo {
     distro: String,
+    pub distro_id: String,
     kernel: String
 }
 impl Module for OSInfo {
     fn new() -> OSInfo {
         OSInfo {
             distro: "".to_string(),
+            distro_id: "".to_string(),
             kernel: "".to_string(),
         }
     }
@@ -51,10 +53,14 @@ fn get_basic_info(os: &mut OSInfo) {
         },
     }
     for line in contents.trim().to_string().split("\n").collect::<Vec<&str>>() {
-        if !line.starts_with("PRETTY_NAME=") {
+        if line.starts_with("PRETTY_NAME=") {
+            os.distro = line[13..line.len() - 1].to_string();
             continue;
         }
-        os.distro = line[13..line.len() - 1].to_string();
+        if line.starts_with("ID=") {
+            os.distro_id = line[3..line.len()].trim().to_string();
+            continue;
+        }
     }
 
     // Kernel

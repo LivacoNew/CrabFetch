@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-
-pub fn get_ascii(desired: &str) -> String {
-    arch().get(desired).unwrap().to_string()
+pub fn get_ascii(os: &str) -> String {
+    // arch().get(desired).unwrap().to_string()
+    match os {
+        "arch" => arch(),
+        _ => "".to_string()
+    }
 }
 
 // Define art down below here
-fn arch() -> HashMap<String, String> {
-    let mut map: HashMap<String, String> = HashMap::new();
-    map.insert("default".to_string(), "
-                  .o+`
+fn arch() -> String {
+"                  .o+`
                  `ooo/
                 `+oooo:
                `+oooooo:
@@ -25,7 +25,5 @@ fn arch() -> HashMap<String, String> {
    `/ossssso+/:-        -:/+osssso+-
   `+sso+:-`                 `.-/+oso:
  `++:.                           `-/+/
- .`                                 `/".to_string());
-
-    map
+ .`                                 `/".to_string()
 }

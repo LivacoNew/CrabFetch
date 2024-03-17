@@ -27,6 +27,14 @@ decimal_places = 2
 
 
 #
+# Ascii
+#
+
+# If to even bother with the ASCII?
+ascii_display = true
+
+
+#
 # Hostname
 #
 

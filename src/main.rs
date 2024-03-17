@@ -42,22 +42,24 @@ fn main() {
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
     let os: OSInfo = os::get_os();
-    let ascii = ascii::get_ascii(&os.distro_id);
+    let mut ascii: (String, u64) = (String::new(), 0);
+    if config.ascii_display {
+        ascii = ascii::get_ascii(&os.distro_id);
+    }
 
     let mut line_number: u8 = 0;
-    let mut target_length: usize = 48;
+    let mut target_length: u64 = ascii.1;
 
-    let mut split: Vec<&str> = ascii.split("\n").collect();
+    let mut split: Vec<&str> = ascii.0.split("\n").collect();
     if split.len() < config.modules.len() {
         // Artificially add length so that all the modules get in
         for _ in 0..(config.modules.len() - split.len()) {
             split.insert(split.len(), "");
         }
-        target_length = 0;
     }
     for line in split {
         print!("{}", line);
-        let remainder = target_length - line.len();
+        let remainder = target_length - (line.len() as u64);
         for _ in 0..remainder {
             print!(" ");
         }

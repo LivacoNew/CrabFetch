@@ -80,6 +80,9 @@ pub struct Configuration {
 
     pub desktop_title: String,
     pub desktop_format: String,
+
+    pub mount_title: String,
+    pub mount_format: String,
 }
 
 pub fn parse() -> Configuration {

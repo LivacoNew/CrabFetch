@@ -7,7 +7,9 @@ modules = [
     "desktop",
     "uptime",
     "cpu",
-    "memory"
+    "memory",
+    "mounts",
+    "cpu"
 ]
 
 
@@ -141,3 +143,19 @@ desktop_title = "Desktop"
 # The format the desktop should be in. Placeholders;
 # {desktop}             -> The name of the desktop
 desktop_format = "{desktop}"
+
+
+#
+# Mounts
+#
+
+# Title for each mount. Placeholders;
+# {device}              -> Device, e.g /dev/sda
+# {mount}               -> The mount point, e.g /home
+mount_title = "{mount}"
+
+# The format each mount should be in. Placeholders;
+# {device}              -> Device, e.g /dev/sda
+# {mount}               -> The mount point, e.g /home
+# {filesystem}          -> The filesystem being ran, e.g ext4
+mount_format = "{device}"

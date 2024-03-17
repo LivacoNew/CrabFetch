@@ -1,7 +1,7 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, os::OSInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -11,6 +11,7 @@ mod hostname;
 mod os;
 mod uptime;
 mod desktop;
+mod mounts;
 
 trait Module {
     fn new() -> Self;
@@ -38,7 +39,7 @@ fn style_entry(title: &str, format: &str, config: &Configuration, module: &impl 
 }
 
 fn main() {
-    let config: Configuration = config_manager::parse();
+    let mut config: Configuration = config_manager::parse();
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
@@ -58,6 +59,12 @@ fn main() {
             split.insert(split.len(), "");
         }
     }
+
+    // Drives also need to be treated specially since they need to be on a seperate line
+    // So we parse them already up here too, and just increase the index each time the module is
+    // called.
+    let mounts: Vec<MountInfo> = mounts::get_mounted_drives();
+    let mut mount_index: u32 = 0;
     for line in &split {
         // Figure out the color first
         let percentage: f32 = (line_number as f32 / split.len() as f32) as f32;
@@ -77,6 +84,7 @@ fn main() {
 
         if config.modules.len() > line_number as usize {
             let module: String = config.modules[line_number as usize].to_owned();
+            // print!("{}", module);
             match module.as_str() {
                 "hostname" => {
                     let hostname: HostnameInfo = hostname::get_hostname();
@@ -105,6 +113,19 @@ fn main() {
                 "desktop" => {
                     let desktop: DesktopInfo = desktop::get_desktop();
                     print!("{}", style_entry(&config.desktop_title, &config.desktop_format, &config, &desktop));
+                }
+                "mounts" => {
+                    if mounts.len() > mount_index as usize {
+                        let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
+                        let title: String = mount.format(&config.mount_title, 0);
+                        print!("{}", style_entry(&title, &config.mount_format, &config, mount));
+                        mount_index += 1;
+
+                        // sketchy - this is what makes it go through them all
+                        if mounts.len() > mount_index as usize {
+                            config.modules.insert(line_number as usize, "mounts".to_string());
+                        }
+                    }
                 }
                 _ => {
                     print!("Unknown module: {}", module);

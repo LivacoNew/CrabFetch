@@ -48,7 +48,7 @@ fn main() {
     }
 
     let mut line_number: u8 = 0;
-    let mut target_length: u64 = ascii.1;
+    let target_length: u64 = ascii.1;
 
     let mut split: Vec<&str> = ascii.0.split("\n").collect();
     if split.len() < config.modules.len() {

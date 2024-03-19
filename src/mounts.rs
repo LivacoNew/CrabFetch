@@ -12,7 +12,7 @@ pub struct MountInfo {
 }
 impl MountInfo {
     fn from(value: &str) -> Self {
-        // Parses from a /proc/mounts entry
+        // Parses from a df entry
         let mut values: Vec<&str> = value.split(" ").collect();
         values.retain(|x| x.trim() != "");
         MountInfo {

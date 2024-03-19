@@ -7,7 +7,8 @@ pub struct MountInfo {
     device: String,     // /dev/sda
     mount: String,      // /hdd
     space_used: u64,
-    space_avail: u64
+    space_avail: u64,
+    space_total: u64
 }
 impl MountInfo {
     fn from(value: &str) -> Self {
@@ -19,6 +20,7 @@ impl MountInfo {
             mount: values[5].to_string(),
             space_used: values[2].parse::<u64>().unwrap(),
             space_avail: values[3].parse::<u64>().unwrap(),
+            space_total: values[1].parse::<u64>().unwrap()
         }
     }
 }
@@ -28,7 +30,8 @@ impl Module for MountInfo {
             device: "".to_string(),
             mount: "".to_string(),
             space_used: 0,
-            space_avail: 0
+            space_avail: 0,
+            space_total: 0
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
@@ -39,7 +42,7 @@ impl Module for MountInfo {
         .replace("{mount}", &self.mount)
         .replace("{space_used_gb}", &(self.space_used / 1024 / 1024).to_string())
         .replace("{space_avail_gb}", &(self.space_avail / 1024 / 1024).to_string())
-        .replace("{space_total_gb}", &((self.space_used + self.space_avail) / 1024 / 1024).to_string())
+        .replace("{space_total_gb}", &(self.space_total / 1024 / 1024).to_string())
     }
 }
 impl Display for MountInfo {

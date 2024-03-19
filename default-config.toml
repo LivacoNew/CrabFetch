@@ -9,7 +9,6 @@ modules = [
     "cpu",
     "memory",
     "mounts",
-    "cpu"
 ]
 
 
@@ -152,10 +151,10 @@ desktop_format = "{desktop}"
 # Title for each mount. Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
-mount_title = "{mount}"
+mount_title = "Disk {mount}"
 
 # The format each mount should be in. Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
 # {filesystem}          -> The filesystem being ran, e.g ext4
-mount_format = "{device}"
+mount_format = "{space_used_gb}G / {space_total_gb}G"

@@ -1,25 +1,27 @@
 // TODO: Parse /proc/mounts and filter.
 
 use core::str;
-use std::{fmt::Display, fs::File, io::Read};
+use std::{fmt::{Debug, Display}, fs::File, io::Read, process::Command};
 
 use crate::Module;
 
 pub struct MountInfo {
     device: String,     // /dev/sda
     mount: String,      // /hdd
-    filesystem: String, // ext4
-    flags: Vec<String>
+    space_used: u64,
+    space_avail: u64
 }
 impl MountInfo {
     fn from(value: &str) -> Self {
         // Parses from a /proc/mounts entry
-        let values: Vec<&str> = value.split(" ").collect();
+        let mut values: Vec<&str> = value.split(" ").collect();
+        values.retain(|x| x.trim() != "");
+        println!("{:?}", values);
         MountInfo {
             device: values[0].to_string(),
-            mount: values[1].to_string(),
-            filesystem: values[2].to_string(),
-            flags: values[3].split(",").map(|x| x.to_string()).collect()
+            mount: values[5].to_string(),
+            space_used: values[2].parse::<u64>().unwrap(),
+            space_avail: values[3].parse::<u64>().unwrap(),
         }
     }
 }
@@ -28,19 +30,19 @@ impl Module for MountInfo {
         MountInfo {
             device: "".to_string(),
             mount: "".to_string(),
-            filesystem: "".to_string(),
-            flags: vec![]
+            space_used: 0,
+            space_avail: 0
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
         // TODO
         let mut flag_str = String::new();
-        self.flags.iter().for_each(|f| flag_str.push_str(f));
 
         format.replace("{device}", &self.device)
         .replace("{mount}", &self.mount)
-        .replace("{filesystem}", &self.filesystem)
-        .replace("{flags}", &flag_str)
+        .replace("{space_used_gb}", &(self.space_used / 1024 / 1024).to_string())
+        .replace("{space_avail_gb}", &(self.space_avail / 1024 / 1024).to_string())
+        .replace("{space_total_gb}", &((self.space_used + self.space_avail) / 1024 / 1024).to_string())
     }
 }
 impl Display for MountInfo {
@@ -58,33 +60,21 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
 }
 
 fn get_basic_info(mounted_drives: &mut Vec<MountInfo>) {
-    // This parses /proc/mounts for the info
-    // This is filtered out by two rules;
-    // - It can't have the "nodev" flag
-    // - The device has to begin with "/"
-    let mut file: File = match File::open("/proc/mounts") {
-        Ok(r) => r,
-        Err(e) => {
-            panic!("Can't read from /proc/mounts - {}", e);
-        },
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            panic!("Can't read from /proc/mounts - {}", e);
-        },
-    }
-    let entries: Vec<&str> = contents.split("\n").collect::<Vec<&str>>();
+    // This uses the "df" command to grab the outputs
+    let contents: String = String::from_utf8(Command::new("df")
+            .args(["-x", "tmpfs", "-x", "efivarfs", "-x", "devtmpfs"])
+            .output().expect("Unable to run 'df' command.").stdout
+        ).expect("Unable to parse 'df' output");
+
+    // Parse
+    let mut entries: Vec<&str> = contents.split("\n").collect::<Vec<&str>>();
+    entries.remove(0);
     for entry in entries {
+        println!("{}", entry);
         if entry.trim() == "" {
             continue;
         }
         let mount: MountInfo = MountInfo::from(entry);
-        if mount.flags.contains(&"nodev".to_string()) || !mount.device.starts_with("/") {
-            continue
-        }
-
         mounted_drives.insert(mounted_drives.len(), mount);
     }
 }

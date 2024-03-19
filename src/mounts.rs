@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, process::Command};
 
-use crate::Module;
+use crate::{config_manager::Configuration, Module};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -52,6 +52,17 @@ impl Module for MountInfo {
 impl Display for MountInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ({}) w/ {} / {}", self.device, self.mount, self.space_used, self.space_total)
+    }
+}
+impl MountInfo {
+    pub fn is_ignored(&self, config: &Configuration) -> bool {
+        for x in config.mount_ignored.to_vec() {
+            if self.mount.starts_with(&x) {
+                return true
+            }
+        }
+
+        false
     }
 }
 

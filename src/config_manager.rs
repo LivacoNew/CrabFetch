@@ -83,6 +83,7 @@ pub struct Configuration {
 
     pub mount_title: String,
     pub mount_format: String,
+    pub mount_ignored: Vec<String>
 }
 
 pub fn parse() -> Configuration {

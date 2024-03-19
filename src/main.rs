@@ -117,10 +117,11 @@ fn main() {
                 "mounts" => {
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        let title: String = mount.format(&config.mount_title, 0);
-                        print!("{}", style_entry(&title, &config.mount_format, &config, mount));
+                        if !mount.is_ignored(&config) {
+                            let title: String = mount.format(&config.mount_title, 0);
+                            print!("{}", style_entry(&title, &config.mount_format, &config, mount));
+                        }
                         mount_index += 1;
-
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {
                             config.modules.insert(line_number as usize, "mounts".to_string());

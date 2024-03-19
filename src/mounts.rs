@@ -14,7 +14,6 @@ impl MountInfo {
         // Parses from a /proc/mounts entry
         let mut values: Vec<&str> = value.split(" ").collect();
         values.retain(|x| x.trim() != "");
-        println!("{:?}", values);
         MountInfo {
             device: values[0].to_string(),
             mount: values[5].to_string(),

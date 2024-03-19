@@ -1,5 +1,3 @@
-// TODO: Parse /proc/mounts and filter.
-
 use core::str;
 use std::{fmt::{Debug, Display}, fs::File, io::Read, process::Command};
 

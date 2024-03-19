@@ -68,7 +68,6 @@ fn get_basic_info(mounted_drives: &mut Vec<MountInfo>) {
     let mut entries: Vec<&str> = contents.split("\n").collect::<Vec<&str>>();
     entries.remove(0);
     for entry in entries {
-        println!("{}", entry);
         if entry.trim() == "" {
             continue;
         }

@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::{Debug, Display}, fs::File, io::Read, process::Command};
+use std::{fmt::Display, process::Command};
 
 use crate::Module;
 
@@ -35,9 +35,6 @@ impl Module for MountInfo {
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
-        // TODO
-        let mut flag_str = String::new();
-
         format.replace("{device}", &self.device)
         .replace("{mount}", &self.mount)
         .replace("{space_used_gb}", &(self.space_used / 1024 / 1024).to_string())
@@ -47,8 +44,7 @@ impl Module for MountInfo {
 }
 impl Display for MountInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO
-        write!(f, "{}", "")
+        write!(f, "{} ({}) w/ {} / {}", self.device, self.mount, self.space_used, self.space_total)
     }
 }
 

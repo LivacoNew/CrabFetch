@@ -39,7 +39,7 @@ ascii_display = true
 # This array can be as long as the actual ASCII. Each entry represents the color at a certain %
 # E.g ["red", "green"] would render the top half as red and the bottom half as green.
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
-ascii_colors = ["red", "blue", "red", "blue"]
+ascii_colors = ["bright_magenta"]
 
 
 #
@@ -156,5 +156,11 @@ mount_title = "Disk {mount}"
 # The format each mount should be in. Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
-# {filesystem}          -> The filesystem being ran, e.g ext4
-mount_format = "{space_used_gb}G / {space_total_gb}G"
+# {space_used_kb}       -> The space used in kilobytes.
+# {space_avail_kb}      -> The space available in kilobytes.
+# {space_total_kb}      -> The total space in kilobytes.
+# {space_used_gb}       -> The space used in gigabytes.
+# {space_avail_gb}      -> The space available in gigabytes.
+# {space_total_gb}      -> The total space in gigabytes.
+# {percent}             -> The percentage of the disk used.
+mount_format = "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)"

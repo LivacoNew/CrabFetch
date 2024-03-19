@@ -8,7 +8,8 @@ pub struct MountInfo {
     mount: String,      // /hdd
     space_used: u64,
     space_avail: u64,
-    space_total: u64
+    space_total: u64,
+    percent: u8
 }
 impl MountInfo {
     fn from(value: &str) -> Self {
@@ -20,7 +21,8 @@ impl MountInfo {
             mount: values[5].to_string(),
             space_used: values[2].parse::<u64>().unwrap(),
             space_avail: values[3].parse::<u64>().unwrap(),
-            space_total: values[1].parse::<u64>().unwrap()
+            space_total: values[1].parse::<u64>().unwrap(),
+            percent: values[4][..values[4].len() - 1].parse::<u8>().unwrap()
         }
     }
 }
@@ -31,15 +33,20 @@ impl Module for MountInfo {
             mount: "".to_string(),
             space_used: 0,
             space_avail: 0,
-            space_total: 0
+            space_total: 0,
+            percent: 0
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
         format.replace("{device}", &self.device)
         .replace("{mount}", &self.mount)
+        .replace("{space_used_kb}", &(self.space_used / 1024).to_string())
+        .replace("{space_avail_kb}", &(self.space_avail / 1024).to_string())
+        .replace("{space_total_kb}", &(self.space_total / 1024).to_string())
         .replace("{space_used_gb}", &(self.space_used / 1024 / 1024).to_string())
         .replace("{space_avail_gb}", &(self.space_avail / 1024 / 1024).to_string())
         .replace("{space_total_gb}", &(self.space_total / 1024 / 1024).to_string())
+        .replace("{percent}", &self.percent.to_string())
     }
 }
 impl Display for MountInfo {

@@ -63,7 +63,8 @@ fn main() {
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
-    let mounts: Vec<MountInfo> = mounts::get_mounted_drives();
+    let mut mounts: Vec<MountInfo> = mounts::get_mounted_drives();
+    mounts.retain(|x| !x.is_ignored(&config));
     let mut mount_index: u32 = 0;
     for line in &split {
         // Figure out the color first
@@ -117,10 +118,8 @@ fn main() {
                 "mounts" => {
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        if !mount.is_ignored(&config) {
-                            let title: String = mount.format(&config.mount_title, 0);
-                            print!("{}", style_entry(&title, &config.mount_format, &config, mount));
-                        }
+                        let title: String = mount.format(&config.mount_title, 0);
+                        print!("{}", style_entry(&title, &config.mount_format, &config, mount));
                         mount_index += 1;
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {

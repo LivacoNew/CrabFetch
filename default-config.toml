@@ -45,6 +45,9 @@ ascii_display = true
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
 ascii_colors = ["bright_magenta"]
 
+# The amount of space to put between the ASCII and the info
+ascii_margin = 4
+
 # }}}
 # Hostname {{{
 

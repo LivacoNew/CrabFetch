@@ -59,6 +59,7 @@ pub struct Configuration {
 
     pub ascii_display: bool,
     pub ascii_colors: Vec<CrabFetchColor>,
+    pub ascii_margin: u16,
 
     pub hostname_title: String,
     pub hostname_format: String,

@@ -1,5 +1,5 @@
 // Return type is the ascii & the maximum length of it
-pub fn get_ascii(os: &str) -> (String, u64) {
+pub fn get_ascii(os: &str) -> (String, u16) {
     match os {
         "arch" => arch(),
         _ => ("".to_string(), 0)
@@ -7,7 +7,7 @@ pub fn get_ascii(os: &str) -> (String, u64) {
 }
 
 // Define art down below here
-fn arch() -> (String, u64) {
+fn arch() -> (String, u16) {
 ("             ..
              -=.
             -==-

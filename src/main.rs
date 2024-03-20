@@ -28,14 +28,16 @@ trait Module {
 fn style_entry(title: &str, format: &str, config: &Configuration, module: &impl Module) -> String {
     let mut str = String::new();
     let mut title: ColoredString = config_manager::color_string(title, &config.title_color);
-    if config.title_bold {
-        title = title.bold();
+    if title.trim() != "" {
+        if config.title_bold {
+            title = title.bold();
+        }
+        if config.title_italic {
+            title = title.italic();
+        }
+        str.push_str(&title.to_string());
+        str.push_str(&config.seperator);
     }
-    if config.title_italic {
-        title = title.italic();
-    }
-    str.push_str(&title.to_string());
-    str.push_str(&config.seperator);
     str.push_str(&module.format(format, config.decimal_places));
     str
 }

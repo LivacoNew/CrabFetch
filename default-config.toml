@@ -5,6 +5,7 @@ modules = [
     "underline",
     "os",
     "desktop",
+    "shell",
     "uptime",
     "cpu",
     "memory",
@@ -142,6 +143,19 @@ desktop_title = "Desktop"
 # The format the desktop should be in. Placeholders;
 # {desktop}             -> The name of the desktop
 desktop_format = "{desktop}"
+
+
+#
+# Shell
+#
+
+# Title for shell
+shell_title = "Shell"
+
+# The format the shell should be in. Placeholders;
+# {shell}               -> The name of the shell, e.g zsh
+# {path}                -> The path of the shell, e.g /bin/zsh
+shell_format = "{shell}"
 
 
 #

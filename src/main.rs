@@ -1,5 +1,6 @@
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
+use shell::ShellInfo;
 
 use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, uptime::UptimeInfo};
 
@@ -12,6 +13,7 @@ mod os;
 mod uptime;
 mod desktop;
 mod mounts;
+mod shell;
 
 trait Module {
     fn new() -> Self;
@@ -114,6 +116,10 @@ fn main() {
                 "desktop" => {
                     let desktop: DesktopInfo = desktop::get_desktop();
                     print!("{}", style_entry(&config.desktop_title, &config.desktop_format, &config, &desktop));
+                }
+                "shell" => {
+                    let shell: ShellInfo = shell::get_shell();
+                    print!("{}", style_entry(&config.shell_title, &config.shell_format, &config, &shell));
                 }
                 "mounts" => {
                     if mounts.len() > mount_index as usize {

@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, path::Path, fs::File, io::Read};
 
 use colored::{ColoredString, Colorize};
 use config::Config;
@@ -151,4 +151,48 @@ pub fn parse() -> Configuration {
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
     deserialized
+}
+
+pub fn check_for_ascii_override() -> Option<String> {
+    let ascii_path_str: String = match env::var("XDG_CONFIG_HOME") {
+        Ok(mut r) => {
+            r.push_str("/CrabFetch/ascii");
+            r
+        }
+        Err(_) => {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => {
+                    r
+                },
+                Err(e) => {
+                    // why tf would you unset home lmao
+                    panic!("Unable to find config folder; {}", e);
+                }
+            };
+            home_dir.push_str("/.config/CrabFetch/ascii");
+            home_dir
+        }
+    };
+
+    let path: &Path = Path::new(&ascii_path_str);
+    if !path.exists() {
+        return None;
+    }
+
+    let mut file: File = match File::open(path) {
+        Ok(r) => r,
+        Err(e) => {
+            panic!("Can't read from ASCII override - {}", e);
+        },
+    };
+    let mut contents: String = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(e) => {
+            panic!("Can't read from ASCII override - {}", e);
+        },
+    }
+
+    Some(contents)
 }

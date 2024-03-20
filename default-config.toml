@@ -1,3 +1,7 @@
+# NOTE: This files designed to work with Vim folds!
+# Apolgies if your using something else.
+
+# General {{{
 # The modules to display
 # Accepts; hostname, cpu, memory
 modules = [
@@ -28,10 +32,9 @@ title_italic = true
 # How many decimal places to use on float values
 decimal_places = 2
 
+# }}}
 
-#
-# Ascii
-#
+# ASCII {{{
 
 # If to even bother with the ASCII?
 ascii_display = true
@@ -42,10 +45,8 @@ ascii_display = true
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
 ascii_colors = ["bright_magenta"]
 
-
-#
-# Hostname
-#
+# }}}
+# Hostname {{{
 
 # Title for Hostname
 hostname_title = "Hostname"
@@ -55,10 +56,8 @@ hostname_title = "Hostname"
 # {username}            -> The username of the current user.
 hostname_format = "{username}@{hostname}"
 
-
-#
-# Underline
-#
+# }}}
+# Underline {{{
 
 # Length of the underline
 underline_length = 24
@@ -66,11 +65,8 @@ underline_length = 24
 # Whether to format the underline to the title formatting
 underline_format = true
 
-
-
-#
-# CPU
-#
+# }}}
+# CPU {{{
 
 # Title for CPU
 cpu_title = "Processor"
@@ -85,10 +81,8 @@ cpu_title = "Processor"
 # {max_clock_ghz}       -> The maximum clock speed, in GHz.
 cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
-
-#
-# Memory
-#
+# }}}
+# Memory {{{
 
 # Title for Memory
 memory_title = "Memory"
@@ -103,10 +97,8 @@ memory_title = "Memory"
 # {percent}             -> Percentage of memory used
 memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
-
-#
-# OS
-#
+#}}}
+# OS {{{
 
 # Title for OS
 os_title = "Operating System"
@@ -116,10 +108,8 @@ os_title = "Operating System"
 # {kernel}              -> The kernel version
 os_format = "{distro} ({kernel})"
 
-
-#
-# Uptime
-#
+# }}}
+# Uptime {{{
 
 # Title for uptime
 uptime_title = "System Uptime"
@@ -132,10 +122,8 @@ uptime_title = "System Uptime"
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
 uptime_format = "{hours}h {minutes}m {seconds}s"
 
-
-#
-# Desktop
-#
+# }}}
+# Desktop {{{
 
 # Title for desktop
 desktop_title = "Desktop"
@@ -144,10 +132,8 @@ desktop_title = "Desktop"
 # {desktop}             -> The name of the desktop
 desktop_format = "{desktop}"
 
-
-#
-# Shell
-#
+# }}}
+# Shell {{{
 
 # Title for shell
 shell_title = "Shell"
@@ -157,10 +143,8 @@ shell_title = "Shell"
 # {path}                -> The path of the shell, e.g /bin/zsh
 shell_format = "{shell}"
 
-
-#
-# Mounts
-#
+# }}}
+# Mounts {{{
 
 # Title for each mount. Placeholders;
 # {device}              -> Device, e.g /dev/sda
@@ -181,3 +165,5 @@ mount_format = "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)"
 
 # Mounts that shouldn't be included
 mount_ignored = ["/boot"]
+
+# }}}

@@ -16,7 +16,10 @@ Here's a table comparing performance between [NeoFetch](https://github.com/dylan
 | NeoFetch    | 0.11s user 0.08s system 101% cpu 0.188 total | https://i.imgur.com/ywWkoJm.png |
 | FastFetch   | 0.09s user 0.02s system 99% cpu 0.108 total  | https://i.imgur.com/OaXXCat.png |
 
-## To-Do
+## Credits
+- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a good source on where to find hardware info in Linux.
+
+## Roadmap
 - [x] Swap Space
 - [x] GPU
 - [ ] Displays
@@ -26,6 +29,3 @@ Here's a table comparing performance between [NeoFetch](https://github.com/dylan
 - [ ] Command line arguments for Version & Custom config
 - [x] Check for running Linux + All required commands are indeed present
 - [x] Rename all variables to include data types
-
-## Credits
-- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a good source on where to find hardware info in Linux.

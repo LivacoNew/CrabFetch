@@ -1,5 +1,3 @@
-use std::mem::swap;
-
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;

@@ -52,7 +52,7 @@ ascii_margin = 4
 # Hostname {{{
 
 # Title for Hostname
-hostname_title = "Hostname"
+hostname_title = ""
 
 # The format the CPU should be in. Placeholders;
 # {hostname}            -> The hostname of the system.

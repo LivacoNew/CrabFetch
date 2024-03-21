@@ -27,5 +27,7 @@ Here's a table comparing performance between [NeoFetch](https://github.com/dylan
 - [ ] Host
 - [ ] Packages
 - [ ] Command line arguments for Version & Custom config
+- [ ] Image Support
+- [ ] Config Cleanup
 - [x] Check for running Linux + All required commands are indeed present
 - [x] Rename all variables to include data types

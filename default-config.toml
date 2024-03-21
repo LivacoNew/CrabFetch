@@ -1,3 +1,4 @@
+# vim:foldmethod=marker
 # NOTE: This files designed to work with Vim folds!
 # Apolgies if your using something else.
 
@@ -13,6 +14,7 @@ modules = [
     "uptime",
     "cpu",
     "memory",
+    "swap",
     "mounts",
 ]
 
@@ -99,6 +101,22 @@ memory_title = "Memory"
 # {phys_max_gib}        -> The maximum total memory in GiB.
 # {percent}             -> Percentage of memory used
 memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
+
+#}}}
+# Swap {{{
+
+# Title for Swap
+swap_title = "Swap"
+
+# The format the swap should be in. Placeholders;
+# {used_kib}       -> The currently used swap in KiB.
+# {used_mib}       -> The currently used swap in MiB.
+# {used_gib}       -> The currently used swap in GiB.
+# {max_kib}        -> The maximum total swap  in KiB.
+# {max_mib}        -> The maximum total swap in MiB.
+# {max_gib}        -> The maximum total swap in GiB.
+# {percent}             -> Percentage of swap used
+swap_format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
 #}}}
 # OS {{{

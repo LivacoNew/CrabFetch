@@ -1,8 +1,10 @@
+use std::mem::swap;
+
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, swap::SwapInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -14,6 +16,7 @@ mod uptime;
 mod desktop;
 mod mounts;
 mod shell;
+mod swap;
 
 trait Module {
     fn new() -> Self;
@@ -104,6 +107,10 @@ fn main() {
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();
                     print!("{}", style_entry(&config.memory_title, &config.memory_format, &config, &memory));
+                }
+                "swap" => {
+                    let swap: SwapInfo = swap::get_swap();
+                    print!("{}", style_entry(&config.swap_title, &config.swap_format, &config, &swap));
                 }
                 "os" => {
                     print!("{}", style_entry(&config.os_title, &config.os_format, &config, &os));

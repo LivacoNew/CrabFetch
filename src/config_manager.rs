@@ -73,6 +73,9 @@ pub struct Configuration {
     pub memory_title: String,
     pub memory_format: String,
 
+    pub swap_title: String,
+    pub swap_format: String,
+
     pub os_title: String,
     pub os_format: String,
 

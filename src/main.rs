@@ -2,7 +2,7 @@ use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, swap::SwapInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, gpu::GPUInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, swap::SwapInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -15,6 +15,7 @@ mod desktop;
 mod mounts;
 mod shell;
 mod swap;
+mod gpu;
 
 trait Module {
     fn new() -> Self;
@@ -110,6 +111,10 @@ fn main() {
                     let swap: SwapInfo = swap::get_swap();
                     print!("{}", style_entry(&config.swap_title, &config.swap_format, &config, &swap));
                 }
+                "gpu" => {
+                    let gpu: GPUInfo = gpu::get_gpu();
+                    print!("{}", style_entry(&config.gpu_title, &config.gpu_format, &config, &gpu));
+                },
                 "os" => {
                     print!("{}", style_entry(&config.os_title, &config.os_format, &config, &os));
                 }

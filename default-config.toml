@@ -9,6 +9,7 @@ modules = [
     "hostname",
     "underline",
     "os",
+    "gpu",
     "desktop",
     "shell",
     "uptime",
@@ -117,6 +118,19 @@ swap_title = "Swap"
 # {max_gib}        -> The maximum total swap in GiB.
 # {percent}             -> Percentage of swap used
 swap_format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
+
+#}}}
+# GPU {{{
+
+# Title for GPU
+gpu_title = "GPU"
+
+# The format the swap should be in. Placeholders;
+# {vendor}             -> The vendor of the GPU, e.g AMD
+# {model}              -> The model of the GPU, e.g Radeon RX 7800XT
+# {vram_mb}            -> The total memory of the GPU in mb
+# {vram_gb}            -> The total memory of the GPU in gb
+gpu_format = "{vendor} {model} ({vram_gb} GB)"
 
 #}}}
 # OS {{{

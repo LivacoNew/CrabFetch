@@ -76,6 +76,9 @@ pub struct Configuration {
     pub swap_title: String,
     pub swap_format: String,
 
+    pub gpu_title: String,
+    pub gpu_format: String,
+
     pub os_title: String,
     pub os_format: String,
 

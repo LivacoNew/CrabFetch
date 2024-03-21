@@ -98,6 +98,9 @@ fn main() {
             let module: String = config.modules[line_number as usize].to_owned();
             // print!("{}", module);
             match module.as_str() {
+                "space" => {
+                    print!("");
+                },
                 "hostname" => {
                     // Pretty much reimplements style_entry
                     // Sorry DRY enthusiasts

@@ -91,8 +91,29 @@ fn main() {
             // print!("{}", module);
             match module.as_str() {
                 "hostname" => {
+                    // Pretty much reimplements style_entry
+                    // Sorry DRY enthusiasts
+                    let mut str = String::new();
+                    let mut title: ColoredString = config_manager::color_string(&config.hostname_title, &config.title_color);
+                    if title.trim() != "" {
+                        if config.title_bold {
+                            title = title.bold();
+                        }
+                        if config.title_italic {
+                            title = title.italic();
+                        }
+                        str.push_str(&title.to_string());
+                        str.push_str(&config.seperator);
+                    }
+
                     let hostname: HostnameInfo = hostname::get_hostname();
-                    print!("{}", style_entry(&config.hostname_title, &config.hostname_format, &config, &hostname));
+                    if config.hostname_color {
+                        str.push_str(&hostname.format_colored(&config.hostname_format, config.decimal_places, &config.title_color));
+                    } else {
+                        str.push_str(&hostname.format(&config.hostname_format, config.decimal_places));
+                    }
+
+                    print!("{}", str);
                 },
                 "underline" => {
                     for _ in 0..config.underline_length {

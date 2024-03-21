@@ -63,6 +63,7 @@ pub struct Configuration {
 
     pub hostname_title: String,
     pub hostname_format: String,
+    pub hostname_color: bool,
 
     pub underline_length: u16,
     pub underline_format: bool,

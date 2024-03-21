@@ -1,7 +1,7 @@
 # CrabFetch
 
 ## To-Do
-- [ ] Swap Space
+- [x] Swap Space
 - [ ] Displays
 - [ ] Battery
 - [ ] Host

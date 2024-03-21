@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, fmt::Display, fs::File, io::Read};
+use std::{fmt::Display, fs::File, io::Read};
 
 use crate::Module;
 

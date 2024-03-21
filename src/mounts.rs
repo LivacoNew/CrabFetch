@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, process::Command};
+use std::{fmt::Display, process::Command, io::ErrorKind::NotFound};
 
 use crate::{config_manager::Configuration, Module};
 
@@ -70,10 +70,28 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
     // This uses the "df" command to grab the outputs
-    let contents: String = String::from_utf8(Command::new("df")
-            .args(["-x", "tmpfs", "-x", "efivarfs", "-x", "devtmpfs"])
-            .output().expect("Unable to run 'df' command.").stdout
-        ).expect("Unable to parse 'df' output");
+    let output: Vec<u8> = match Command::new("df")
+        .args(["-x", "tmpfs", "-x", "efivarfs", "-x", "devtmpfs"])
+        .output() {
+            Ok(r) => r.stdout,
+            Err(e) => {
+                if NotFound == e.kind() {
+                    println!("Mounts requires the 'df' command, which is not present!");
+                } else {
+                    println!("Unknown error while fetching mounts: {}", e);
+                }
+
+                return mounts
+            },
+        };
+
+    let contents: String = match String::from_utf8(output) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("Unknown error while fetching mounts: {}", e);
+            return mounts
+        },
+    };
 
     // Parse
     let mut entries: Vec<&str> = contents.split("\n").collect::<Vec<&str>>();

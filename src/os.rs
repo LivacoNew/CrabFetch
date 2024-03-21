@@ -37,14 +37,16 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/etc/os-release") {
         Ok(r) => r,
         Err(e) => {
-            panic!("Can't read from /etc/os-release - {}", e);
+            print!("Can't read from /etc/os-release - {}", e);
+            return os
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from /etc/os-release - {}", e);
+            print!("Can't read from /etc/os-release - {}", e);
+            return os
         },
     }
     for line in contents.trim().to_string().split("\n").collect::<Vec<&str>>() {
@@ -62,14 +64,16 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
         Ok(r) => r,
         Err(e) => {
-            panic!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            print!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            return os
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            print!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            return os
         },
     }
     os.kernel = contents.trim().to_string();

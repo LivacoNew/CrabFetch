@@ -30,7 +30,7 @@ pub fn get_shell() -> ShellInfo {
     shell.shell_name = match env::var("SHELL") {
         Ok(r) => r,
         Err(e) => {
-            println!("WARNING: Could not parse $SHELL env variable: {}", e);
+            print!("Could not parse $SHELL env variable: {}", e);
             "".to_string()
         }
     };

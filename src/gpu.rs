@@ -1,3 +1,4 @@
+use std::io::ErrorKind::NotFound;
 use core::str;
 use std::{fmt::Display, process::Command};
 
@@ -33,10 +34,28 @@ pub fn get_gpu() -> GPUInfo {
     let mut gpu = GPUInfo::new();
 
     // Grabs the info from glxinfo
-    let contents: String = String::from_utf8(Command::new("glxinfo")
-            .args(["-B"])
-            .output().expect("Unable to run 'glxinfo' command.").stdout
-        ).expect("Unable to parse 'glxinfo' output");
+    let output: Vec<u8> = match Command::new("glxinfo")
+        .args(["-B"])
+        .output() {
+            Ok(r) => r.stdout,
+            Err(e) => {
+                if NotFound == e.kind() {
+                    print!("GPU requires the 'glxinfo' command, which is not present!");
+                } else {
+                    print!("Unknown error while fetching GPU: {}", e);
+                }
+
+                return gpu
+            },
+        };
+
+    let contents: String = match String::from_utf8(output) {
+        Ok(r) => r,
+        Err(e) => {
+            print!("Unknown error while fetching GPU: {}", e);
+            return gpu
+        },
+    };
 
     // Vendor is got from whatever line starts with "OpenGL vendor string"
     // Model is from line starting with "OpenGL renderer string", this will automatically search
@@ -59,7 +78,7 @@ pub fn get_gpu() -> GPUInfo {
             gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("Unable to parse GPU memory: {}", e);
+                    print!("Unable to parse GPU memory: {}", e);
                     0
                 },
             };

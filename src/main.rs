@@ -1,3 +1,5 @@
+use std::{env, process::exit};
+
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
@@ -45,6 +47,12 @@ fn style_entry(title: &str, format: &str, config: &Configuration, module: &impl 
 }
 
 fn main() {
+    // Are we defo in Linux?
+    if env::consts::OS != "linux" {
+        println!("CrabFetch only supports Linux! If you want to go through and add support for your own OS, make a pull request :)");
+        exit(-1);
+    }
+
     let mut config: Configuration = config_manager::parse();
 
     // Since we parse the os-release file in OS anyway, this is always called to get the

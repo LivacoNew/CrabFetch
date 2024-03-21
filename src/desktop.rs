@@ -30,7 +30,7 @@ pub fn get_desktop() -> DesktopInfo {
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
         Err(e) => {
-            println!("WARNING: Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e);
+            print!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e);
             "Unknown".to_string()
         }
     };

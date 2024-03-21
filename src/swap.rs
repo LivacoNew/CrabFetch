@@ -37,14 +37,16 @@ pub fn get_swap() -> SwapInfo {
     let mut file: File = match File::open("/proc/swaps") {
         Ok(r) => r,
         Err(e) => {
-            panic!("Can't read from /proc/swaps - {}", e);
+            print!("Can't read from /proc/swaps - {}", e);
+            return swap
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from /proc/swaps - {}", e);
+            print!("Can't read from /proc/swaps - {}", e);
+            return swap
         },
     }
     let mut lines: Vec<&str> = contents.split("\n").collect();

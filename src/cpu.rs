@@ -54,14 +54,16 @@ fn get_basic_info(cpu: &mut CPUInfo) {
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            panic!("Can't read from /proc/cpuinfo - {}", e);
+            print!("Can't read from /proc/cpuinfo - {}", e);
+            return
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from /proc/cpuinfo - {}", e);
+            print!("Can't read from /proc/cpuinfo - {}", e);
+            return
         },
     }
 
@@ -77,7 +79,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("WARNING: Could not parse cpu cores: {}", e);
+                    print!("WARNING: Could not parse cpu cores: {}", e);
                     0
                 },
             }
@@ -86,7 +88,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("WARNING: Could not parse cpu threads: {}", e);
+                    print!("WARNING: Could not parse cpu threads: {}", e);
                     0
                 },
             }
@@ -95,7 +97,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.current_clock_mhz = match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("WARNING: Could not parse current cpu frequency: {}", e);
+                    print!("WARNING: Could not parse current cpu frequency: {}", e);
                     0.0
                 },
             }
@@ -123,20 +125,23 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     }
 
     if freq_path.is_none() {
-        panic!("Could not find an appropriate path for getting max CPU Frequency.");
+        print!("Could not find an appropriate path for getting max CPU Frequency.");
+        return
     }
 
     let mut file: File = match File::open(freq_path.unwrap()) {
         Ok(r) => r,
         Err(e) => {
-            panic!("Can't read from {} - {}", freq_path.unwrap(), e);
+            print!("Can't read from {} - {}", freq_path.unwrap(), e);
+            return
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from {} - {}", freq_path.unwrap(), e);
+            print!("Can't read from {} - {}", freq_path.unwrap(), e);
+            return
         },
     }
 

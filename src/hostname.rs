@@ -39,7 +39,7 @@ pub fn get_hostname() -> HostnameInfo {
     hostname.username = match env::var("USER") {
         Ok(r) => r,
         Err(e) => {
-            println!("WARNING: Could not parse $USER env variable: {}", e);
+            print!("WARNING: Could not parse $USER env variable: {}", e);
             "user".to_string()
         }
     };
@@ -48,14 +48,16 @@ pub fn get_hostname() -> HostnameInfo {
     let mut file: File = match File::open("/etc/hostname") {
         Ok(r) => r,
         Err(e) => {
-            panic!("Can't read from /etc/hostname - {}", e);
+            print!("Can't read from /etc/hostname - {}", e);
+            return hostname
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            panic!("Can't read from /etc/hostname - {}", e);
+            print!("Can't read from /etc/hostname - {}", e);
+            return hostname
         },
     }
     hostname.hostname = contents.trim().to_string();

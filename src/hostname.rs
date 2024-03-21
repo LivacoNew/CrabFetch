@@ -16,7 +16,7 @@ impl Module for HostnameInfo {
     }
     fn format(&self, format: &str, _: u32) -> String {
         format.replace("{hostname}", &self.hostname)
-        .replace("{username}", &self.username)
+            .replace("{username}", &self.username)
     }
 }
 impl Display for HostnameInfo {
@@ -27,18 +27,13 @@ impl Display for HostnameInfo {
 impl HostnameInfo {
     pub fn format_colored(&self, format: &str, _: u32, color: &CrabFetchColor) -> String {
         format.replace("{hostname}", &config_manager::color_string(&self.hostname, &color).to_string())
-        .replace("{username}", &config_manager::color_string(&self.username, &color).to_string())
+            .replace("{username}", &config_manager::color_string(&self.username, &color).to_string())
     }
 }
 
 pub fn get_hostname() -> HostnameInfo {
     let mut hostname = HostnameInfo::new();
-    get_basic_info(&mut hostname);
 
-    hostname
-}
-
-fn get_basic_info(hostname: &mut HostnameInfo) {
     // Gets the username from $USER
     // Gets the hostname from /etc/hostname
     hostname.username = match env::var("USER") {
@@ -64,4 +59,6 @@ fn get_basic_info(hostname: &mut HostnameInfo) {
         },
     }
     hostname.hostname = contents.trim().to_string();
+
+    hostname
 }

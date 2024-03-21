@@ -18,7 +18,7 @@ impl Module for OSInfo {
     }
     fn format(&self, format: &str, _: u32) -> String {
         format.replace("{distro}", &self.distro)
-        .replace("{kernel}", &self.kernel)
+            .replace("{kernel}", &self.kernel)
     }
 }
 impl Display for OSInfo {
@@ -29,12 +29,7 @@ impl Display for OSInfo {
 
 pub fn get_os() -> OSInfo {
     let mut os = OSInfo::new();
-    get_basic_info(&mut os);
 
-    os
-}
-
-fn get_basic_info(os: &mut OSInfo) {
     // Grabs the distro name from /etc/os-release
     // Grabs the kernel release from /proc/sys/kernel/osrelease
 
@@ -78,4 +73,6 @@ fn get_basic_info(os: &mut OSInfo) {
         },
     }
     os.kernel = contents.trim().to_string();
+
+    os
 }

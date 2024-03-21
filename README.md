@@ -3,7 +3,6 @@
 ## To-Do
 - [x] Swap Space
 - [x] GPU
-- [ ] RAM Speed
 - [ ] Displays
 - [ ] Battery
 - [ ] Host

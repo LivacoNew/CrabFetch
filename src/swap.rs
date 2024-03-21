@@ -4,40 +4,35 @@ use std::{fmt::Display, fs::File, io::Read};
 use crate::Module;
 
 pub struct SwapInfo {
-    used: u32,
-    total: u32,
+    used_kib: u32,
+    total_kib: u32,
 }
 impl Module for SwapInfo {
     fn new() -> SwapInfo {
         SwapInfo {
-            used: 0,
-            total: 0
+            used_kib: 0,
+            total_kib: 0
         }
     }
     fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{used_kib}", &self.used.to_string())
-        .replace("{used_mib}", &(self.used / 1024).to_string())
-        .replace("{used_gib}", &(self.used / 1024 / 1024).to_string())
-        .replace("{total_kib}", &self.total.to_string())
-        .replace("{total_mib}", &(self.total / 1024).to_string())
-        .replace("{total_gib}", &(self.total / 1024 / 1024).to_string())
-        .replace("{percent}", &SwapInfo::round((self.used as f32 / self.total as f32) * 100.0, float_places).to_string())
+        format.replace("{used_kib}", &self.used_kib.to_string())
+            .replace("{used_mib}", &(self.used_kib / 1024).to_string())
+            .replace("{used_gib}", &(self.used_kib / 1024 / 1024).to_string())
+            .replace("{total_kib}", &self.total_kib.to_string())
+            .replace("{total_mib}", &(self.total_kib / 1024).to_string())
+            .replace("{total_gib}", &(self.total_kib / 1024 / 1024).to_string())
+            .replace("{percent}", &SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, float_places).to_string())
     }
 }
 impl Display for SwapInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", self.used, self.total)
+        write!(f, "{} / {}", self.used_kib, self.total_kib)
     }
 }
 
 pub fn get_swap() -> SwapInfo {
     let mut swap = SwapInfo::new();
-    get_basic_info(&mut swap);
 
-    swap
-}
-
-fn get_basic_info(swap: &mut SwapInfo) {
     // Uses /proc/swaps
     let mut file: File = match File::open("/proc/swaps") {
         Ok(r) => r,
@@ -61,7 +56,9 @@ fn get_basic_info(swap: &mut SwapInfo) {
         let mut values: Vec<&str> = line.split(['\t', ' ']).collect();
         values.retain(|x| x.trim() != "");
 
-        swap.used += values[3].parse::<u32>().unwrap();
-        swap.total += values[2].parse::<u32>().unwrap();
+        swap.used_kib += values[3].parse::<u32>().unwrap();
+        swap.total_kib += values[2].parse::<u32>().unwrap();
     }
+
+    swap
 }

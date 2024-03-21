@@ -4,41 +4,37 @@ use std::io::Read;
 use crate::Module;
 
 pub struct MemoryInfo {
-    used: u32,
-    max: u32,
+    used_kib: u32,
+    max_kib: u32,
     percentage: f32
 }
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {
-            used: 0,
-            max: 0,
+            used_kib: 0,
+            max_kib: 0,
             percentage: 0.0
         }
     }
     fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{phys_used_kib}", &MemoryInfo::round(self.used as f32, float_places).to_string())
-        .replace("{phys_used_mib}", &MemoryInfo::round(self.used as f32 / 1024.0, float_places).to_string())
-        .replace("{phys_used_gib}", &MemoryInfo::round(self.used as f32 / 104857.0, float_places).to_string())
-        .replace("{phys_max_kib}", &MemoryInfo::round(self.max as f32, float_places).to_string())
-        .replace("{phys_max_mib}", &MemoryInfo::round(self.max as f32 / 1024.0, float_places).to_string())
-        .replace("{phys_max_gib}", &MemoryInfo::round(self.max as f32 / 104857.0, float_places).to_string())
-        .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
+        format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, float_places).to_string())
+            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, float_places).to_string())
+            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, float_places).to_string())
+            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, float_places).to_string())
+            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, float_places).to_string())
+            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, float_places).to_string())
+            .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
     }
 }
 impl Display for MemoryInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", (self.used as f32 / 102400.0), (self.max as f32 / 102400.0))
+        write!(f, "{} / {}", (self.used_kib as f32 / 102400.0), (self.max_kib as f32 / 102400.0))
     }
 }
 
 pub fn get_memory() -> MemoryInfo {
     let mut memory = MemoryInfo::new();
-    get_basic_info(&mut memory);
-    memory
-}
 
-fn get_basic_info(memory: &mut MemoryInfo) {
     // Fetches from /proc/meminfo
     let mut file: File = match File::open("/proc/meminfo") {
         Ok(r) => r,
@@ -70,7 +66,7 @@ fn get_basic_info(memory: &mut MemoryInfo) {
         if line.starts_with("MemTotal") {
             let mut var = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
-            memory.max = match var.to_string().parse::<u32>() {
+            memory.max_kib = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
                     println!("WARNING: Could not parse total memory: {}", e);
@@ -136,6 +132,8 @@ fn get_basic_info(memory: &mut MemoryInfo) {
     }
 
     // MemUsed = Memtotal + Shmem - MemFree - Buffers - Cached - SReclaimable
-    memory.used = memory.max + shmem - mem_free - buffers - cached - s_reclaimable;
-    memory.percentage = (memory.used as f32 / memory.max as f32) * 100.0;
+    memory.used_kib = memory.max_kib + shmem - mem_free - buffers - cached - s_reclaimable;
+    memory.percentage = (memory.used_kib as f32 / memory.max_kib as f32) * 100.0;
+
+    memory
 }

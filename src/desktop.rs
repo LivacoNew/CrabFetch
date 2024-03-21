@@ -24,12 +24,7 @@ impl Display for DesktopInfo {
 
 pub fn get_desktop() -> DesktopInfo {
     let mut desktop = DesktopInfo::new();
-    get_basic_info(&mut desktop);
 
-    desktop
-}
-
-fn get_basic_info(desktop: &mut DesktopInfo) {
     // Gets the username from $USER
     // Gets the hostname from /etc/hostname
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
@@ -39,4 +34,6 @@ fn get_basic_info(desktop: &mut DesktopInfo) {
             "Unknown".to_string()
         }
     };
+
+    desktop
 }

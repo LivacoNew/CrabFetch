@@ -6,37 +6,32 @@ use crate::Module;
 pub struct GPUInfo {
     vendor: String,
     model: String,
-    vram: u32,
+    vram_mb: u32,
 }
 impl Module for GPUInfo {
     fn new() -> GPUInfo {
         GPUInfo {
             vendor: "".to_string(),
             model: "".to_string(),
-            vram: 0
+            vram_mb: 0
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
         format.replace("{vendor}", &self.vendor)
-        .replace("{model}", &self.model)
-        .replace("{vram_mb}", &self.vram.to_string())
-        .replace("{vram_gb}", &(self.vram / 1024).to_string())
+            .replace("{model}", &self.model)
+            .replace("{vram_mb}", &self.vram_mb.to_string())
+            .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
     }
 }
 impl Display for GPUInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {} w/ {} mb", self.vendor, self.model, self.vram)
+        write!(f, "{} {} w/ {} mb", self.vendor, self.model, self.vram_mb)
     }
 }
 
 pub fn get_gpu() -> GPUInfo {
     let mut gpu = GPUInfo::new();
-    get_basic_info(&mut gpu);
 
-    gpu
-}
-
-fn get_basic_info(gpu: &mut GPUInfo) {
     // Grabs the info from glxinfo
     let contents: String = String::from_utf8(Command::new("glxinfo")
             .args(["-B"])
@@ -61,7 +56,7 @@ fn get_basic_info(gpu: &mut GPUInfo) {
         }
         if line.starts_with("Dedicated video memory:") {
             // E.g Dedicated video memory: 16384 MB
-            gpu.vram = match line[24..line.len() - 3].parse::<u32>() {
+            gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
                     println!("Unable to parse GPU memory: {}", e);
@@ -70,4 +65,6 @@ fn get_basic_info(gpu: &mut GPUInfo) {
             };
         }
     }
+
+    gpu
 }

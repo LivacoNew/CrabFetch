@@ -193,9 +193,9 @@ mount_title = "Disk {mount}"
 # The format each mount should be in. Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
-# {space_used_kb}       -> The space used in kilobytes.
-# {space_avail_kb}      -> The space available in kilobytes.
-# {space_total_kb}      -> The total space in kilobytes.
+# {space_used_mb}       -> The space used in megabytes.
+# {space_avail_mb}      -> The space available in metabytes.
+# {space_total_mb}      -> The total space in metabytes.
 # {space_used_gb}       -> The space used in gigabytes.
 # {space_avail_gb}      -> The space available in gigabytes.
 # {space_total_gb}      -> The total space in gigabytes.

@@ -10,14 +10,16 @@ The customisation file should be in `~/.config/CrabFetch/config.toml`. The defau
 ## Performance
 Here's a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.
 
-| **Fetcher** | **Time Ran**                                 | **Image**                       |
-| ----------- | -------------------------------------------- | ------------------------------- |
-| CrabFetch   | 0.02s user 0.01s system 48% cpu 0.065 total  | https://i.imgur.com/9GkW1LK.png |
-| NeoFetch    | 0.11s user 0.08s system 101% cpu 0.188 total | https://i.imgur.com/ywWkoJm.png |
-| FastFetch   | 0.09s user 0.02s system 99% cpu 0.108 total  | https://i.imgur.com/OaXXCat.png |
+All benchmarks were done via the zsh implemented `time` command, with as similar configs as possible.
+
+| **Fetcher** | **Time Ran**                                                | **Image**                       |
+| ----------- | ----------------------------------------------------------- | ------------------------------- |
+| CrabFetch   | ./crabfetch  0.00s user 0.00s system 93% cpu 0.003 total    | https://i.imgur.com/iuQGqiz.png |
+| NeoFetch    | /bin/neofetch  0.08s user 0.04s system 104% cpu 0.111 total | https://i.imgur.com/jdwvdY5.png |
+| FastFetch   | /bin/fastfetch  0.00s user 0.01s system 85% cpu 0.008 total | https://i.imgur.com/Z7Pm5oA.png |
 
 ## Credits
-- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a good source on where to find hardware info in Linux.
+- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find hardware info in Linux.
 
 ## Roadmap
 - [x] Swap Space
@@ -31,3 +33,4 @@ Here's a table comparing performance between [NeoFetch](https://github.com/dylan
 - [ ] Config Cleanup
 - [x] Check for running Linux + All required commands are indeed present
 - [x] Rename all variables to include data types
+- [ ] Assign types to ALL variables

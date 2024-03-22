@@ -31,6 +31,7 @@ All benchmarks were done via the zsh implemented `time` command, with as similar
 - [ ] Command line arguments for Version & Custom config
 - [ ] Image Support
 - [ ] Config Cleanup
+- [ ] Config Defaults
 - [x] Check for running Linux + All required commands are indeed present
 - [x] Rename all variables to include data types
 - [ ] Assign types to ALL variables

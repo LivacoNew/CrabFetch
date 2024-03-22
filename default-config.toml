@@ -8,15 +8,16 @@
 modules = [
     "hostname",
     "underline",
-    "os",
-    "gpu",
-    "desktop",
-    "shell",
-    "uptime",
     "cpu",
+    "gpu",
     "memory",
     "swap",
     "mounts",
+
+    "os",
+    "desktop",
+    "shell",
+    "uptime"
 ]
 
 

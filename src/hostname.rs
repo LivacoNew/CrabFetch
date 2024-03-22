@@ -32,7 +32,7 @@ impl HostnameInfo {
 }
 
 pub fn get_hostname() -> HostnameInfo {
-    let mut hostname = HostnameInfo::new();
+    let mut hostname: HostnameInfo = HostnameInfo::new();
 
     // Gets the username from $USER
     // Gets the hostname from /etc/hostname

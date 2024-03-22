@@ -1,7 +1,7 @@
 use std::{env, path::Path, fs::File, io::Read};
 
 use colored::{ColoredString, Colorize};
-use config::Config;
+use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
 // This is a hack to get the color deserializaton working
@@ -122,7 +122,7 @@ pub fn parse() -> Configuration {
     };
     // println!("{}", config_path_str);
 
-    let mut builder = Config::builder();
+    let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     // Set the defaults here
     builder = builder.set_default("modules", vec!["cpu".to_string(), "memory".to_string()]).unwrap();
@@ -148,12 +148,12 @@ pub fn parse() -> Configuration {
     builder = builder.set_default("desktop_title", "Desktop").unwrap();
     builder = builder.set_default("desktop_format", "{desktop}").unwrap();
     // Now stop.
-    let config = match builder.build() {
+    let config: Config = match builder.build() {
         Ok(r) => r,
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
 
-    let deserialized = match config.try_deserialize::<Configuration>() {
+    let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
         Ok(r) => r,
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };

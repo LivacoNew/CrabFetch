@@ -29,7 +29,7 @@ impl Display for UptimeInfo {
 }
 
 pub fn get_uptime() -> UptimeInfo {
-    let mut uptime = UptimeInfo::new();
+    let mut uptime: UptimeInfo = UptimeInfo::new();
 
     // Grabs from /proc/uptime
     let mut file: File = match File::open("/proc/uptime") {

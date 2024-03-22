@@ -30,7 +30,7 @@ trait Module {
 }
 
 fn style_entry(title: &str, format: &str, config: &Configuration, module: &impl Module) -> String {
-    let mut str = String::new();
+    let mut str: String = String::new();
     let mut title: ColoredString = config_manager::color_string(title, &config.title_color);
     if title.trim() != "" {
         if config.title_bold {
@@ -85,11 +85,11 @@ fn main() {
         let percentage: f32 = (line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573
         let index: u8 = (((config.ascii_colors.len() - 1) as f32) * percentage).round() as u8;
-        let colored = color_string(line, config.ascii_colors.get(index as usize).unwrap());
+        let colored: ColoredString = color_string(line, config.ascii_colors.get(index as usize).unwrap());
 
         // Print the actual ASCII
         print!("{}", colored);
-        let remainder = target_length - (line.len() as u16);
+        let remainder: u16 = target_length - (line.len() as u16);
         for _ in 0..remainder {
             print!(" ");
         }
@@ -104,7 +104,7 @@ fn main() {
                 "hostname" => {
                     // Pretty much reimplements style_entry
                     // Sorry DRY enthusiasts
-                    let mut str = String::new();
+                    let mut str: String = String::new();
                     let mut title: ColoredString = config_manager::color_string(&config.hostname_title, &config.title_color);
                     if title.trim() != "" {
                         if config.title_bold {

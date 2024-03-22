@@ -31,7 +31,7 @@ impl Display for SwapInfo {
 }
 
 pub fn get_swap() -> SwapInfo {
-    let mut swap = SwapInfo::new();
+    let mut swap: SwapInfo = SwapInfo::new();
 
     // Uses /proc/swaps
     let mut file: File = match File::open("/proc/swaps") {

@@ -28,7 +28,7 @@ impl Display for OSInfo {
 }
 
 pub fn get_os() -> OSInfo {
-    let mut os = OSInfo::new();
+    let mut os: OSInfo = OSInfo::new();
 
     // Grabs the distro name from /etc/os-release
     // Grabs the kernel release from /proc/sys/kernel/osrelease

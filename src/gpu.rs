@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, path::Path, io::{ErrorKind::NotFound, Read, Write}, process::Command, fs};
+use std::{fmt::Display, fs::File, path::Path, io::{ErrorKind::NotFound, Read, Write, Error}, process::Command, fs};
 
 use crate::Module;
 
@@ -33,10 +33,10 @@ pub fn get_gpu() -> GPUInfo {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
-    let mut gpu = GPUInfo::new();
-    let cache_path = Path::new("/tmp/crabfetch-gpu");
+    let mut gpu: GPUInfo = GPUInfo::new();
+    let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
     if cache_path.exists() {
-        let cache_file = File::open("/tmp/crabfetch-gpu");
+        let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
         match cache_file {
             Ok(mut r) => {
                 let mut contents: String = String::new();
@@ -92,7 +92,7 @@ pub fn get_gpu() -> GPUInfo {
     // VRam is from line starting "Dedicated video memory"
 
     for line in contents.split("\n").collect::<Vec<&str>>() {
-        let line = line.trim();
+        let line: &str = line.trim();
         if line.starts_with("OpenGL vendor string:") {
             // E.g OpenGL vendor string: AMD
             gpu.vendor = line[22..line.len()].to_string()
@@ -122,7 +122,7 @@ pub fn get_gpu() -> GPUInfo {
             return gpu;
         }
     };
-    let write = format!("{}\n{}\n{}", gpu.vendor, gpu.model, gpu.vram_mb);
+    let write: String = format!("{}\n{}\n{}", gpu.vendor, gpu.model, gpu.vram_mb);
     match file.write(write.as_bytes()) {
         Ok(_) => {},
         Err(e) => {

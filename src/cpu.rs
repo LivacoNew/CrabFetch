@@ -37,7 +37,7 @@ impl Display for CPUInfo {
 }
 
 pub fn get_cpu() -> CPUInfo {
-    let mut cpu = CPUInfo::new();
+    let mut cpu: CPUInfo = CPUInfo::new();
     // This ones split into 2 as theres a lot to parse
     get_basic_info(&mut cpu);
     get_max_clock(&mut cpu);

@@ -23,7 +23,7 @@ impl Display for DesktopInfo {
 }
 
 pub fn get_desktop() -> DesktopInfo {
-    let mut desktop = DesktopInfo::new();
+    let mut desktop: DesktopInfo = DesktopInfo::new();
 
     // Gets the username from $USER
     // Gets the hostname from /etc/hostname

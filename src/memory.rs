@@ -33,7 +33,7 @@ impl Display for MemoryInfo {
 }
 
 pub fn get_memory() -> MemoryInfo {
-    let mut memory = MemoryInfo::new();
+    let mut memory: MemoryInfo = MemoryInfo::new();
 
     // Fetches from /proc/meminfo
     let mut file: File = match File::open("/proc/meminfo") {
@@ -66,7 +66,7 @@ pub fn get_memory() -> MemoryInfo {
 
     for line in lines {
         if line.starts_with("MemTotal") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             memory.max_kib = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
@@ -77,7 +77,7 @@ pub fn get_memory() -> MemoryInfo {
             }
         }
         if line.starts_with("MemFree") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             mem_free = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
@@ -88,7 +88,7 @@ pub fn get_memory() -> MemoryInfo {
             }
         }
         if line.starts_with("Shmem:") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             shmem = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
@@ -99,7 +99,7 @@ pub fn get_memory() -> MemoryInfo {
             }
         }
         if line.starts_with("Buffers") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             buffers = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
@@ -110,7 +110,7 @@ pub fn get_memory() -> MemoryInfo {
             }
         }
         if line.starts_with("Cached") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             cached = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
@@ -121,7 +121,7 @@ pub fn get_memory() -> MemoryInfo {
             }
         }
         if line.starts_with("SReclaimable") {
-            let mut var = line.split(": ").collect::<Vec<&str>>()[1];
+            let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
             s_reclaimable = match var.to_string().parse::<u32>() {
                 Ok(r) => r,

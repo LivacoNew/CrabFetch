@@ -24,7 +24,7 @@ impl Display for ShellInfo {
 }
 
 pub fn get_shell() -> ShellInfo {
-    let mut shell = ShellInfo::new();
+    let mut shell: ShellInfo = ShellInfo::new();
 
     // Just grabs whatevers in $SHELL
     shell.shell_name = match env::var("SHELL") {

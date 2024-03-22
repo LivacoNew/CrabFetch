@@ -1,0 +1,20 @@
+modules = [
+    "hostname",
+    "underline"
+]
+
+title_seperator = ">"
+
+title_color = "bright_magenta"
+title_bold = true
+title_italic = true
+
+decimal_places = 2
+
+
+
+[hostname]
+title = "Hostname"
+format = "{color-magenta}{username}{color-white}@{color-magenta}{hostname}"
+title_seperator = ": "
+

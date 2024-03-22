@@ -22,8 +22,6 @@ All benchmarks were done via the zsh implemented `time` command, with as similar
 - [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find hardware info in Linux.
 
 ## Roadmap
-- [x] Swap Space
-- [x] GPU
 - [ ] Displays
 - [ ] Battery
 - [ ] Host
@@ -32,6 +30,3 @@ All benchmarks were done via the zsh implemented `time` command, with as similar
 - [ ] Image Support
 - [ ] Config Cleanup
 - [ ] Config Defaults
-- [x] Check for running Linux + All required commands are indeed present
-- [x] Rename all variables to include data types
-- [ ] Assign types to ALL variables

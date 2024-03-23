@@ -1,4 +1,4 @@
-use std::{cmp::max, env, path::Path, process::exit};
+use std::{cmp::max, env, process::exit};
 
 use clap::Parser;
 use colored::{ColoredString, Colorize};

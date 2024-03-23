@@ -101,8 +101,7 @@ pub struct Configuration {
 }
 
 pub fn parse(location_override: Option<String>) -> Configuration {
-    // Ignore the LSP here, not sure what glue cargo's been sniffing but it's defo read from
-    let mut config_path_str: String = String::new();
+    let config_path_str: String;
     if location_override.is_some() {
         config_path_str = shellexpand::tilde(&location_override.unwrap()).to_string();
         // Config won't be happy unless it ends with .toml

@@ -9,7 +9,6 @@ The customisation file should be in `~/.config/CrabFetch/config.toml`. The defau
 
 ## Performance
 Here's a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.
-
 All benchmarks were done via the zsh implemented `time` command, with as similar configs as possible.
 
 | **Fetcher** | **Time Ran**                                           | **Image**                       |
@@ -33,7 +32,7 @@ Ensure you've got your $PATH set to include ~/.cargo/bin/
 ## Roadmap
 - [ ] Displays
 - [ ] Battery
-- [ ] Host
+- [x] Host
 - [ ] Packages
 - [x] Command line arguments for Version & Custom config
 - [ ] Image Support

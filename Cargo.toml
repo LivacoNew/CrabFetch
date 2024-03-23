@@ -6,7 +6,7 @@ edition = "2021"
 description = "A fetch tool designed to be highly configurable while performant."
 readme = "README.md"
 repository = "https://github.com/LivacoNew/CrabFetch"
-licence = "Apache-2.0"
+license = "Apache-2.0"
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }

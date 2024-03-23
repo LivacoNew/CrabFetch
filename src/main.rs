@@ -29,7 +29,7 @@ struct Args {
     /// Sets a custom config file. This file MUST be a .toml file.
     config: Option<String>,
     #[arg(short, long)]
-    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a LOT slower as
+    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a bit slower as
     /// glxinfo is slow!
     ignore_cache: bool
 }

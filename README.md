@@ -27,7 +27,8 @@ cargo install --path .
 Ensure you've got your $PATH set to include ~/.cargo/bin/
 
 ## Credits
-- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find hardware info in Linux.
+- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find some info in Linux.
+- [FastFetch](https://github.com/fastfetch-cli/fastfetch) for being another occasional source as well for system info.
 
 ## Roadmap
 - [ ] Displays

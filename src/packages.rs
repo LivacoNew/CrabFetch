@@ -36,6 +36,10 @@ pub fn get_packages() -> PackagesInfo {
         None => {}
     };
 
+    if packages.packages.len() <= 0 {
+        packages.packages.insert("No Package Managers Found".to_string(), 0);
+    }
+
     packages
 }
 

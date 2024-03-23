@@ -1,9 +1,12 @@
 [package]
 name = "crabfetch"
 version = "0.1.0"
+authors = ["Livaco"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "A fetch tool designed to be highly configurable while performant."
+readme = "README.md"
+repository = "https://github.com/LivacoNew/CrabFetch"
+licence = "Apache-2.0"
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }

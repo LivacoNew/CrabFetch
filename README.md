@@ -31,7 +31,7 @@ Ensure you've got your $PATH set to include ~/.cargo/bin/
 - [FastFetch](https://github.com/fastfetch-cli/fastfetch) for being another occasional source as well for system info.
 
 ## Roadmap
-- [ ] Displays
+- [x] Displays
 - [ ] Battery
 - [x] Host
 - [x] Packages

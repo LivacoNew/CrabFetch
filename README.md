@@ -12,11 +12,11 @@ Here's a table comparing performance between [NeoFetch](https://github.com/dylan
 
 All benchmarks were done via the zsh implemented `time` command, with as similar configs as possible.
 
-| **Fetcher** | **Time Ran**                                                | **Image**                       |
-| ----------- | ----------------------------------------------------------- | ------------------------------- |
-| CrabFetch   | ./crabfetch  0.00s user 0.00s system 93% cpu 0.003 total    | https://i.imgur.com/iuQGqiz.png |
-| NeoFetch    | /bin/neofetch  0.08s user 0.04s system 104% cpu 0.111 total | https://i.imgur.com/jdwvdY5.png |
-| FastFetch   | /bin/fastfetch  0.00s user 0.01s system 85% cpu 0.008 total | https://i.imgur.com/Z7Pm5oA.png |
+| **Fetcher** | **Time Ran**                                           | **Image**                       |
+| ----------- | ------------------------------------------------------ | ------------------------------- |
+| CrabFetch   | crabfetch  0.00s user 0.00s system 92% cpu 0.003 total | https://i.imgur.com/iuQGqiz.png |
+| NeoFetch    | neofetch  0.06s user 0.04s system 92% cpu 0.106 total  | https://i.imgur.com/AoExg0s.png |
+| FastFetch   | fastfetch  0.04s user 0.01s system 98% cpu 0.051 total | https://i.imgur.com/Q9csdAo.png |
 
 ## Installation
 From source;

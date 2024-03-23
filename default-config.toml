@@ -13,9 +13,11 @@ modules = [
     "memory",
     "swap",
     "mounts",
-    "terminal",
+    "host",
+
     "os",
     "desktop",
+    "terminal",
     "shell",
     "uptime",
     "space",
@@ -160,6 +162,16 @@ terminal_title = "Terminal"
 # The format the Terminal should be in. Placeholders;
 # {terminal_name}              -> The terminal name
 terminal_format = "{terminal_name}"
+
+# }}}
+# Host {{{
+
+# Title for Host
+host_title = "Host"
+
+# The format the Host should be in. Placeholders;
+# {host}              -> The name of the host
+host_format = "{host}"
 
 # }}}
 # Uptime {{{

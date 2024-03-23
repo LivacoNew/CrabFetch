@@ -86,6 +86,9 @@ pub struct Configuration {
     pub terminal_title: String,
     pub terminal_format: String,
 
+    pub host_title: String,
+    pub host_format: String,
+
     pub uptime_title: String,
     pub uptime_format: String,
 

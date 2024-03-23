@@ -18,6 +18,15 @@ All benchmarks were done via the zsh implemented `time` command, with as similar
 | NeoFetch    | /bin/neofetch  0.08s user 0.04s system 104% cpu 0.111 total | https://i.imgur.com/jdwvdY5.png |
 | FastFetch   | /bin/fastfetch  0.00s user 0.01s system 85% cpu 0.008 total | https://i.imgur.com/Z7Pm5oA.png |
 
+## Installation
+From source;
+```sh
+git clone git@github.com:LivacoNew/CrabFetch.git
+cd CrabFetch
+cargo install --path .
+```
+Ensure you've got your $PATH set to include ~/.cargo/bin/
+
 ## Credits
 - [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find hardware info in Linux.
 

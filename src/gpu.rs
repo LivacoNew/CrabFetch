@@ -29,37 +29,39 @@ impl Display for GPUInfo {
     }
 }
 
-pub fn get_gpu() -> GPUInfo {
+pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
     let mut gpu: GPUInfo = GPUInfo::new();
-    let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
-    if cache_path.exists() {
-        let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
-        match cache_file {
-            Ok(mut r) => {
-                let mut contents: String = String::new();
-                match r.read_to_string(&mut contents) {
-                    Ok(_) => {
-                        let split: Vec<&str> = contents.split("\n").collect();
-                        gpu.vendor = split[0].to_string();
-                        gpu.model = split[1].to_string();
-                        gpu.vram_mb = split[2].parse::<u32>().unwrap();
-                        return gpu;
-                    },
-                    Err(e) => {
-                        print!("GPU Cache exists, but cannot read from it - {}", e);
-                    },
+    if !ignore_cache {
+        let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
+        if cache_path.exists() {
+            let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
+            match cache_file {
+                Ok(mut r) => {
+                    let mut contents: String = String::new();
+                    match r.read_to_string(&mut contents) {
+                        Ok(_) => {
+                            let split: Vec<&str> = contents.split("\n").collect();
+                            gpu.vendor = split[0].to_string();
+                            gpu.model = split[1].to_string();
+                            gpu.vram_mb = split[2].parse::<u32>().unwrap();
+                            return gpu;
+                        },
+                        Err(e) => {
+                            print!("GPU Cache exists, but cannot read from it - {}", e);
+                        },
+                    }
+                },
+                Err(_) => {
+                    // Assume the file is somehow corrupt
+                    // Spooky but this time the spook won't delete your home directory (in theory) :)
+                    drop(cache_file);
+                    fs::remove_file("/tmp/crabfetch-gpu").expect("Unable to delete potentially corrupt GPU cache file.");
                 }
-            },
-            Err(_) => {
-                // Assume the file is somehow corrupt
-                // Spooky but this time the spook won't delete your home directory (in theory) :)
-                drop(cache_file);
-                fs::remove_file("/tmp/crabfetch-gpu").expect("Unable to delete potentially corrupt GPU cache file.");
-            }
-        };
+            };
+        }
     }
 
     // Grabs the info from glxinfo

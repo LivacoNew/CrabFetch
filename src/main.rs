@@ -26,7 +26,12 @@ mod host;
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    config: Option<String>
+    /// Sets a custom config file. This file MUST be a .toml file.
+    config: Option<String>,
+    #[arg(short, long)]
+    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a LOT slower as
+    /// glxinfo is slow!
+    ignore_cache: bool
 }
 
 trait Module {
@@ -163,7 +168,7 @@ fn main() {
                     print!("{}", style_entry(&config.swap_title, &config.swap_format, &config, &swap));
                 }
                 "gpu" => {
-                    let gpu: GPUInfo = gpu::get_gpu();
+                    let gpu: GPUInfo = gpu::get_gpu(args.ignore_cache);
                     print!("{}", style_entry(&config.gpu_title, &config.gpu_format, &config, &gpu));
                 },
                 "os" => {

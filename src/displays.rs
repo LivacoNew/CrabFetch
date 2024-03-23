@@ -103,8 +103,24 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
     let mut result: Vec<DisplayInfo> = Vec::new();
 
     // This is really fuckin annoying to parse
+    let mut last_display_index: usize = 0;
     for line in contents.split("\n") {
         if !line.contains("connected") {
+            if !line.contains("*") {
+                continue
+            }
+            if last_display_index == 0 {
+                continue // oops
+            }
+
+            // Likely our last display's mode, meaning we get the refresh rate here
+            let mut mode: Vec<&str> = line.split(" ").collect();
+            mode.retain(|x| x.trim() != "");
+            let mut rate: String = mode[1].to_string();
+            rate = rate.replace("*", "");
+            rate = rate.replace("+", "");
+
+            result[last_display_index - 1].refresh_rate = rate.parse::<f32>().unwrap().round() as u32;
             continue
         }
 
@@ -121,6 +137,7 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
         display.name = values[0].to_string();
 
         result.push(display);
+        last_display_index = result.len();
     }
 
     Some(result)

@@ -101,6 +101,7 @@ pub struct Configuration {
 }
 
 pub fn parse(location_override: Option<String>) -> Configuration {
+    // Ignore the LSP here, not sure what glue cargo's been sniffing but it's defo read from
     let mut config_path_str: String = String::new();
     if location_override.is_some() {
         config_path_str = shellexpand::tilde(&location_override.unwrap()).to_string();
@@ -142,7 +143,6 @@ pub fn parse(location_override: Option<String>) -> Configuration {
             }
         };
     }
-    println!("{}", config_path_str);
 
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));

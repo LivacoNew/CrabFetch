@@ -14,11 +14,11 @@ modules = [
     "swap",
     "mounts",
     "terminal",
-
     "os",
     "desktop",
     "shell",
     "uptime",
+    "space",
     "colors",
     "bright_colors"
 ]

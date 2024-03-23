@@ -1,4 +1,4 @@
-use std::{env, process::exit};
+use std::{cmp::max, env, process::exit};
 
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
@@ -75,13 +75,21 @@ fn main() {
         }
     }
 
+    // Figure out how many total lines we have
+    let line_count = max(split.len(), config.modules.len());
+
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
     let mut mounts: Vec<MountInfo> = mounts::get_mounted_drives();
     mounts.retain(|x| !x.is_ignored(&config));
     let mut mount_index: u32 = 0;
-    for line in &split {
+    for x in 0..line_count + 1 {
+        let mut line = "";
+        if split.len() > x {
+            line = split[x]
+        }
+
         // Figure out the color first
         let percentage: f32 = (line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573

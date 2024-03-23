@@ -208,7 +208,8 @@ desktop_title = "Desktop"
 
 # The format the desktop should be in. Placeholders;
 # {desktop}             -> The name of the desktop
-desktop_format = "{desktop}"
+# {display_type}        -> The type of display server, aka x11 or wayland.
+desktop_format = "{desktop} ({display_type})"
 
 # }}}
 # Shell {{{

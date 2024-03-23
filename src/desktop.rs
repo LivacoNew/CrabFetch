@@ -5,32 +5,41 @@ use crate::Module;
 
 pub struct DesktopInfo {
     desktop: String,
+    display_type: String
 }
 impl Module for DesktopInfo {
     fn new() -> DesktopInfo {
         DesktopInfo {
             desktop: "".to_string(),
+            display_type: "".to_string()
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
         format.replace("{desktop}", &self.desktop)
+            .replace("{display_type}", &self.display_type)
     }
 }
 impl Display for DesktopInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.desktop)
+        write!(f, "{} ({})", self.desktop, self.display_type)
     }
 }
 
 pub fn get_desktop() -> DesktopInfo {
     let mut desktop: DesktopInfo = DesktopInfo::new();
 
-    // Gets the username from $USER
-    // Gets the hostname from /etc/hostname
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
         Err(e) => {
             print!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e);
+            "Unknown".to_string()
+        }
+    };
+
+    desktop.display_type = match env::var("XDG_SESSION_TYPE") {
+        Ok(r) => r,
+        Err(e) => {
+            print!("Could not parse $XDG_SESSION_TYPE env variable: {}", e);
             "Unknown".to_string()
         }
     };

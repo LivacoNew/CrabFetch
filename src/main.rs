@@ -179,6 +179,28 @@ fn main() {
                         }
                     }
                 }
+                "colors" => {
+                    let str = "   ";
+                    print!("{}", str.on_black());
+                    print!("{}", str.on_red());
+                    print!("{}", str.on_green());
+                    print!("{}", str.on_yellow());
+                    print!("{}", str.on_blue());
+                    print!("{}", str.on_magenta());
+                    print!("{}", str.on_cyan());
+                    print!("{}", str.on_white());
+                }
+                "bright_colors" => {
+                    let str = "   ";
+                    print!("{}", str.on_bright_black());
+                    print!("{}", str.on_bright_red());
+                    print!("{}", str.on_bright_green());
+                    print!("{}", str.on_bright_yellow());
+                    print!("{}", str.on_bright_blue());
+                    print!("{}", str.on_bright_magenta());
+                    print!("{}", str.on_bright_cyan());
+                    print!("{}", str.on_bright_white());
+                }
                 _ => {
                     print!("Unknown module: {}", module);
                 }

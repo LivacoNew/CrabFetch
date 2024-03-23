@@ -18,7 +18,9 @@ modules = [
     "os",
     "desktop",
     "shell",
-    "uptime"
+    "uptime",
+    "colors",
+    "bright_colors"
 ]
 
 

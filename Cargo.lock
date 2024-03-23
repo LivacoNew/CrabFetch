@@ -219,6 +219,7 @@ dependencies = [
  "colored",
  "config",
  "serde",
+ "serde_json",
  "shellexpand",
 ]
 

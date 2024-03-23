@@ -258,6 +258,7 @@ display_title = "Display {name}"
 # {name}                -> The monitor name, e.g eDP-2
 # {width}               -> The monitor's width
 # {height}              -> The monitor's height
-display_format = "{width}x{height}"
+# {refresh_rate}        -> The monitor's refresh rate
+display_format = "{width}x{height} @ {refresh_rate}hz"
 
 # }}}

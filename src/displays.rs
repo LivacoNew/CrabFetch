@@ -1,6 +1,8 @@
 use core::str;
 use std::{env, fmt::Display, process::Command, io::ErrorKind::NotFound};
 
+use serde_json::Value;
+
 use crate::Module;
 
 #[derive(Clone)]
@@ -56,7 +58,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
                 "wayland" => {
                     // Currently I only know of wlr-randr however I am aware there's no standard
                     // randr tool here
-                    displays = match parse_xrandr() {
+                    displays = match parse_wlr_randr() {
                         Some(r) => r,
                         None => Vec::new(),
                     };
@@ -117,6 +119,64 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
 
         // Name
         display.name = values[0].to_string();
+
+        result.push(display);
+    }
+
+    Some(result)
+}
+
+fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
+    let output: Vec<u8> = match Command::new("wlr-randr")
+        .arg("--json") // GOD BLESS
+        .output() {
+            Ok(r) => r.stdout,
+            Err(e) => {
+                if NotFound == e.kind() {
+                    print!("Display on wayland requires the 'wlr-randr' command, which is not present!");
+                } else {
+                    print!("Unknown error while fetching wayland displays: {}", e);
+                }
+
+                return None
+            },
+        };
+    let contents: String = match String::from_utf8(output) {
+        Ok(r) => r,
+        Err(e) => {
+            print!("Unknown error while fetching wayland displays: {}", e);
+            return None
+        },
+    };
+
+    let mut result: Vec<DisplayInfo> = Vec::new();
+
+    let parsed: Vec<Value> = match serde_json::from_str(&contents) {
+        Ok(r) => r,
+        Err(e) => {
+            print!("Unknown error while fetching wayland displays: {}", e);
+            return None
+        },
+    };
+
+    for entry in parsed {
+        // threw error checking out the window here, fuck that
+        let mut display = DisplayInfo::new();
+
+        // Resolution
+        let modes: &Vec<Value> = entry["modes"].as_array().unwrap();
+        for mode in modes {
+            if !mode["current"].as_bool().unwrap() {
+                continue
+            }
+
+            display.width = mode["width"].as_u64().unwrap();
+            display.height = mode["height"].as_u64().unwrap();
+            display.refresh_rate = mode["refresh"].as_f64().unwrap().round() as u32; // also stinky
+        }
+
+        // Name
+        display.name = entry["name"].as_str().unwrap().to_string();
 
         result.push(display);
     }

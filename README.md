@@ -26,7 +26,7 @@ All benchmarks were done via the zsh implemented `time` command, with as similar
 - [ ] Battery
 - [ ] Host
 - [ ] Packages
-- [ ] Command line arguments for Version & Custom config
+- [x] Command line arguments for Version & Custom config
 - [ ] Image Support
 - [ ] Config Cleanup
 - [ ] Config Defaults

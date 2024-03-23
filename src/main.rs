@@ -1,5 +1,6 @@
-use std::{cmp::max, env, process::exit};
+use std::{cmp::max, env, path::Path, process::exit};
 
+use clap::Parser;
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
@@ -19,6 +20,13 @@ mod shell;
 mod swap;
 mod gpu;
 mod terminal;
+
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    config: Option<String>
+}
 
 trait Module {
     fn new() -> Self;
@@ -54,7 +62,8 @@ fn main() {
         exit(-1);
     }
 
-    let mut config: Configuration = config_manager::parse();
+    let args = Args::parse();
+    let mut config: Configuration = config_manager::parse(args.config);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.

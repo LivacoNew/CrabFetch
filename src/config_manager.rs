@@ -100,30 +100,49 @@ pub struct Configuration {
     pub mount_ignored: Vec<String>
 }
 
-pub fn parse() -> Configuration {
-    // Find the config path
-    // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-    let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
-        Ok(mut r) => {
-            r.push_str("/CrabFetch/config.toml");
-            r
+pub fn parse(location_override: Option<String>) -> Configuration {
+    let mut config_path_str: String = String::new();
+    if location_override.is_some() {
+        config_path_str = shellexpand::tilde(&location_override.unwrap()).to_string();
+        // Config won't be happy unless it ends with .toml
+        if !config_path_str.ends_with(".toml") {
+            // Simply crash, to avoid confusing the user as to why the default config is being used
+            // instead of their custom one.
+            panic!("Config path must end with '.toml'");
         }
-        Err(_) => {
-            // Let's try the home directory
-            let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => {
-                    r
-                },
-                Err(e) => {
-                    // why tf would you unset home lmao
-                    panic!("Unable to find config folder; {}", e);
-                }
-            };
-            home_dir.push_str("/.config/CrabFetch/config.toml");
-            home_dir
+
+        // Verify it exists
+        let path: &Path = Path::new(&config_path_str);
+        if !path.exists() {
+            // Simply crash, to avoid confusing the user as to why the default config is being used
+            // instead of their custom one.
+            panic!("Unable to find config: {}", config_path_str);
         }
-    };
-    // println!("{}", config_path_str);
+    } else {
+        // Find the config path
+        // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+        config_path_str = match env::var("XDG_CONFIG_HOME") {
+            Ok(mut r) => {
+                r.push_str("/CrabFetch/config.toml");
+                r
+            }
+            Err(_) => {
+                // Let's try the home directory
+                let mut home_dir: String = match env::var("HOME") {
+                    Ok(r) => {
+                        r
+                    },
+                    Err(e) => {
+                        // why tf would you unset home lmao
+                        panic!("Unable to find config folder; {}", e);
+                    }
+                };
+                home_dir.push_str("/.config/CrabFetch/config.toml");
+                home_dir
+            }
+        };
+    }
+    println!("{}", config_path_str);
 
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));

@@ -5,7 +5,7 @@ use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -21,6 +21,7 @@ mod swap;
 mod gpu;
 mod terminal;
 mod host;
+mod packages;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -193,6 +194,10 @@ fn main() {
                 "shell" => {
                     let shell: ShellInfo = shell::get_shell();
                     print!("{}", style_entry(&config.shell_title, &config.shell_format, &config, &shell));
+                }
+                "packages" => {
+                    let packages: PackagesInfo = packages::get_packages();
+                    print!("{}", style_entry(&config.packages_title, &config.packages_format, &config, &packages));
                 }
                 "mounts" => {
                     if mounts.len() > mount_index as usize {

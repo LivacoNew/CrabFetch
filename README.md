@@ -33,7 +33,7 @@ Ensure you've got your $PATH set to include ~/.cargo/bin/
 - [ ] Displays
 - [ ] Battery
 - [x] Host
-- [ ] Packages
+- [x] Packages
 - [x] Command line arguments for Version & Custom config
 - [ ] Image Support
 - [ ] Config Cleanup

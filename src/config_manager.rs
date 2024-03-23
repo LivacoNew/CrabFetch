@@ -89,6 +89,9 @@ pub struct Configuration {
     pub host_title: String,
     pub host_format: String,
 
+    pub packages_title: String,
+    pub packages_format: String,
+
     pub uptime_title: String,
     pub uptime_format: String,
 

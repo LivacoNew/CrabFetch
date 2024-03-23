@@ -16,6 +16,7 @@ modules = [
     "host",
 
     "os",
+    "packages",
     "desktop",
     "terminal",
     "shell",
@@ -172,6 +173,18 @@ host_title = "Host"
 # The format the Host should be in. Placeholders;
 # {host}              -> The name of the host
 host_format = "{host}"
+
+# }}}
+# Packages {{{
+
+# Title for Packages
+packages_title = "Packages"
+
+# The format the Packages should be in. This format is simply for each entry, with all entries being combined into a single string seperated by a comma.
+# Placeholders;
+# {manager}              -> The name of the manager
+# {count}                -> The amount of packages that manager reports
+packages_format = "{count} ({manager})"
 
 # }}}
 # Uptime {{{

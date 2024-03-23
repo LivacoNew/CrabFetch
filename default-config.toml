@@ -14,6 +14,7 @@ modules = [
     "swap",
     "mounts",
     "host",
+    "displays",
 
     "os",
     "packages",
@@ -21,6 +22,7 @@ modules = [
     "terminal",
     "shell",
     "uptime",
+
     "space",
     "colors",
     "bright_colors"
@@ -244,5 +246,18 @@ mount_format = "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)"
 
 # Mounts that shouldn't be included
 mount_ignored = ["/boot"]
+
+# }}}
+# Displays {{{
+
+# Title for each display. Placeholders;
+# {name}                -> The monitor name, e.g eDP-2
+display_title = "Display {name}"
+
+# The format each display should be in. Placeholders;
+# {name}                -> The monitor name, e.g eDP-2
+# {width}               -> The monitor's width
+# {height}              -> The monitor's height
+display_format = "{width}x{height}"
 
 # }}}

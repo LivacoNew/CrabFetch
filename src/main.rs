@@ -5,7 +5,7 @@ use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 use shell::ShellInfo;
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, displays::DisplayInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -22,6 +22,7 @@ mod gpu;
 mod terminal;
 mod host;
 mod packages;
+mod displays;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -94,12 +95,22 @@ fn main() {
     // Figure out how many total lines we have
     let line_count = max(split.len(), config.modules.len());
 
+
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
+    // TODO: Apply the displays treatment to this where the module is checked first
     let mut mounts: Vec<MountInfo> = mounts::get_mounted_drives();
     mounts.retain(|x| !x.is_ignored(&config));
     let mut mount_index: u32 = 0;
+
+    // AND displays
+    let mut displays: Option<Vec<DisplayInfo>> = None;
+    let mut display_index: u32 = 0;
+    if config.modules.contains(&"displays".to_string()) {
+        displays = Some(displays::get_displays());
+    }
+
     for x in 0..line_count + 1 {
         let mut line = "";
         if split.len() > x {
@@ -208,6 +219,19 @@ fn main() {
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {
                             config.modules.insert(line_number as usize, "mounts".to_string());
+                        }
+                    }
+                }
+                "displays" => {
+                    let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
+                    if displays.len() > display_index as usize {
+                        let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
+                        let title: String = display.format(&config.display_title, 0);
+                        print!("{}", style_entry(&title, &config.display_format, &config, display));
+                        display_index += 1;
+                        // once again, sketchy
+                        if displays.len() > display_index as usize {
+                            config.modules.insert(line_number as usize, "displays".to_string());
                         }
                     }
                 }

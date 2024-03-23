@@ -103,7 +103,10 @@ pub struct Configuration {
 
     pub mount_title: String,
     pub mount_format: String,
-    pub mount_ignored: Vec<String>
+    pub mount_ignored: Vec<String>,
+
+    pub display_title: String,
+    pub display_format: String
 }
 
 pub fn parse(location_override: Option<String>) -> Configuration {

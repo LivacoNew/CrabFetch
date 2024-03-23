@@ -12,7 +12,7 @@ impl Module for TerminalInfo {
             terminal_name: "Unknown".to_string(),
         }
     }
-    fn format(&self, format: &str, float_places: u32) -> String {
+    fn format(&self, format: &str, _: u32) -> String {
         format.replace("{terminal_name}", &self.terminal_name)
     }
 }

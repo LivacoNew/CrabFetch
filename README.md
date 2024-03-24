@@ -67,5 +67,6 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Battery
 - [ ] Custom Modules
 - [ ] Image Support
+- [ ] More consistent decimal places
 - [ ] Config Cleanup
 - [ ] Config Defaults

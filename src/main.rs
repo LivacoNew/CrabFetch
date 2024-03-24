@@ -100,10 +100,13 @@ fn main() {
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
     // TODO: Apply the displays treatment to this where the module is checked first
-    let mut mounts: Vec<MountInfo> = mounts::get_mounted_drives();
-    mounts.retain(|x| !x.is_ignored(&config));
-    line_count += mounts.len() - 1;
+    let mut mounts: Option<Vec<MountInfo>> = None;
     let mut mount_index: u32 = 0;
+    if config.modules.contains(&"mounts".to_string()) {
+        mounts = Some(mounts::get_mounted_drives());
+        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
+        line_count += mounts.as_ref().unwrap().len() - 1;
+    }
 
     // AND displays
     let mut displays: Option<Vec<DisplayInfo>> = None;
@@ -213,6 +216,7 @@ fn main() {
                     print!("{}", style_entry(&config.packages_title, &config.packages_format, &config, &packages));
                 }
                 "mounts" => {
+                    let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
                         let title: String = mount.format(&config.mount_title, 0);

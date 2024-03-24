@@ -1,4 +1,4 @@
-use std::{env, fs::File, io::{Read, Write}, path::Path};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
 
 use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
@@ -354,6 +354,10 @@ pub fn generate_config_file(location_override: Option<String>) {
     if config_path.exists() {
         panic!("Path already exists: {}", config_path.display());
     }
+    match fs::create_dir_all(config_path.parent().unwrap()) {
+        Ok(_) => {},
+        Err(e) => panic!("Unable to create directory: {}", e),
+    };
 
     let mut file: File = match File::create(config_path) {
         Ok(r) => r,

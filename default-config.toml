@@ -3,8 +3,8 @@
 # Apolgies if your using something else.
 
 # General {{{
-# The modules to display
-# Accepts; hostname, cpu, memory
+# The modules to display and in what order.
+# All modules; hostname, underline, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
     "underline",
@@ -30,11 +30,10 @@ modules = [
 ]
 
 
-# Title seperator character
-# E.g " > " puts "Processor > info"
+# The seperator between a modules title and it's value
 seperator = " > "
 
-# Title color
+# The color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
 title_color = "bright_magenta"
@@ -42,14 +41,14 @@ title_color = "bright_magenta"
 title_bold = true
 title_italic = true
 
-# How many decimal places to use on float values
+# How many decimal places to use on float values. This is kinda inconsistent right now.
 decimal_places = 2
 
 # }}}
 
 # ASCII {{{
 
-# If to even bother with the ASCII?
+# If to display the ASCII distro art or not
 ascii_display = true
 
 # The colors to render the ASCII in
@@ -65,10 +64,10 @@ ascii_margin = 4
 
 # Hostname {{{
 
-# Title for Hostname
+# Title for the module
 hostname_title = ""
 
-# The format the CPU should be in. Placeholders;
+# The format the hostname should be in. Placeholders;
 # {hostname}            -> The hostname of the system.
 # {username}            -> The username of the current user.
 hostname_format = "{username}@{hostname}"
@@ -89,10 +88,10 @@ underline_format = true
 # }}}
 # CPU {{{
 
-# Title for CPU
+# Title for the module
 cpu_title = "CPU"
 
-# The format the CPU should be in. Placeholders;
+# The format the module should be in. Placeholders;
 # {name}                -> The name of the cpu.
 # {core_count}          -> The number of cores.
 # {thread_count}        -> The number of threads.
@@ -105,10 +104,10 @@ cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 # }}}
 # GPU {{{
 
-# Title for GPU
+# Title for the module
 gpu_title = "GPU"
 
-# The format the swap should be in. Placeholders;
+# The format the module should be in. Placeholders;
 # {vendor}             -> The vendor of the GPU, e.g AMD
 # {model}              -> The model of the GPU, e.g Radeon RX 7800XT
 # {vram_mb}            -> The total memory of the GPU in mb
@@ -118,7 +117,7 @@ gpu_format = "{vendor} {model} ({vram_gb} GB)"
 #}}}
 # Memory {{{
 
-# Title for Memory
+# Title for the module
 memory_title = "Memory"
 
 # The format the memory should be in. Placeholders;
@@ -134,10 +133,10 @@ memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 #}}}
 # Swap {{{
 
-# Title for Swap
+# Title for the module
 swap_title = "Swap"
 
-# The format the swap should be in. Placeholders;
+# The format the module should be in. Placeholders;
 # {used_kib}       -> The currently used swap in KiB.
 # {used_mib}       -> The currently used swap in MiB.
 # {used_gib}       -> The currently used swap in GiB.
@@ -173,7 +172,7 @@ mount_ignored = ["/boot"]
 # }}}
 # Host {{{
 
-# Title for Host
+# Title for the module
 host_title = "Host"
 
 # The format the Host should be in. Placeholders;
@@ -192,13 +191,13 @@ display_title = "Display {name}"
 # {width}               -> The monitor's width
 # {height}              -> The monitor's height
 # {refresh_rate}        -> The monitor's refresh rate
-display_format = "{width}x{height} @ {refresh_rate}hz"
+display_format = "{width}x{height} @ {refresh_rate}Hz"
 
 # }}}
 
 # OS {{{
 
-# Title for OS
+# Title for the module
 os_title = "Operating System"
 
 # The format the OS should be in. Placeholders;
@@ -209,10 +208,10 @@ os_format = "{distro} ({kernel})"
 # }}}
 # Packages {{{
 
-# Title for Packages
+# Title for the module
 packages_title = "Packages"
 
-# The format the Packages should be in. This format is simply for each entry, with all entries being combined into a single string seperated by a comma.
+# The format the Packages should be in. This format is for each entry, with all entries being combined into a single string seperated by a comma.
 # Placeholders;
 # {manager}              -> The name of the manager
 # {count}                -> The amount of packages that manager reports
@@ -221,7 +220,7 @@ packages_format = "{count} ({manager})"
 # }}}
 # Desktop {{{
 
-# Title for desktop
+# Title for the module
 desktop_title = "Desktop"
 
 # The format the desktop should be in. Placeholders;
@@ -232,7 +231,7 @@ desktop_format = "{desktop} ({display_type})"
 # }}}
 # Terminal {{{
 
-# Title for Terminal
+# Title for the module
 terminal_title = "Terminal"
 
 # The format the Terminal should be in. Placeholders;
@@ -242,7 +241,7 @@ terminal_format = "{terminal_name}"
 # }}}
 # Shell {{{
 
-# Title for shell
+# Title for the module
 shell_title = "Shell"
 
 # The format the shell should be in. Placeholders;
@@ -253,8 +252,8 @@ shell_format = "{shell}"
 # }}}
 # Uptime {{{
 
-# Title for uptime
-uptime_title = "System Uptime"
+# Title for the module
+uptime_title = "Uptime"
 
 # The format the uptime should be in. Placeholders;
 # {hours}               -> The hours

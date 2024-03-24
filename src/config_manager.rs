@@ -61,6 +61,7 @@ pub struct Configuration {
     pub ascii_colors: Vec<CrabFetchColor>,
     pub ascii_margin: u16,
 
+
     pub hostname_title: String,
     pub hostname_format: String,
     pub hostname_color: bool,
@@ -71,42 +72,43 @@ pub struct Configuration {
     pub cpu_title: String,
     pub cpu_format: String,
 
+    pub gpu_title: String,
+    pub gpu_format: String,
+
     pub memory_title: String,
     pub memory_format: String,
 
     pub swap_title: String,
     pub swap_format: String,
 
-    pub gpu_title: String,
-    pub gpu_format: String,
-
-    pub os_title: String,
-    pub os_format: String,
-
-    pub terminal_title: String,
-    pub terminal_format: String,
-
-    pub host_title: String,
-    pub host_format: String,
-
-    pub packages_title: String,
-    pub packages_format: String,
-
-    pub uptime_title: String,
-    pub uptime_format: String,
-
-    pub desktop_title: String,
-    pub desktop_format: String,
-
-    pub shell_title: String,
-    pub shell_format: String,
-
     pub mount_title: String,
     pub mount_format: String,
     pub mount_ignored: Vec<String>,
 
+    pub host_title: String,
+    pub host_format: String,
+
     pub display_title: String,
-    pub display_format: String
+    pub display_format: String,
+
+
+    pub os_title: String,
+    pub os_format: String,
+
+    pub packages_title: String,
+    pub packages_format: String,
+
+    pub desktop_title: String,
+    pub desktop_format: String,
+
+    pub terminal_title: String,
+    pub terminal_format: String,
+
+    pub shell_title: String,
+    pub shell_format: String,
+
+    pub uptime_title: String,
+    pub uptime_format: String,
 }
 
 pub fn parse(location_override: Option<String>) -> Configuration {
@@ -155,28 +157,105 @@ pub fn parse(location_override: Option<String>) -> Configuration {
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     // Set the defaults here
-    builder = builder.set_default("modules", vec!["cpu".to_string(), "memory".to_string()]).unwrap();
+    // General
+    builder = builder.set_default("modules", vec![
+        "hostname".to_string(),
+        "underline".to_string(),
+
+        "cpu".to_string(),
+        "gpu".to_string(),
+        "memory".to_string(),
+        "swap".to_string(),
+        "mounts".to_string(),
+        "host".to_string(),
+        "displays".to_string(),
+
+        "os".to_string(),
+        "packages".to_string(),
+        "desktop".to_string(),
+        "terminal".to_string(),
+        "shell".to_string(),
+        "uptime".to_string(),
+
+        "space".to_string(),
+        "colors".to_string(),
+        "bright_colors".to_string(),
+    ]).unwrap();
     builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
+    builder = builder.set_default("decimal_places", 2).unwrap();
 
+    // ASCII
     builder = builder.set_default("ascii_display", true).unwrap();
-    builder = builder.set_default("ascii_colors", vec!["red"]).unwrap();
+    builder = builder.set_default("ascii_colors", vec!["bright_magenta"]).unwrap();
+    builder = builder.set_default("ascii_margin", 4).unwrap();
 
-    builder = builder.set_default("cpu_title", "Processor").unwrap();
-    builder = builder.set_default("cpu_format", "Processor > {name} @ {max_clock_ghz} GHz (currently {current_clock_ghz} GHz)").unwrap();
+    // Hostname
+    builder = builder.set_default("hostname_title", "").unwrap();
+    builder = builder.set_default("hostname_format", "{username}@{hostname}").unwrap();
+    builder = builder.set_default("hostname_color", true).unwrap();
 
+    // Underline
+    builder = builder.set_default("underline_length", 24).unwrap();
+    builder = builder.set_default("underline_format", true).unwrap();
+
+    // CPU
+    builder = builder.set_default("cpu_title", "CPU").unwrap();
+    builder = builder.set_default("cpu_format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
+
+    // GPU
+    builder = builder.set_default("gpu_title", "GPU").unwrap();
+    builder = builder.set_default("gpu_format", "{vendor} {model} ({vram_gb} GB)").unwrap();
+
+    // Memory
     builder = builder.set_default("memory_title", "Memory").unwrap();
-    builder = builder.set_default("memory_format", "Memory > {phys_used_gib}GiB / {phys_max_gib}GiB").unwrap();
+    builder = builder.set_default("memory_format", "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)").unwrap();
 
+    // Swap
+    builder = builder.set_default("swap_title", "Swap").unwrap();
+    builder = builder.set_default("swap_format", "{used_gib} GiB / {total_gib} GiB ({percent}%)").unwrap();
+
+    // Mounts
+    builder = builder.set_default("mount_title", "Disk {mount}").unwrap();
+    builder = builder.set_default("mount_format", "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)").unwrap();
+    builder = builder.set_default("mount_ignored", vec!["/boot"]).unwrap();
+
+    // Host
+    builder = builder.set_default("host_title", "Host").unwrap();
+    builder = builder.set_default("host_format", "{host}").unwrap();
+
+    // Displays
+    builder = builder.set_default("display_title", "Display {name}").unwrap();
+    builder = builder.set_default("display_format", "{width}x{height} @ {refresh_rate}Hz").unwrap();
+
+
+    // OS
     builder = builder.set_default("os_title", "Operating System").unwrap();
     builder = builder.set_default("os_format", "{distro} ({kernel})").unwrap();
 
-    builder = builder.set_default("uptime_title", "System Uptime").unwrap();
+    // Packages
+    builder = builder.set_default("packages_title", "Packages").unwrap();
+    builder = builder.set_default("packages_format", "{count} ({manager})").unwrap();
 
+    // Desktop
     builder = builder.set_default("desktop_title", "Desktop").unwrap();
-    builder = builder.set_default("desktop_format", "{desktop}").unwrap();
+    builder = builder.set_default("desktop_format", "{desktop} ({display_type})").unwrap();
+
+    // Terminal
+    builder = builder.set_default("terminal_title", "Terminal").unwrap();
+    builder = builder.set_default("terminal_format", "{terminal_name}").unwrap();
+
+    // Shell
+    builder = builder.set_default("shell_title", "Shell").unwrap();
+    builder = builder.set_default("shell_format", "{shell}").unwrap();
+
+    // And finally, uptime
+    builder = builder.set_default("uptime_title", "Uptime").unwrap();
+    builder = builder.set_default("uptime_format", "{hours}h {minutes}m {seconds}s").unwrap();
+
+
     // Now stop.
     let config: Config = match builder.build() {
         Ok(r) => r,

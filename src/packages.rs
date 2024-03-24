@@ -4,22 +4,22 @@ use std::{collections::HashMap, fmt::Display, fs::{read_dir, ReadDir}, path::Pat
 use crate::Module;
 
 pub struct PackagesInfo {
-    packages: HashMap<String, u64>
+    packages: Vec<ManagerInfo>
 }
 impl Module for PackagesInfo {
     fn new() -> PackagesInfo {
         PackagesInfo {
-            packages: HashMap::new()
+            packages: Vec::new()
         }
     }
     fn format(&self, format: &str, _: u32) -> String {
         let mut str: String = String::new();
-        for (manager, count) in &self.packages {
+        for manager in &self.packages {
             if str.len() > 0 {
                 str.push_str(", ");
             }
-            str.push_str(&format.replace("{manager}", &manager)
-                         .replace("{count}", &count.to_string()));
+            str.push_str(&format.replace("{manager}", &manager.manager_name)
+                         .replace("{count}", &manager.package_count.to_string()));
         }
         str
     }
@@ -31,21 +31,30 @@ impl Display for PackagesInfo {
     }
 }
 
+pub struct ManagerInfo {
+    manager_name: String,
+    package_count: u64
+}
+impl ManagerInfo {
+    fn fill(manager_name: &str, package_count: u64) -> ManagerInfo {
+        ManagerInfo {
+            manager_name: manager_name.to_string(),
+            package_count
+        }
+    }
+}
+
 pub fn get_packages() -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
     match process_pacman_packages() {
-        Some(r) => {packages.packages.insert("pacman".to_string(), r);},
+        Some(r) => {packages.packages.push(ManagerInfo::fill("pacman", r));},
         None => {}
     };
     match process_flatpak_packages() {
-        Some(r) => {packages.packages.insert("flatpak".to_string(), r);},
+        Some(r) => {packages.packages.push(ManagerInfo::fill("flatpak", r));},
         None => {}
     };
-
-    if packages.packages.len() <= 0 {
-        packages.packages.insert("No Package Managers Found".to_string(), 0);
-    }
 
     packages
 }

@@ -82,15 +82,10 @@ fn main() {
     }
 
     let mut line_number: u8 = 0;
+    let mut ascii_line_number: u8 = 0;
     let target_length: u16 = ascii.1 + config.ascii_margin;
 
     let mut split: Vec<&str> = ascii.0.split("\n").collect();
-    if split.len() < config.modules.len() {
-        // Artificially add length so that all the modules get in
-        for _ in 0..(config.modules.len() - split.len()) {
-            split.insert(split.len(), "");
-        }
-    }
 
     // Figure out how many total lines we have
     let mut line_count = max(split.len(), config.modules.len());
@@ -123,13 +118,17 @@ fn main() {
         }
 
         // Figure out the color first
-        let percentage: f32 = (line_number as f32 / split.len() as f32) as f32;
+        let percentage: f32 = (ascii_line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573
         let index: u8 = (((config.ascii_colors.len() - 1) as f32) * percentage).round() as u8;
         let colored: ColoredString = color_string(line, config.ascii_colors.get(index as usize).unwrap());
 
         // Print the actual ASCII
         print!("{}", colored);
+        if colored.trim().len() != 0 {
+            // We're still going
+            ascii_line_number = ascii_line_number + 1;
+        }
         let remainder: u16 = target_length - (line.len() as u16);
         for _ in 0..remainder {
             print!(" ");

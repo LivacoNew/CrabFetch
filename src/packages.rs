@@ -1,5 +1,5 @@
 use core::str;
-use std::{collections::HashMap, fmt::Display, fs::{read_dir, ReadDir}, path::Path};
+use std::{fmt::Display, fs::{read_dir, ReadDir}, path::Path};
 
 use crate::Module;
 

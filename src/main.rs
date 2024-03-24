@@ -35,6 +35,9 @@ struct Args {
     /// Ignores a config file if present, and sticks to the default configuration.
     ignore_config_file: bool,
 
+    #[arg(short, long)]
+    /// Generates a default config file
+    generate_config_file: bool,
 
     #[arg(long)]
     /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a bit slower as
@@ -77,7 +80,12 @@ fn main() {
     }
 
     let args = Args::parse();
-    let mut config: Configuration = config_manager::parse(args.config, args.ignore_config_file);
+    let mut config: Configuration = config_manager::parse(&args.config, &args.ignore_config_file);
+
+    if args.generate_config_file {
+        config_manager::generate_config_file(args.config);
+        exit(0);
+    }
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.

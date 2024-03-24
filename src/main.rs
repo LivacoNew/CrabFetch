@@ -85,7 +85,7 @@ fn main() {
     let mut ascii_line_number: u8 = 0;
     let target_length: u16 = ascii.1 + config.ascii_margin;
 
-    let mut split: Vec<&str> = ascii.0.split("\n").collect();
+    let split: Vec<&str> = ascii.0.split("\n").collect();
 
     // Figure out how many total lines we have
     let mut line_count = max(split.len(), config.modules.len());

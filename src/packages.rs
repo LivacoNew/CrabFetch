@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::{read_dir, ReadDir}, path::Path};
+use std::{fmt::Display, fs::{read_dir, File, ReadDir}, io::Read, path::Path};
 
 use crate::Module;
 
@@ -55,11 +55,15 @@ pub fn get_packages() -> PackagesInfo {
         Some(r) => {packages.packages.push(ManagerInfo::fill("flatpak", r));},
         None => {}
     };
+    match process_dpkg_packages() {
+        Some(r) => {packages.packages.push(ManagerInfo::fill("dpkg", r));},
+        None => {}
+    };
 
     packages
 }
 
-// Credit for Pacman/Flatpak detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
+// Credit for Pacman, Flatpak and dpkg detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
 fn process_pacman_packages() -> Option<u64> {
     let pacman_path: &Path = Path::new("/var/lib/pacman/local");
     if !pacman_path.exists() {
@@ -103,4 +107,37 @@ fn process_flatpak_packages() -> Option<u64> {
     let flatpak_runtime: u64 = flatpak_runtime_dir.count() as u64;
 
     Some(flatpak_apps + flatpak_runtime)
+}
+fn process_dpkg_packages() -> Option<u64> {
+    // This counts all the ok entries in /var/lib/dpkg/status
+    let dpkg_status_path: &Path = Path::new("/var/lib/dpkg/status");
+    if !dpkg_status_path.exists() {
+        return None
+    }
+
+    let mut file: File = match File::open(dpkg_status_path) {
+        Ok(r) => r,
+        Err(e) => {
+            print!("Can't read from /var/lib/dpkg/status - {}", e);
+            return None
+        },
+    };
+    let mut contents: String = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(e) => {
+            print!("Can't read from /var/lib/dpkg/status - {}", e);
+            return None
+        },
+    }
+
+    let mut result: u64 = 0;
+    for entry in contents.split("\n") {
+        if !entry.contains("Status: install ok installed") {
+            continue
+        }
+        result += 1;
+    }
+
+    Some(result)
 }

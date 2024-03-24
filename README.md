@@ -40,6 +40,10 @@ Ensure you've got your $PATH set to include ~/.cargo/bin/
 The configuration file should be in `~/.config/CrabFetch/config.toml`. The default configuration can be found in `default-config.toml` in this repo, and you may have to copy and paste it over. From there, the comments should keep you right.
 
 
+## Not got what you want?
+Make a issue and I'll see if I can add it in. I'm aware support is kind of sparse right now, as I still need to test on different types of systems.
+
+
 ## Credits
 - [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find some info in Linux.
 - [FastFetch](https://github.com/fastfetch-cli/fastfetch) Also a source for system info.

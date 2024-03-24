@@ -13,6 +13,7 @@ All benchmarks were done via the zsh implemented `time` keyword, with as similar
 | NeoFetch      | neofetch  0.06s user 0.04s system 92% cpu 0.106 total  | https://i.imgur.com/AoExg0s.png |
 | FastFetch     | fastfetch  0.04s user 0.01s system 98% cpu 0.051 total | https://i.imgur.com/Q9csdAo.png |
 | **CrabFetch** | crabfetch  0.00s user 0.00s system 92% cpu 0.003 total | https://i.imgur.com/iuQGqiz.png |
+
 <sub>NOTE: This is slightly unfair. See the FAQ under "Does CrabFetch cheat with it's performance?"</sub>
 
 

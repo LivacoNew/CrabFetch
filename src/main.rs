@@ -30,7 +30,13 @@ struct Args {
     #[arg(short, long)]
     /// Sets a custom config file. This file MUST be a .toml file.
     config: Option<String>,
+
     #[arg(short, long)]
+    /// Ignores a config file if present, and sticks to the default configuration.
+    ignore_config_file: bool,
+
+
+    #[arg(long)]
     /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a bit slower as
     /// glxinfo is slow!
     ignore_cache: bool
@@ -71,7 +77,7 @@ fn main() {
     }
 
     let args = Args::parse();
-    let mut config: Configuration = config_manager::parse(args.config);
+    let mut config: Configuration = config_manager::parse(args.config, args.ignore_config_file);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.

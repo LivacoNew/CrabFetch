@@ -111,7 +111,7 @@ pub struct Configuration {
     pub uptime_format: String,
 }
 
-pub fn parse(location_override: Option<String>) -> Configuration {
+pub fn parse(location_override: Option<String>, ignore_file: bool) -> Configuration {
     let config_path_str: String;
     if location_override.is_some() {
         config_path_str = shellexpand::tilde(&location_override.unwrap()).to_string();
@@ -155,7 +155,9 @@ pub fn parse(location_override: Option<String>) -> Configuration {
     }
 
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
-    builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
+    if !ignore_file {
+        builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
+    }
     // Set the defaults here
     // General
     builder = builder.set_default("modules", vec![

@@ -6,6 +6,7 @@ CrabFetch is a command-line fetch tool, which like all others grabs system infor
 
 ## Performance
 As it's CrabFetch's main selling point, here's a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.
+
 All benchmarks were done via the zsh implemented `time` keyword, with as similar configs as possible.
 
 | **Fetcher**   | **Time Ran**                                           | **Image**                       |
@@ -47,6 +48,7 @@ The configuration file should be in `~/.config/CrabFetch/config.toml`. The defau
 ## FAQ
 ##### Does CrabFetch cheat with it's performance?
 Kinda. Everything is done at runtime, except from GPU info. This is because `glxinfo` which I use to get GPU info is stupidly slow, so I cache the parts I need at `/tmp/crabfetch-gpu` since no one's going to be swapping in/out GPUs. I have a plan to get rid of this cache and make it's performance real, but for now the answer is yes.
+
 Using the --ignore-cache flag, the true performance can be seen to run [at 0.062s](https://i.imgur.com/igv4ZyG.png), coming in just behind FastFetch on the performance table above.
 
 ##### So how does CrabFetch get it's performance in everything else aside from the GPU?

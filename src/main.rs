@@ -93,7 +93,7 @@ fn main() {
     }
 
     // Figure out how many total lines we have
-    let line_count = max(split.len(), config.modules.len());
+    let mut line_count = max(split.len(), config.modules.len());
 
 
     // Drives also need to be treated specially since they need to be on a seperate line
@@ -102,6 +102,7 @@ fn main() {
     // TODO: Apply the displays treatment to this where the module is checked first
     let mut mounts: Vec<MountInfo> = mounts::get_mounted_drives();
     mounts.retain(|x| !x.is_ignored(&config));
+    line_count += mounts.len() - 1;
     let mut mount_index: u32 = 0;
 
     // AND displays
@@ -109,9 +110,10 @@ fn main() {
     let mut display_index: u32 = 0;
     if config.modules.contains(&"displays".to_string()) {
         displays = Some(displays::get_displays());
+        line_count += displays.as_ref().unwrap().len() - 1;
     }
 
-    for x in 0..line_count + 1 {
+    for x in 0..line_count {
         let mut line = "";
         if split.len() > x {
             line = split[x]

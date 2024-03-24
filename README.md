@@ -1,7 +1,7 @@
 # CrabFetch
 CrabFetch is a command-line fetch tool, which like all others grabs system information and displays it in a fancy way. What makes it different is that _it aims to be as performant as possible_, unlike most other popular fetch programs. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes 0.5s to load in!
 
-![A preview image of CrabFetch.](https://i.imgur.com/dJTl6SU.png)
+![A preview image of CrabFetch.](https://i.imgur.com/sP5cgm2.png)
 
 
 ## Performance
@@ -9,11 +9,11 @@ As it's CrabFetch's main selling point, here's a table comparing performance bet
 
 All benchmarks were done via the zsh implemented `time` keyword, with as similar configs as possible.
 
-| **Fetcher**   | **Time Ran**                                           | **Image**                       |
-| ------------- | ------------------------------------------------------ | ------------------------------- |
-| NeoFetch      | neofetch  0.06s user 0.04s system 92% cpu 0.106 total  | https://i.imgur.com/AoExg0s.png |
-| FastFetch     | fastfetch  0.04s user 0.01s system 98% cpu 0.051 total | https://i.imgur.com/Q9csdAo.png |
-| **CrabFetch** | crabfetch  0.00s user 0.00s system 92% cpu 0.003 total | https://i.imgur.com/iuQGqiz.png |
+| **Fetcher**     | **Time Ran**                                           | **Image**                       |
+| --------------- | ------------------------------------------------------ | ------------------------------- |
+| NeoFetch        | neofetch  0.08s user 0.06s system 93% cpu 0.143 total  | https://i.imgur.com/BHOhpii.png |
+| FastFetch       | fastfetch  0.04s user 0.02s system 99% cpu 0.053 total | https://i.imgur.com/vMPXJF0.png |
+| ***CrabFetch*** | crabfetch  0.00s user 0.00s system 95% cpu 0.005 total | https://i.imgur.com/82SChkA.png |
 
 <sub>NOTE: This is slightly unfair. See the FAQ under "Does CrabFetch cheat with it's performance?"</sub>
 

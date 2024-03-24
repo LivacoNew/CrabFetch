@@ -22,6 +22,7 @@ All benchmarks were done via the zsh implemented `time` keyword, with as similar
 > Only Linux based OS's are supported. Any other operating system will not let you run CrabFetch.
 
 ### Dependencies
+These are only required if you are using their associated modules.
 - The `df` command, used for getting mounted disks.
 - The `glxinfo` command, used for getting GPU info.
 
@@ -44,15 +45,15 @@ The configuration file should be in `~/.config/CrabFetch/config.toml`. The defau
 
 
 ## FAQ
-###### Does CrabFetch cheat with it's performance?
+##### Does CrabFetch cheat with it's performance?
 Kinda. Everything is done at runtime, except from GPU info. This is because `glxinfo` which I use to get GPU info is stupidly slow, so I cache the parts I need at `/tmp/crabfetch-gpu` since no one's going to be swapping in/out GPUs. I have a plan to get rid of this cache and make it's performance real, but for now the answer is yes.
 Using the --ignore-cache flag, the true performance can be seen to run [at 0.062s](https://i.imgur.com/igv4ZyG.png), coming in just behind FastFetch on the performance table above.
 
-###### So how does CrabFetch get it's performance in everything else aside from the GPU?
+##### So how does CrabFetch get it's performance in everything else aside from the GPU?
 To start, CrabFetch is written in Rust (hence the name). On top of that is tries to prevent re-inventing the wheel and tries to use whatever Linux has done for it already e.g using stuff in /sys or in the environment variables.
 Honestly, that's about it aside from me programming with a keen eye on the runtime duration.
 
-###### Do you plan on supporting other operating systems?
+##### Do you plan on supporting other operating systems?
 Not anytime soon. I already work on limited time for all my projects, and having to boot up VM's to test beta software constantly is annoying. That plus the idea of working with Windows again scares me.
 
 

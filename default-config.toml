@@ -8,6 +8,7 @@
 modules = [
     "hostname",
     "underline",
+
     "cpu",
     "gpu",
     "memory",
@@ -55,12 +56,13 @@ ascii_display = true
 # This array can be as long as the actual ASCII. Each entry represents the color at a certain %
 # E.g ["red", "green"] would render the top half as red and the bottom half as green.
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
-ascii_colors = ["bright_magenta"]
+ascii_colors = ["bright_magenta", "bright_magenta", "bright_blue", "bright_magenta", "bright_magenta"]
 
 # The amount of space to put between the ASCII and the info
 ascii_margin = 4
 
 # }}}
+
 # Hostname {{{
 
 # Title for Hostname
@@ -88,7 +90,7 @@ underline_format = true
 # CPU {{{
 
 # Title for CPU
-cpu_title = "Processor"
+cpu_title = "CPU"
 
 # The format the CPU should be in. Placeholders;
 # {name}                -> The name of the cpu.
@@ -101,6 +103,19 @@ cpu_title = "Processor"
 cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 # }}}
+# GPU {{{
+
+# Title for GPU
+gpu_title = "GPU"
+
+# The format the swap should be in. Placeholders;
+# {vendor}             -> The vendor of the GPU, e.g AMD
+# {model}              -> The model of the GPU, e.g Radeon RX 7800XT
+# {vram_mb}            -> The total memory of the GPU in mb
+# {vram_gb}            -> The total memory of the GPU in gb
+gpu_format = "{vendor} {model} ({vram_gb} GB)"
+
+#}}}
 # Memory {{{
 
 # Title for Memory
@@ -133,98 +148,6 @@ swap_title = "Swap"
 swap_format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
 #}}}
-# GPU {{{
-
-# Title for GPU
-gpu_title = "GPU"
-
-# The format the swap should be in. Placeholders;
-# {vendor}             -> The vendor of the GPU, e.g AMD
-# {model}              -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram_mb}            -> The total memory of the GPU in mb
-# {vram_gb}            -> The total memory of the GPU in gb
-gpu_format = "{vendor} {model} ({vram_gb} GB)"
-
-#}}}
-# OS {{{
-
-# Title for OS
-os_title = "Operating System"
-
-# The format the OS should be in. Placeholders;
-# {distro}              -> The distro name
-# {kernel}              -> The kernel version
-os_format = "{distro} ({kernel})"
-
-# }}}
-# Terminal {{{
-
-# Title for Terminal
-terminal_title = "Terminal"
-
-# The format the Terminal should be in. Placeholders;
-# {terminal_name}              -> The terminal name
-terminal_format = "{terminal_name}"
-
-# }}}
-# Host {{{
-
-# Title for Host
-host_title = "Host"
-
-# The format the Host should be in. Placeholders;
-# {host}              -> The name of the host
-host_format = "{host}"
-
-# }}}
-# Packages {{{
-
-# Title for Packages
-packages_title = "Packages"
-
-# The format the Packages should be in. This format is simply for each entry, with all entries being combined into a single string seperated by a comma.
-# Placeholders;
-# {manager}              -> The name of the manager
-# {count}                -> The amount of packages that manager reports
-packages_format = "{count} ({manager})"
-
-# }}}
-# Uptime {{{
-
-# Title for uptime
-uptime_title = "System Uptime"
-
-# The format the uptime should be in. Placeholders;
-# {hours}               -> The hours
-# {minutes}             -> The minutes
-# {seconds}             -> The seconds
-#
-# NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
-uptime_format = "{hours}h {minutes}m {seconds}s"
-
-# }}}
-# Desktop {{{
-
-# Title for desktop
-desktop_title = "Desktop"
-
-# The format the desktop should be in. Placeholders;
-# {desktop}             -> The name of the desktop
-# {display_type}        -> The type of display server, aka x11 or wayland.
-desktop_format = "{desktop} ({display_type})"
-
-# }}}
-# Shell {{{
-
-# Title for shell
-shell_title = "Shell"
-
-# The format the shell should be in. Placeholders;
-# {shell}               -> The name of the shell, e.g zsh
-# {path}                -> The path of the shell, e.g /bin/zsh
-shell_format = "{shell}"
-
-# }}}
 # Mounts {{{
 
 # Title for each mount. Placeholders;
@@ -248,6 +171,16 @@ mount_format = "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)"
 mount_ignored = ["/boot"]
 
 # }}}
+# Host {{{
+
+# Title for Host
+host_title = "Host"
+
+# The format the Host should be in. Placeholders;
+# {host}              -> The name of the host
+host_format = "{host}"
+
+# }}}
 # Displays {{{
 
 # Title for each display. Placeholders;
@@ -260,5 +193,75 @@ display_title = "Display {name}"
 # {height}              -> The monitor's height
 # {refresh_rate}        -> The monitor's refresh rate
 display_format = "{width}x{height} @ {refresh_rate}hz"
+
+# }}}
+
+# OS {{{
+
+# Title for OS
+os_title = "Operating System"
+
+# The format the OS should be in. Placeholders;
+# {distro}              -> The distro name
+# {kernel}              -> The kernel version
+os_format = "{distro} ({kernel})"
+
+# }}}
+# Packages {{{
+
+# Title for Packages
+packages_title = "Packages"
+
+# The format the Packages should be in. This format is simply for each entry, with all entries being combined into a single string seperated by a comma.
+# Placeholders;
+# {manager}              -> The name of the manager
+# {count}                -> The amount of packages that manager reports
+packages_format = "{count} ({manager})"
+
+# }}}
+# Desktop {{{
+
+# Title for desktop
+desktop_title = "Desktop"
+
+# The format the desktop should be in. Placeholders;
+# {desktop}             -> The name of the desktop
+# {display_type}        -> The type of display server, aka x11 or wayland.
+desktop_format = "{desktop} ({display_type})"
+
+# }}}
+# Terminal {{{
+
+# Title for Terminal
+terminal_title = "Terminal"
+
+# The format the Terminal should be in. Placeholders;
+# {terminal_name}              -> The terminal name
+terminal_format = "{terminal_name}"
+
+# }}}
+# Shell {{{
+
+# Title for shell
+shell_title = "Shell"
+
+# The format the shell should be in. Placeholders;
+# {shell}               -> The name of the shell, e.g zsh
+# {path}                -> The path of the shell, e.g /bin/zsh
+shell_format = "{shell}"
+
+# }}}
+# Uptime {{{
+
+# Title for uptime
+uptime_title = "System Uptime"
+
+# The format the uptime should be in. Placeholders;
+# {hours}               -> The hours
+# {minutes}             -> The minutes
+# {seconds}             -> The seconds
+#
+# NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
+uptime_format = "{hours}h {minutes}m {seconds}s"
 
 # }}}

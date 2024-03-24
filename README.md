@@ -49,7 +49,7 @@ The configuration file should be in `~/.config/CrabFetch/config.toml`. The defau
 ### Does CrabFetch cheat with it's performance?
 Kinda. Everything is done at runtime, except from GPU info. This is because `glxinfo` which I use to get GPU info is stupidly slow, so I cache the parts I need at `/tmp/crabfetch-gpu` since no one's going to be swapping in/out GPUs. I have a plan to get rid of this cache and make it's performance real, but for now the answer is yes.
 
-Using the --ignore-cache flag, the true performance can be seen to run [at 0.062s](https://i.imgur.com/igv4ZyG.png), coming in just behind FastFetch on the performance table above.
+Using the `--ignore-cache` flag, the true performance can be seen to run [at 0.062s](https://i.imgur.com/igv4ZyG.png), coming in just behind FastFetch on the performance table above.
 
 ### So how does CrabFetch get it's performance in everything else aside from the GPU?
 To start, CrabFetch is written in Rust (hence the name). On top of that is tries to prevent re-inventing the wheel and tries to use whatever Linux has done for it already e.g using stuff in /sys or in the environment variables.

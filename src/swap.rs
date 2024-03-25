@@ -62,9 +62,5 @@ pub fn get_swap() -> SwapInfo {
         swap.total_kib += values[2].parse::<u32>().unwrap();
     }
 
-    // TODO: debug
-    swap.used_kib = 0;
-    swap.total_kib = 999420;
-
     swap
 }

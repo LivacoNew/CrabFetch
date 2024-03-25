@@ -81,7 +81,8 @@ pub fn get_terminal() -> TerminalInfo {
         },
     }
 
-    // println!("{}", contents);
+    contents = contents.split(" ").collect::<Vec<&str>>()[0].to_string();
+    contents = contents.split("/").last().unwrap().to_string();
     terminal.terminal_name = contents;
 
     terminal

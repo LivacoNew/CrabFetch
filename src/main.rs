@@ -42,7 +42,11 @@ struct Args {
     #[arg(long)]
     /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a bit slower as
     /// glxinfo is slow!
-    ignore_cache: bool
+    ignore_cache: bool,
+
+    #[arg(short, long)]
+    /// Overrides the distro ASCII to another distro.
+    distro_override: Option<String>,
 }
 
 trait Module {
@@ -92,7 +96,11 @@ fn main() {
     let os: OSInfo = os::get_os();
     let mut ascii: (String, u16) = (String::new(), 0);
     if config.ascii_display {
-        ascii = ascii::get_ascii(&os.distro_id);
+        if args.distro_override.is_some() {
+            ascii = ascii::get_ascii(&args.distro_override.unwrap());
+        } else {
+            ascii = ascii::get_ascii(&os.distro_id);
+        }
     }
 
     let mut line_number: u8 = 0;

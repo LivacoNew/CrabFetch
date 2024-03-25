@@ -48,7 +48,6 @@ pub fn get_cpu() -> CPUInfo {
 fn get_basic_info(cpu: &mut CPUInfo) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
-    // TODO: Average the current clock so that it's not just on core 0 we're reading it
     let mut file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
         Err(e) => {
@@ -71,6 +70,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
     // Just doing one entry as the rest are kinda redundant
     let entry: &str = contents.split("\n\n").collect::<Vec<&str>>()[0];
     let lines: Vec<&str> = entry.split("\n").collect();
+    let mut cpu_mhz_count: u8 = 0;
     for line in lines {
         if line.starts_with("model name") {
             cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
@@ -100,9 +100,12 @@ fn get_basic_info(cpu: &mut CPUInfo) {
                     print!("WARNING: Could not parse current cpu frequency: {}", e);
                     0.0
                 },
-            }
+            };
+            cpu_mhz_count += 1;
         }
     }
+
+    cpu.current_clock_mhz = cpu.current_clock_mhz / cpu_mhz_count as f32;
 }
 fn get_max_clock(cpu: &mut CPUInfo) {
     // All of this is relative to /sys/devices/system/cpu/cpu0/cpufreq

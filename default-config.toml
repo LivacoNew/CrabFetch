@@ -164,7 +164,7 @@ mount_title = "Disk {mount}"
 # {space_avail_gb}      -> The space available in gigabytes.
 # {space_total_gb}      -> The total space in gigabytes.
 # {percent}             -> The percentage of the disk used.
-mount_format = "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)"
+mount_format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
 # Mounts that shouldn't be included
 mount_ignored = ["/boot"]

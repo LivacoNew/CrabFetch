@@ -543,7 +543,8 @@ mount_title = "Disk {mount}"
 mount_format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
 # Mounts that shouldn't be included
-mount_ignored = ["/boot"]
+# The mounts only need to start with these
+mount_ignored = ["/boot", "/snap"]
 
 # }}}
 # Host {{{

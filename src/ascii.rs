@@ -18,24 +18,23 @@ pub fn get_ascii(os: &str) -> (String, u16) {
 }
 
 // Define art down below here
-fn arch() -> (String, u16) {
-("             ..
-             -=.
-            -==-
-           -====-
-          -======-
-         -========-
-        -==========-
-       -============-
-      -====-:  .-====-
-     -=====.     =====-
-    -=====-      -=====-.
-  .-====--:      :--====-.
- .-=-:.              .:-==.
-.:.                      .:."
+fn arch() -> (String, u16) { // Generated from https://www.text-image.com/convert/ascii.html
+("             ~!
+            ^YY^
+           :JYYY^
+          :JYYYYY^
+         :JYYYYYYY^
+        ^JYYYYYYYYY^
+       ~YYYYYYYYYYYY~
+      ~YYYYY?!!?YYYYY!
+     !YYYYY!    ~YYYYY7.
+   .7YYYYYJ      ?YYYYY?.
+  .?YYYYYJ7      7JJYYYYJ:
+ ^JY?7~^..        ..^~7?YY^
+^7~:                    :~7^"
  .to_string(), 28)
 }
-fn debian() -> (String, u16) {
+fn debian() -> (String, u16) { // Generated from https://www.text-image.com/convert/ascii.html
 ("         .^!7!~~~^:
       :!JPPP55YY5555Y?!:
     ^YPG5?!:.    .:~?PGPJ:

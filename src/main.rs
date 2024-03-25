@@ -116,7 +116,6 @@ fn main() {
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
-    // TODO: Apply the displays treatment to this where the module is checked first
     let mut mounts: Option<Vec<MountInfo>> = None;
     let mut mount_index: u32 = 0;
     if config.modules.contains(&"mounts".to_string()) {

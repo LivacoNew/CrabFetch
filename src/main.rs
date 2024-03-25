@@ -289,6 +289,9 @@ fn main() {
             }
         }
         line_number = line_number + 1;
-        println!();
+
+        if line_number != (line_count -1) as u8 {
+            print!("\n");
+        }
     }
 }

@@ -222,7 +222,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     // Mounts
     builder = builder.set_default("mount_title", "Disk {mount}").unwrap();
     builder = builder.set_default("mount_format", "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)").unwrap();
-    builder = builder.set_default("mount_ignored", vec!["/boot"]).unwrap();
+    builder = builder.set_default("mount_ignored", vec!["/boot", "/snap"]).unwrap();
 
     // Host
     builder = builder.set_default("host_title", "Host").unwrap();

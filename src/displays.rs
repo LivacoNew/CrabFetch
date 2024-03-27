@@ -64,13 +64,13 @@ pub fn get_displays() -> Vec<DisplayInfo> {
                     };
                 }
                 _ => {
-                    print!("Unknown display server.");
+                    println!("Unknown display server.");
                     return displays
                 }
             }
         },
         None => {
-            print!("Unknown display server.");
+            println!("Unknown display server.");
             return displays
         },
     }
@@ -84,9 +84,9 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    print!("Display on x11 requires the 'xrandr' command, which is not present!");
+                    println!("Display on x11 requires the 'xrandr' command, which is not present!");
                 } else {
-                    print!("Unknown error while fetching x11 displays: {}", e);
+                    println!("Unknown error while fetching x11 displays: {}", e);
                 }
 
                 return None
@@ -95,7 +95,7 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            print!("Unknown error while fetching x11 displays: {}", e);
+            println!("Unknown error while fetching x11 displays: {}", e);
             return None
         },
     };
@@ -150,9 +150,9 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    print!("Display on wayland requires the 'wlr-randr' command, which is not present!");
+                    println!("Display on wayland requires the 'wlr-randr' command, which is not present!");
                 } else {
-                    print!("Unknown error while fetching wayland displays: {}", e);
+                    println!("Unknown error while fetching wayland displays: {}", e);
                 }
 
                 return None
@@ -161,7 +161,7 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            print!("Unknown error while fetching wayland displays: {}", e);
+            println!("Unknown error while fetching wayland displays: {}", e);
             return None
         },
     };
@@ -171,7 +171,7 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
     let parsed: Vec<Value> = match serde_json::from_str(&contents) {
         Ok(r) => r,
         Err(e) => {
-            print!("Unknown error while fetching wayland displays: {}", e);
+            println!("Unknown error while fetching wayland displays: {}", e);
             return None
         },
     };

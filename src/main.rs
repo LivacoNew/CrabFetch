@@ -121,7 +121,7 @@ fn main() {
     if config.modules.contains(&"mounts".to_string()) {
         mounts = Some(mounts::get_mounted_drives());
         mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
-        line_count += mounts.as_ref().unwrap().len() - 1;
+        line_count += mounts.as_ref().unwrap().len() - 1; // TODO: And me!
     }
 
     // AND displays
@@ -129,7 +129,7 @@ fn main() {
     let mut display_index: u32 = 0;
     if config.modules.contains(&"displays".to_string()) {
         displays = Some(displays::get_displays());
-        line_count += displays.as_ref().unwrap().len() - 1;
+        line_count += displays.as_ref().unwrap().len(); // TODO: Investigate me!
     }
 
     for x in 0..line_count {

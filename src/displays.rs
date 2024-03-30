@@ -248,29 +248,30 @@ fn parse_kscreen_doctor() -> Option<Vec<DisplayInfo>> {
         },
     };
 
-    for entry in parsed {
-        let mut display = DisplayInfo::new();
 
-        let outputs: &Vec<Value> = &entry["outputs"].as_array().unwrap();
-        for output in outputs {
-            if !output["enabled"].as_bool().unwrap() {
+    let outputs: &Vec<Value> = &parsed["outputs"].as_array().unwrap();
+    for output in outputs {
+        let mut display = DisplayInfo::new();
+        if !output["enabled"].as_bool().unwrap() {
+            continue
+        }
+
+        // Name
+        display.name = (&output["name"]).as_str().unwrap().to_string();
+
+        let current_mode: &str = output["currentModeId"].as_str().unwrap();
+        for mode in output["modes"].as_array().unwrap() {
+            if mode["id"] != current_mode {
                 continue
             }
 
-            let current_mode: &str = output["currentModeId"].as_str().unwrap();
-            for mode in output["modes"].as_array().unwrap() {
-                if mode["id"] != current_mode {
-                    continue
-                }
+            // Resolution
+            let size: &Value = &mode["size"];
+            display.width = size["width"].as_u64().unwrap();
+            display.height = size["height"].as_u64().unwrap();
 
-                // Resolution
-                let size: &Value = &mode["size"];
-                display.width = size["width"].as_u64().unwrap();
-                display.height = size["height"].as_u64().unwrap();
-
-                // Refresh Rate
-                display.refresh_rate = mode["refreshRate"].as_f64().unwrap().round() as u32;
-            }
+            // Refresh Rate
+            display.refresh_rate = mode["refreshRate"].as_f64().unwrap().round() as u32;
         }
 
         result.push(display);

@@ -67,7 +67,6 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Battery
 - [ ] Custom Modules
 - [ ] Image Support
-- [ ] Better Wayland Display support
 - [ ] More consistent decimal places
 - [ ] Mute errors parameter
 - [ ] Non-Cached GPU

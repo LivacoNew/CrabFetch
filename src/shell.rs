@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, env};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct ShellInfo {
     shell_name: String,
@@ -30,7 +30,7 @@ pub fn get_shell() -> ShellInfo {
     shell.shell_name = match env::var("SHELL") {
         Ok(r) => r,
         Err(e) => {
-            print!("Could not parse $SHELL env variable: {}", e);
+            log_error("Shell", format!("Could not parse $SHELL env variable: {}", e));
             "".to_string()
         }
     };

@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct OSInfo {
     distro: String,
@@ -37,7 +37,7 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/etc/os-release") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /etc/os-release - {}", e);
+            log_error("OS", format!("Can't read from /etc/os-release - {}", e));
             return os
         },
     };
@@ -45,7 +45,7 @@ pub fn get_os() -> OSInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /etc/os-release - {}", e);
+            log_error("OS", format!("Can't read from /etc/os-release - {}", e));
             return os
         },
     }
@@ -64,7 +64,7 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
             return os
         },
     };
@@ -72,7 +72,7 @@ pub fn get_os() -> OSInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /proc/sys/kernel/osrelease - {}", e);
+            log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
             return os
         },
     }

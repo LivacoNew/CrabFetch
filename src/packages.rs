@@ -117,16 +117,14 @@ fn process_dpkg_packages() -> Option<u64> {
 
     let mut file: File = match File::open(dpkg_status_path) {
         Ok(r) => r,
-        Err(e) => {
-            print!("Can't read from /var/lib/dpkg/status - {}", e);
+        Err(_) => {
             return None
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            print!("Can't read from /var/lib/dpkg/status - {}", e);
+        Err(_) => {
             return None
         },
     }

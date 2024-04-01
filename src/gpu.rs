@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, path::Path, io::{ErrorKind::NotFound, Read, Write, Error}, process::Command, fs};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct GPUInfo {
     vendor: String,
@@ -50,7 +50,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
                             return gpu;
                         },
                         Err(e) => {
-                            print!("GPU Cache exists, but cannot read from it - {}", e);
+                            log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e));
                         },
                     }
                 },
@@ -71,9 +71,9 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    print!("GPU requires the 'glxinfo' command, which is not present!");
+                    log_error("GPU", format!("GPU requires the 'glxinfo' command, which is not present!"));
                 } else {
-                    print!("Unknown error while fetching GPU: {}", e);
+                    log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
                 }
 
                 return gpu
@@ -83,7 +83,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            print!("Unknown error while fetching GPU: {}", e);
+            log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
             return gpu
         },
     };
@@ -109,7 +109,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
             gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Unable to parse GPU memory: {}", e);
+                    log_error("GPU", format!("Unable to parse GPU memory: {}", e));
                     0
                 },
             };
@@ -120,7 +120,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
     let mut file: File = match File::create("/tmp/crabfetch-gpu") {
         Ok(r) => r,
         Err(e) => {
-            print!("Unable to cache GPU info: {}", e);
+            log_error("GPU", format!("Unable to cache GPU info: {}", e));
             return gpu;
         }
     };
@@ -128,7 +128,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
     match file.write(write.as_bytes()) {
         Ok(_) => {},
         Err(e) => {
-            print!("Error writing to GPU cache: {}", e);
+            log_error("GPU", format!("Error writing to GPU cache: {}", e));
         }
     }
 

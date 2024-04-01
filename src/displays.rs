@@ -3,7 +3,7 @@ use std::{env, fmt::Display, process::Command, io::ErrorKind::NotFound};
 
 use serde_json::Value;
 
-use crate::Module;
+use crate::{log_error, Module};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -40,7 +40,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
     let desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
         Err(e) => {
-            print!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e);
+            log_error("Displays", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e));
             "Unknown".to_string()
         }
     };
@@ -55,7 +55,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         let session_type: Option<String> = match env::var("XDG_SESSION_TYPE") {
             Ok(r) => Some(r),
             Err(e) => {
-                print!("Could not parse $XDG_SESSION_TYPE env variable: {}", e);
+                log_error("Displays", format!("Could not parse $XDG_SESSION_TYPE env variable: {}", e));
                 None
             }
         };
@@ -77,13 +77,13 @@ pub fn get_displays() -> Vec<DisplayInfo> {
                         };
                     }
                     _ => {
-                        println!("Unknown display server.");
+                        log_error("Displays", format!("Unknown display server."));
                         return displays
                     }
                 }
             },
             None => {
-                println!("Unknown display server.");
+                log_error("Displays", format!("Unknown display server."));
                 return displays
             },
         }
@@ -98,9 +98,9 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    println!("Display on x11 requires the 'xrandr' command, which is not present!");
+                    log_error("Displays", format!("Display on x11 requires the 'xrandr' command, which is not present!"));
                 } else {
-                    println!("Unknown error while fetching x11 displays: {}", e);
+                    log_error("Displays", format!("Unknown error while fetching x11 displays: {}", e));
                 }
 
                 return None
@@ -109,7 +109,7 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching x11 displays: {}", e);
+            log_error("Displays", format!("Unknown error while fetching x11 displays: {}", e));
             return None
         },
     };
@@ -164,9 +164,9 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    println!("Display on wlroots requires the 'wlr-randr' command, which is not present!");
+                    log_error("Displays", format!("Display on wlroots requires the 'wlr-randr' command, which is not present!"));
                 } else {
-                    println!("Unknown error while fetching wlroots displays: {}", e);
+                    log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
                 }
 
                 return None
@@ -175,7 +175,7 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching wlroots displays: {}", e);
+            log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
             return None
         },
     };
@@ -185,7 +185,7 @@ fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
     let parsed: Vec<Value> = match serde_json::from_str(&contents) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching wlroots displays: {}", e);
+            log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
             return None
         },
     };
@@ -222,9 +222,9 @@ fn parse_kscreen_doctor() -> Option<Vec<DisplayInfo>> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    println!("Display on KDE requires the 'kscreen-doctor' command, which is not present!");
+                    log_error("Displays", format!("Display on KDE requires the 'kscreen-doctor' command, which is not present!"));
                 } else {
-                    println!("Unknown error while fetching KDE displays: {}", e);
+                    log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
                 }
 
                 return None
@@ -233,7 +233,7 @@ fn parse_kscreen_doctor() -> Option<Vec<DisplayInfo>> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching KDE displays: {}", e);
+            log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
             return None
         },
     };
@@ -243,7 +243,7 @@ fn parse_kscreen_doctor() -> Option<Vec<DisplayInfo>> {
     let parsed: Value = match serde_json::from_str(&contents) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching KDE displays: {}", e);
+            log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
             return None
         },
     };

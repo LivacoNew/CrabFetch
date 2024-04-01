@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read, os::unix::process};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct TerminalInfo {
     terminal_name: String
@@ -41,7 +41,7 @@ pub fn get_terminal() -> TerminalInfo {
     let mut parent_stat: File = match File::open(path.to_string()) {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't open from {} - {}", path, e);
+            log_error("Terminal", format!("Can't open from {} - {}", path, e));
             return terminal
         },
     };
@@ -49,7 +49,7 @@ pub fn get_terminal() -> TerminalInfo {
     match parent_stat.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't open from {} - {}", path, e);
+            log_error("Terminal", format!("Can't open from {} - {}", path, e));
             return terminal
         },
     }
@@ -58,7 +58,7 @@ pub fn get_terminal() -> TerminalInfo {
     let terminal_pid: u32 = match contents.split(" ").collect::<Vec<&str>>()[3].parse() {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't parse terminal pid: {}", e);
+            log_error("Terminal", format!("Can't parse terminal pid: {}", e));
             return terminal
         },
     };
@@ -72,7 +72,7 @@ pub fn get_terminal() -> TerminalInfo {
     let mut terminal_cmdline: File = match File::open(path.to_string()) {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't open from {} - {}", path, e);
+            log_error("Terminal", format!("Can't open from {} - {}", path, e));
             return terminal
         },
     };
@@ -80,7 +80,7 @@ pub fn get_terminal() -> TerminalInfo {
     match terminal_cmdline.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't open from {} - {}", path, e);
+            log_error("Terminal", format!("Can't open from {} - {}", path, e));
             return terminal
         },
     }

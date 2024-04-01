@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read, path::Path};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct CPUInfo {
     name: String,
@@ -53,7 +53,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            print!("Can't read from /proc/cpuinfo - {}", e);
+            log_error("CPU", format!("Can't read from /proc/cpuinfo - {}", e));
             return
         },
     };
@@ -61,7 +61,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /proc/cpuinfo - {}", e);
+            log_error("CPU", format!("Can't read from /proc/cpuinfo - {}", e));
             return
         },
     }
@@ -79,7 +79,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("WARNING: Could not parse cpu cores: {}", e);
+                    log_error("CPU", format!("WARNING: Could not parse cpu cores: {}", e));
                     0
                 },
             }
@@ -88,7 +88,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("WARNING: Could not parse cpu threads: {}", e);
+                    log_error("CPU", format!("WARNING: Could not parse cpu threads: {}", e));
                     0
                 },
             }
@@ -97,7 +97,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.current_clock_mhz = match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("WARNING: Could not parse current cpu frequency: {}", e);
+                    log_error("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e));
                     0.0
                 },
             };
@@ -128,14 +128,14 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     }
 
     if freq_path.is_none() {
-        print!("Could not find an appropriate path for getting max CPU Frequency.");
+        log_error("CPU", format!("Could not find an appropriate path for getting max CPU Frequency."));
         return
     }
 
     let mut file: File = match File::open(freq_path.unwrap()) {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from {} - {}", freq_path.unwrap(), e);
+            log_error("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e));
             return
         },
     };
@@ -143,7 +143,7 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from {} - {}", freq_path.unwrap(), e);
+            log_error("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e));
             return
         },
     }

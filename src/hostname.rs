@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, env, fs::File, io::Read};
 
-use crate::{config_manager::{self, CrabFetchColor}, Module};
+use crate::{config_manager::{self, CrabFetchColor}, log_error, Module};
 
 pub struct HostnameInfo {
     username: String,
@@ -39,7 +39,7 @@ pub fn get_hostname() -> HostnameInfo {
     hostname.username = match env::var("USER") {
         Ok(r) => r,
         Err(e) => {
-            print!("WARNING: Could not parse $USER env variable: {}", e);
+            log_error("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e));
             "user".to_string()
         }
     };
@@ -48,7 +48,7 @@ pub fn get_hostname() -> HostnameInfo {
     let mut file: File = match File::open("/etc/hostname") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /etc/hostname - {}", e);
+            log_error("Hostname", format!("Can't read from /etc/hostname - {}", e));
             return hostname
         },
     };
@@ -56,7 +56,7 @@ pub fn get_hostname() -> HostnameInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /etc/hostname - {}", e);
+            log_error("Hostname", format!("Can't read from /etc/hostname - {}", e));
             return hostname
         },
     }

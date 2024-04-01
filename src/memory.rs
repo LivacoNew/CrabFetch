@@ -1,7 +1,7 @@
 use std::{fmt::Display, fs::File};
 use std::io::Read;
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct MemoryInfo {
     used_kib: u32,
@@ -39,7 +39,7 @@ pub fn get_memory() -> MemoryInfo {
     let mut file: File = match File::open("/proc/meminfo") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /proc/meminfo - {}", e);
+            log_error("Memory", format!("Can't read from /proc/meminfo - {}", e));
             return memory
         },
     };
@@ -47,7 +47,7 @@ pub fn get_memory() -> MemoryInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /proc/meminfo - {}", e);
+            log_error("Memory", format!("Can't read from /proc/meminfo - {}", e));
             return memory
         },
     }
@@ -71,7 +71,7 @@ pub fn get_memory() -> MemoryInfo {
             memory.max_kib = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Could not parse total memory: {}", e);
+                    log_error("Memory", format!("Could not parse total memory: {}", e));
                     0
                 }
             }
@@ -82,7 +82,7 @@ pub fn get_memory() -> MemoryInfo {
             mem_free = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Could not parse free memory: {}", e);
+                    log_error("Memory", format!("Could not parse free memory: {}", e));
                     0
                 }
             }
@@ -93,7 +93,7 @@ pub fn get_memory() -> MemoryInfo {
             shmem = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Could not parse memory shmem: {}", e);
+                    log_error("Memory", format!("Could not parse memory shmem: {}", e));
                     0
                 }
             }
@@ -104,7 +104,7 @@ pub fn get_memory() -> MemoryInfo {
             buffers = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Could not parse memory buffers: {}", e);
+                    log_error("Memory", format!("Could not parse memory buffers: {}", e));
                     0
                 }
             }
@@ -115,7 +115,7 @@ pub fn get_memory() -> MemoryInfo {
             cached = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!(" Could not parse cached memory: {}", e);
+                    log_error("Memory", format!("Could not parse cached memory: {}", e));
                     0
                 }
             }
@@ -126,7 +126,7 @@ pub fn get_memory() -> MemoryInfo {
             s_reclaimable = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    print!("Could not parse sreclaimable memory: {}", e);
+                    log_error("Memory", format!("Could not parse sreclaimable memory: {}", e));
                     0
                 }
             }

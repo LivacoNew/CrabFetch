@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct HostInfo {
     host: String,
@@ -29,7 +29,7 @@ pub fn get_host() -> HostInfo {
     let mut file: File = match File::open("/sys/devices/virtual/dmi/id/board_name") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e);
+            log_error("Host", format!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e));
             return host
         },
     };
@@ -37,7 +37,7 @@ pub fn get_host() -> HostInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e);
+            log_error("Host", format!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e));
             return host
         },
     }

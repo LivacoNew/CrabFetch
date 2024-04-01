@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct SwapInfo {
     used_kib: u32,
@@ -37,7 +37,7 @@ pub fn get_swap() -> SwapInfo {
     let mut file: File = match File::open("/proc/swaps") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /proc/swaps - {}", e);
+            log_error("Swap", format!("Can't read from /proc/swaps - {}", e));
             return swap
         },
     };
@@ -45,7 +45,7 @@ pub fn get_swap() -> SwapInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /proc/swaps - {}", e);
+            log_error("Swap", format!("Can't read from /proc/swaps - {}", e));
             return swap
         },
     }

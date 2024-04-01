@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs::File, io::Read, time::Duration};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct UptimeInfo {
     uptime: Duration,
@@ -35,7 +35,7 @@ pub fn get_uptime() -> UptimeInfo {
     let mut file: File = match File::open("/proc/uptime") {
         Ok(r) => r,
         Err(e) => {
-            print!("Can't read from /proc/uptime - {}", e);
+            log_error("Uptime", format!("Can't read from /proc/uptime - {}", e));
             return uptime
         },
     };
@@ -43,14 +43,14 @@ pub fn get_uptime() -> UptimeInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            print!("Can't read from /proc/uptime - {}", e);
+            log_error("Uptime", format!("Can't read from /proc/uptime - {}", e));
             return uptime
         },
     }
     uptime.uptime = match contents.split(" ").collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
         Err(e) => {
-            print!("Could not parse /proc/uptime: {}", e);
+            log_error("Uptime", format!("Could not parse /proc/uptime: {}", e));
             Duration::new(0, 0)
         },
     };

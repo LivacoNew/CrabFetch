@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, process::Command, io::ErrorKind::NotFound};
 
-use crate::{config_manager::Configuration, Module};
+use crate::{config_manager::Configuration, log_error, Module};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -76,9 +76,9 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    println!("Mounts requires the 'df' command, which is not present!");
+                    log_error("Mounts", format!("Mounts requires the 'df' command, which is not present!"));
                 } else {
-                    println!("Unknown error while fetching mounts: {}", e);
+                    log_error("Mounts", format!("Unknown error while fetching mounts: {}", e));
                 }
 
                 return mounts
@@ -88,7 +88,7 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
         Err(e) => {
-            println!("Unknown error while fetching mounts: {}", e);
+            log_error("Mounts", format!("Unknown error while fetching mounts: {}", e));
             return mounts
         },
     };

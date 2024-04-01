@@ -1,7 +1,7 @@
 use std::{cmp::max, env, process::exit};
 
 use lazy_static::lazy_static;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
@@ -47,6 +47,15 @@ pub struct Args {
     #[arg(short, long)]
     /// Overrides the distro ASCII to another distro.
     distro_override: Option<String>,
+
+    #[arg(short, long, require_equals(true), default_missing_value("true"), default_value("true"), action=ArgAction::Set)]
+    /// Whether to suppress any errors or not.
+    suppress_errors: bool,
+}
+
+lazy_static! {
+    pub static ref ARGS: Args = Args::parse();
+    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.ignore_config_file);
 }
 
 trait Module {
@@ -76,10 +85,14 @@ fn style_entry(title: &str, format: &str, module: &impl Module) -> String {
     str
 }
 
-lazy_static! {
-    pub static ref ARGS: Args = Args::parse();
-    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.ignore_config_file);
+fn log_error(module: &str, message: String) {
+    if CONFIG.suppress_errors && ARGS.suppress_errors {
+        return
+    }
+
+    println!("Module {}: {}", module, message);
 }
+
 
 fn main() {
     // Are we defo in Linux?

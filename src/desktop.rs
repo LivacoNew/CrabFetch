@@ -1,7 +1,7 @@
 use core::str;
 use std::{fmt::Display, env};
 
-use crate::Module;
+use crate::{log_error, Module};
 
 pub struct DesktopInfo {
     desktop: String,
@@ -31,7 +31,7 @@ pub fn get_desktop() -> DesktopInfo {
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
         Err(e) => {
-            print!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e);
+            log_error("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e));
             "Unknown".to_string()
         }
     };
@@ -39,7 +39,7 @@ pub fn get_desktop() -> DesktopInfo {
     desktop.display_type = match env::var("XDG_SESSION_TYPE") {
         Ok(r) => r,
         Err(e) => {
-            print!("Could not parse $XDG_SESSION_TYPE env variable: {}", e);
+            log_error("Desktop", format!("Could not parse $XDG_SESSION_TYPE env variable: {}", e));
             "Unknown".to_string()
         }
     };

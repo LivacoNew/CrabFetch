@@ -68,7 +68,7 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Custom Modules
 - [ ] Image Support
 - [ ] More consistent decimal places
-- [ ] Mute errors parameter
+- [x] Mute errors parameter
 - [ ] Non-Cached GPU
 - [ ] Config Cleanup
 - [ ] Config Defaults

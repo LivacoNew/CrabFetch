@@ -218,6 +218,7 @@ dependencies = [
  "clap",
  "colored",
  "config",
+ "lazy_static",
  "serde",
  "serde_json",
  "shellexpand",

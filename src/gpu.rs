@@ -65,6 +65,28 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
     }
 
     // Grabs the info from glxinfo
+    fill_from_glxinfo(&mut gpu);
+
+    // Cache
+    let mut file: File = match File::create("/tmp/crabfetch-gpu") {
+        Ok(r) => r,
+        Err(e) => {
+            log_error("GPU", format!("Unable to cache GPU info: {}", e));
+            return gpu;
+        }
+    };
+    let write: String = format!("{}\n{}\n{}", gpu.vendor, gpu.model, gpu.vram_mb);
+    match file.write(write.as_bytes()) {
+        Ok(_) => {},
+        Err(e) => {
+            log_error("GPU", format!("Error writing to GPU cache: {}", e));
+        }
+    }
+
+    gpu
+}
+
+fn fill_from_glxinfo(gpu: &mut GPUInfo) {
     let output: Vec<u8> = match Command::new("glxinfo")
         .args(["-B"])
         .output() {
@@ -76,7 +98,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
                     log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
                 }
 
-                return gpu
+                return
             },
         };
 
@@ -84,7 +106,7 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
         Ok(r) => r,
         Err(e) => {
             log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
-            return gpu
+            return
         },
     };
 
@@ -115,22 +137,4 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
             };
         }
     }
-
-    // Cache
-    let mut file: File = match File::create("/tmp/crabfetch-gpu") {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("GPU", format!("Unable to cache GPU info: {}", e));
-            return gpu;
-        }
-    };
-    let write: String = format!("{}\n{}\n{}", gpu.vendor, gpu.model, gpu.vram_mb);
-    match file.write(write.as_bytes()) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("GPU", format!("Error writing to GPU cache: {}", e));
-        }
-    }
-
-    gpu
 }

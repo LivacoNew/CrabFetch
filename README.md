@@ -64,11 +64,10 @@ Not anytime soon. I already work on limited time for all my projects, and having
 
 
 ## Working On (Roadmap)
-- [ ] Battery
-- [ ] Custom Modules
-- [ ] Image Support
-- [ ] More consistent decimal places
-- [x] Mute errors parameter
-- [ ] Non-Cached GPU
+- [ ] Battery Module
+- [ ] Segment Modules
+- [ ] Kitty Image Support
+- [ ] Fix decimal places
+- [ ] `lspci` GPU
 - [ ] Config Cleanup
-- [ ] Config Defaults
+- [x] Mute errors parameter

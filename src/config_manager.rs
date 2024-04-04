@@ -55,7 +55,6 @@ pub struct Configuration {
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
     pub title_italic: bool,
-    pub decimal_places: u32,
     pub suppress_errors: bool,
 
     pub ascii_display: bool,
@@ -188,7 +187,6 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
-    builder = builder.set_default("decimal_places", 2).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII

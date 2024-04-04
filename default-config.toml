@@ -41,9 +41,6 @@ title_color = "bright_magenta"
 title_bold = true
 title_italic = true
 
-# How many decimal places to use on float values. This is kinda inconsistent right now.
-decimal_places = 2
-
 # Whether to supress any errors that come or not
 suppress_errors = true
 

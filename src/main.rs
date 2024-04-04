@@ -82,7 +82,7 @@ fn style_entry(title: &str, format: &str, module: &impl Module) -> String {
         str.push_str(&title.to_string());
         str.push_str(&CONFIG.seperator);
     }
-    str.push_str(&module.format(format, CONFIG.decimal_places));
+    str.push_str(&module.format(format, 0)); // TODO: Decimal
     str
 }
 
@@ -197,9 +197,9 @@ fn main() {
 
                     let hostname: HostnameInfo = hostname::get_hostname();
                     if CONFIG.hostname_color {
-                        str.push_str(&hostname.format_colored(&CONFIG.hostname_format, CONFIG.decimal_places, &CONFIG.title_color));
+                        str.push_str(&hostname.format_colored(&CONFIG.hostname_format, 0, &CONFIG.title_color)); // TODO: Decimal
                     } else {
-                        str.push_str(&hostname.format(&CONFIG.hostname_format, CONFIG.decimal_places));
+                        str.push_str(&hostname.format(&CONFIG.hostname_format, 0)); // TODO: Decimal
                     }
 
                     print!("{}", str);

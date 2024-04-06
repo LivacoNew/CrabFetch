@@ -38,8 +38,8 @@ seperator = " > "
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
 title_color = "bright_magenta"
 # Whether to bold/italic the title
-title_bold = true
-title_italic = true
+title_bold = false
+title_italic = false
 
 # Whether to supress any errors that come or not
 suppress_errors = true
@@ -63,9 +63,8 @@ ascii_margin = 4
 # }}}
 
 [hostname]
-title = "Hostname"
-format = "{color-magenta}{username}{color-white}@{color-magenta}{hostname}"
-title_seperator = ": "
+title = ""
+format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
 
 # Underline {{{
 

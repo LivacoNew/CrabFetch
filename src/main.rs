@@ -73,6 +73,29 @@ trait Module {
         let power: f32 = 10_u32.pow(places) as f32;
         (number * power).round() / power
     }
+    fn default_style(&self, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
+        let mut str: String = String::new();
+
+        // Title
+        if !title.trim().is_empty() {
+            let mut title: ColoredString = config_manager::color_string(title, title_color);
+            if title_bold {
+                title = title.bold();
+            }
+            if title_italic {
+                title = title.italic();
+            }
+
+            str.push_str(&title.to_string());
+            str.push_str(seperator);
+        }
+
+        let mut value: String = self.replace_placeholders();
+        value = HostnameInfo::replace_color_placeholders(&value);
+        str.push_str(&value.to_string());
+
+        str
+    }
     fn replace_color_placeholders(str: &String) -> String {
         let mut new_string = String::new();
         let split: Vec<&str> = str.split("{color-").collect();

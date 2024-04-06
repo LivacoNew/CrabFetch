@@ -16,6 +16,7 @@ pub struct HostnameConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
     pub format: String
 }
 impl Module for HostnameInfo {
@@ -26,27 +27,26 @@ impl Module for HostnameInfo {
         }
     }
     fn style(&self) -> String {
-        let mut str: String = String::new();
         let mut title_color: &CrabFetchColor = &CONFIG.title_color;
         if (&CONFIG.hostname.title_color).is_some() {
             title_color = &CONFIG.hostname.title_color.as_ref().unwrap();
         }
 
-        let mut title: ColoredString = config_manager::color_string(&CONFIG.hostname.title, title_color);
-        if title.trim() != "" {
-            if CONFIG.title_bold {
-                title = title.bold();
-            }
-            if CONFIG.title_italic {
-                title = title.italic();
-            }
-            str.push_str(&title.to_string());
-            str.push_str(&CONFIG.seperator);
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.hostname.title_bold).is_some() {
+            title_bold = CONFIG.hostname.title_bold.unwrap();
         }
-        let mut value: String = self.replace_placeholders();
-        value = HostnameInfo::replace_color_placeholders(&value);
-        str.push_str(&value.to_string());
-        str
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.hostname.title_italic).is_some() {
+            title_italic = CONFIG.hostname.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.hostname.seperator.is_some() {
+            seperator = CONFIG.hostname.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(&CONFIG.hostname.title, title_color, title_bold, title_italic, &seperator)
     }
     fn replace_placeholders(&self) -> String {
         CONFIG.hostname.format.replace("{username}", &self.username)

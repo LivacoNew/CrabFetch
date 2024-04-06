@@ -82,7 +82,6 @@ pub enum GPUMethod {
 }
 
 
-
 #[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,

@@ -265,7 +265,7 @@ fn main() {
                 },
                 "host" => {
                     let host: HostInfo = host::get_host();
-                    print!("{}", style_entry(&CONFIG.host_title, &CONFIG.host_format, &host));
+                    print!("{}", host.style());
                 },
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();

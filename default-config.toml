@@ -151,17 +151,10 @@ format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 # The mounts only need to start with these
 ignore = ["/boot", "/snap"]
 
-# }}}
-# Host {{{
 
-# Title for the module
-host_title = "Host"
+[host]
+title = "Host"
 
-# The format the Host should be in. Placeholders;
-# {host}              -> The name of the host
-host_format = "{host}"
-
-# }}}
 # Displays {{{
 
 # Title for each display. Placeholders;

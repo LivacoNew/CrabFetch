@@ -287,14 +287,14 @@ fn main() {
                     let terminal: TerminalInfo = terminal::get_terminal();
                     print!("{}", terminal.style());
                 },
+                "shell" => {
+                    let shell: ShellInfo = shell::get_shell();
+                    print!("{}", shell.style());
+                }
 
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
                     print!("{}", style_entry(&CONFIG.uptime_title, &CONFIG.uptime_format, &uptime));
-                }
-                "shell" => {
-                    let shell: ShellInfo = shell::get_shell();
-                    print!("{}", style_entry(&CONFIG.shell_title, &CONFIG.shell_format, &shell));
                 }
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();

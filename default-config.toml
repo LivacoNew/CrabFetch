@@ -196,16 +196,13 @@ format = "{desktop} ({display_type})"
 [terminal]
 title = "Terminal"
 
-# }}}
-# Shell {{{
 
-# Title for the module
-shell_title = "Shell"
-
-# The format the shell should be in. Placeholders;
-# {shell}               -> The name of the shell, e.g zsh
-# {path}                -> The path of the shell, e.g /bin/zsh
-shell_format = "{shell}"
+[shell]
+title = "Shell"
+# Placeholders;
+# {shell} -> The name of the shell, e.g zsh
+# {path} -> The path of the shell, e.g /bin/zsh
+format = "{shell} ({path})"
 
 # }}}
 # Uptime {{{
@@ -214,9 +211,9 @@ shell_format = "{shell}"
 uptime_title = "Uptime"
 
 # The format the uptime should be in. Placeholders;
-# {hours}               -> The hours
-# {minutes}             -> The minutes
-# {seconds}             -> The seconds
+# {hours} -> The hours
+# {minutes} -> The minutes
+# {seconds} -> The seconds
 #
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
 uptime_format = "{hours}h {minutes}m {seconds}s"

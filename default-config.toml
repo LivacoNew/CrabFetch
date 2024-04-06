@@ -1,10 +1,5 @@
-# vim:foldmethod=marker
-# NOTE: This file is best used with Vim's folds.
-# Apolgies if your using something else.
-
-# General {{{
 # The modules to display and in what order.
-# All modules; hostname, underline, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
+# All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
 
@@ -28,22 +23,18 @@ modules = [
     "bright_colors"
 ]
 
-
-# The seperator between a modules title and it's value
+# The default seperator between a modules title and it's value
 seperator = " > "
-
-# The color of a modules title
+# The default color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
 title_color = "bright_magenta"
-# Whether to bold/italic the title
+# Whether to bold/italic the title by default too
 title_bold = false
 title_italic = false
 
 # Whether to supress any errors that come or not
 suppress_errors = true
-
-# }}}
 
 
 [ascii]
@@ -58,6 +49,7 @@ colors = ["bright_magenta", "bright_magenta", "bright_blue", "bright_magenta", "
 
 # The amount of space to put between the ASCII and the info
 margin = 4
+
 
 
 

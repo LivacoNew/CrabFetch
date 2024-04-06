@@ -115,22 +115,19 @@ title = "Memory"
 # {percent} -> Percentage of memory used
 format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
-# Swap {{{
 
-# Title for the module
-swap_title = "Swap"
+[swap]
+title = "Swap"
+# Placeholders;
+# {used_kib} -> The currently used swap in KiB.
+# {used_mib} -> The currently used swap in MiB.
+# {used_gib} -> The currently used swap in GiB.
+# {max_kib} -> The maximum total swap  in KiB.
+# {max_mib} -> The maximum total swap in MiB.
+# {max_gib} -> The maximum total swap in GiB.
+# {percent} -> Percentage of swap used
+format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
-# The format the module should be in. Placeholders;
-# {used_kib}       -> The currently used swap in KiB.
-# {used_mib}       -> The currently used swap in MiB.
-# {used_gib}       -> The currently used swap in GiB.
-# {max_kib}        -> The maximum total swap  in KiB.
-# {max_mib}        -> The maximum total swap in MiB.
-# {max_gib}        -> The maximum total swap in GiB.
-# {percent}             -> Percentage of swap used
-swap_format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
-
-#}}}
 # Mounts {{{
 
 # Title for each mount. Placeholders;

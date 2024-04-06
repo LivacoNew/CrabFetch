@@ -251,11 +251,11 @@ fn main() {
                     let memory: MemoryInfo = memory::get_memory();
                     print!("{}", memory.style());
                 }
-
                 "swap" => {
                     let swap: SwapInfo = swap::get_swap();
-                    print!("{}", style_entry(&CONFIG.swap_title, &CONFIG.swap_format, &swap));
+                    print!("{}", swap.style());
                 }
+
                 "os" => {
                     print!("{}", style_entry(&CONFIG.os_title, &CONFIG.os_format, &os));
                 }

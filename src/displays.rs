@@ -1,9 +1,10 @@
 use core::str;
 use std::{env, fmt::Display, process::Command, io::ErrorKind::NotFound};
 
+use serde::Deserialize;
 use serde_json::Value;
 
-use crate::{log_error, Module};
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -11,6 +12,15 @@ pub struct DisplayInfo {
     width: u64,
     height: u64,
     refresh_rate: u32
+}
+#[derive(Deserialize)]
+pub struct DisplayConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: String,
 }
 impl Module for DisplayInfo {
     fn new() -> DisplayInfo {
@@ -23,18 +33,37 @@ impl Module for DisplayInfo {
     }
 
     fn style(&self) -> String {
-        todo!()
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.displays.title_color).is_some() {
+            title_color = &CONFIG.displays.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.displays.title_bold).is_some() {
+            title_bold = CONFIG.displays.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.displays.title_italic).is_some() {
+            title_italic = CONFIG.displays.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.displays.seperator.is_some() {
+            seperator = CONFIG.displays.seperator.as_ref().unwrap();
+        }
+
+        let mut title: String = CONFIG.displays.title.clone();
+        title = title.replace("{name}", &self.name);
+
+        self.default_style(&title, title_color, title_bold, title_italic, &seperator)
     }
 
     fn replace_placeholders(&self) -> String {
-        todo!()
+        CONFIG.displays.format.replace("{name}", &self.name)
+            .replace("{width}", &self.width.to_string())
+            .replace("{height}", &self.height.to_string())
+            .replace("{refresh_rate}", &self.refresh_rate.to_string())
     }
-    // fn format(&self, format: &str, _: u32) -> String {
-    //     format.replace("{name}", &self.name)
-    //         .replace("{width}", &self.width.to_string())
-    //         .replace("{height}", &self.height.to_string())
-    //         .replace("{refresh_rate}", &self.refresh_rate.to_string())
-    // }
 }
 impl Display for DisplayInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

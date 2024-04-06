@@ -299,8 +299,7 @@ fn main() {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
                         let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        let title: String = display.replace_placeholders();
-                        print!("{}", style_entry(&title, &CONFIG.display_format, display));
+                        print!("{}", display.style());
                         display_index += 1;
                         // once again, sketchy
                         if displays.len() > display_index as usize {

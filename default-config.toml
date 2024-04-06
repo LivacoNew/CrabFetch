@@ -136,15 +136,15 @@ format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 title = "Disk {mount}"
 
 # Placeholders;
-# {device}              -> Device, e.g /dev/sda
-# {mount}               -> The mount point, e.g /home
-# {space_used_mb}       -> The space used in megabytes.
-# {space_avail_mb}      -> The space available in metabytes.
-# {space_total_mb}      -> The total space in metabytes.
-# {space_used_gb}       -> The space used in gigabytes.
-# {space_avail_gb}      -> The space available in gigabytes.
-# {space_total_gb}      -> The total space in gigabytes.
-# {percent}             -> The percentage of the disk used.
+# {device} -> Device, e.g /dev/sda
+# {mount} -> The mount point, e.g /home
+# {space_used_mb} -> The space used in megabytes.
+# {space_avail_mb} -> The space available in metabytes.
+# {space_total_mb} -> The total space in metabytes.
+# {space_used_gb} -> The space used in gigabytes.
+# {space_avail_gb} -> The space available in gigabytes.
+# {space_total_gb} -> The total space in gigabytes.
+# {percent} -> The percentage of the disk used.
 format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
 # Mounts that shouldn't be included
@@ -155,20 +155,19 @@ ignore = ["/boot", "/snap"]
 [host]
 title = "Host"
 
-# Displays {{{
 
-# Title for each display. Placeholders;
-# {name}                -> The monitor name, e.g eDP-2
-display_title = "Display {name}"
+[displays]
+# Same as mounts. Placeholders;
+# {name} -> The monitor name, e.g eDP-2
+title = "Display {name}"
 
 # The format each display should be in. Placeholders;
-# {name}                -> The monitor name, e.g eDP-2
-# {width}               -> The monitor's width
-# {height}              -> The monitor's height
-# {refresh_rate}        -> The monitor's refresh rate
-display_format = "{width}x{height} @ {refresh_rate}Hz"
+# {name} -> The monitor name, e.g eDP-2
+# {width} -> The monitor's width
+# {height} -> The monitor's height
+# {refresh_rate} -> The monitor's refresh rate
+format = "{width}x{height} @ {refresh_rate}Hz"
 
-# }}}
 
 # OS {{{
 

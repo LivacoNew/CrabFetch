@@ -38,7 +38,8 @@ Ensure you've got your $PATH set to include ~/.cargo/bin/
 
 
 ## Configuration
-The configuration file should be in `~/.config/CrabFetch/config.toml`. The default configuration can be found in `default-config.toml` in this repo, and you may have to copy and paste it over. From there, the comments should keep you right.
+To generate the default configuration file, run `crabfetch -g`.
+The configuration file should be in `~/.config/CrabFetch/config.toml`. From there, the comments should keep you right.
 
 
 ## Not got what you want?

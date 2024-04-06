@@ -52,9 +52,12 @@ Make a issue and I'll see if I can add it in. I'm aware support is kind of spars
 
 ## FAQ
 ### Does CrabFetch cheat with it's performance?
-Kinda. Everything is done at runtime, except from GPU info. This is because `glxinfo` which I use to get GPU info is stupidly slow, so I cache the parts I need at `/tmp/crabfetch-gpu` since no one's going to be swapping in/out GPUs. I have a plan to get rid of this cache and make it's performance real, but for now the answer is yes.
-
-Using the `--ignore-cache` flag, the true performance can be seen to run [at 0.062s](https://i.imgur.com/igv4ZyG.png), coming in just behind FastFetch on the performance table above.
+It can, but not by default. The problem comes with GPU info, and how slow it is to find. CrabFetch provides two ways to get it;
+- By scanning `/sys/bus/pci/devices` for any GPU's and parsing from there.
+- By using `glxinfo`, which provides the info directly.
+The first method is eoens faster than waiting for `glxinfo`, however `glxinfo` is more accurate. E.g, [the first method](https://i.imgur.com/IzWCnlF.png) gives my gpu as either a RX 7700 or RX 7800 whereas [glxinfo](https://i.imgur.com/k7ds3ZK.png) gets it bang on as a 7800.
+To allow for accurate GPU info with good performance, CrabFetch allows you to select to cache the GPU info. For the sys file method this is kind of useless but for glxinfo this means you can have the full accuracy with the same performance as parsing sys files.
+Ultimately, this is up to the user to select. **By default, CrabFetch will use sys files without caching**. While I highly recommend using the cached info, I won't set it to be the default so as to not be unfair to other fetchers with performance comparisons.
 
 ### So how does CrabFetch get it's performance in everything else aside from the GPU?
 To start, CrabFetch is written in Rust (hence the name). On top of that is tries to prevent re-inventing the wheel and tries to use whatever Linux has done for it already e.g using stuff in /sys or in the environment variables.

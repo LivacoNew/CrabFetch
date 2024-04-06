@@ -43,11 +43,6 @@ format = "{underline}"
 # All the actual modules
 # You can override the general options in these, e.g the title seperator, decimal places, etc.
 
-[hostname]
-title = "Hostname"
-format = "{color-magenta}{username}{color-white}@{color-magenta}{hostname}"
-title_seperator = ": "
-
 [cpu]
 title = "Processor"
 format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"

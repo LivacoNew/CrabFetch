@@ -185,7 +185,7 @@ fn main() {
                     // Pretty much reimplements style_entry
                     // Sorry DRY enthusiasts
                     let mut str: String = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&CONFIG.hostname_title, &CONFIG.title_color);
+                    let mut title: ColoredString = config_manager::color_string(&CONFIG.hostname.title, &CONFIG.title_color);
                     if title.trim() != "" {
                         if CONFIG.title_bold {
                             title = title.bold();
@@ -198,10 +198,10 @@ fn main() {
                     }
 
                     let hostname: HostnameInfo = hostname::get_hostname();
-                    if CONFIG.hostname_color {
-                        str.push_str(&hostname.format_colored(&CONFIG.hostname_format, 0, &CONFIG.title_color)); // TODO: Decimal
+                    if false { // TODO: Full hostname color
+                        str.push_str(&hostname.format_colored(&CONFIG.hostname.format, 0, &CONFIG.title_color)); // TODO: Decimal
                     } else {
-                        str.push_str(&hostname.format(&CONFIG.hostname_format, 0)); // TODO: Decimal
+                        str.push_str(&hostname.format(&CONFIG.hostname.format, 0)); // TODO: Decimal
                     }
 
                     print!("{}", str);

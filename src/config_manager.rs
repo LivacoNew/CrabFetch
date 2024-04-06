@@ -55,6 +55,15 @@ pub enum GPUMethod {
 
 
 #[derive(Deserialize)]
+pub struct GenericModuleConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub format: String
+}
+
+#[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
     pub seperator: String,
@@ -67,10 +76,7 @@ pub struct Configuration {
     pub ascii_colors: Vec<CrabFetchColor>,
     pub ascii_margin: u16,
 
-
-    pub hostname_title: String,
-    pub hostname_format: String,
-    pub hostname_color: bool,
+    pub hostname: GenericModuleConfiguration,
 
     pub underline_length: u16,
     pub underline_format: bool,
@@ -201,11 +207,6 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("ascii_display", true).unwrap();
     builder = builder.set_default("ascii_colors", vec!["bright_magenta"]).unwrap();
     builder = builder.set_default("ascii_margin", 4).unwrap();
-
-    // Hostname
-    builder = builder.set_default("hostname_title", "").unwrap();
-    builder = builder.set_default("hostname_format", "{username}@{hostname}").unwrap();
-    builder = builder.set_default("hostname_color", true).unwrap();
 
     // Underline
     builder = builder.set_default("underline_length", 24).unwrap();

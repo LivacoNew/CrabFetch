@@ -64,17 +64,10 @@ ascii_margin = 4
 
 # Hostname {{{
 
-# Title for the module
-hostname_title = ""
-
-# The format the hostname should be in. Placeholders;
-# {hostname}            -> The hostname of the system.
-# {username}            -> The username of the current user.
-hostname_format = "{username}@{hostname}"
-
-# Whether to color the hostname's placeholders the title color
-# Mainly for if you remove the title and want to use it like a header, Neofetch style
-hostname_color = true
+[hostname]
+title = "Hostname"
+format = "{color-magenta}{username}{color-white}@{color-magenta}{hostname}"
+title_seperator = ": "
 
 # }}}
 # Underline {{{

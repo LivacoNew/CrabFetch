@@ -65,9 +65,17 @@ pub fn get_gpu() -> GPUInfo {
     }
 
     // Get the GPU info via the selected method
-    match CONFIG.gpu_method {
-        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
-        GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
+    if ARGS.gpu_method.is_some() {
+        match ARGS.gpu_method.clone().unwrap().as_str() {
+            "pcisysfile" => fill_from_pcisysfile(&mut gpu),
+            "glxinfo" => fill_from_glxinfo(&mut gpu),
+            _ => {}
+        }
+    } else {
+        match CONFIG.gpu_method {
+            GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
+            GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
+        }
     }
 
     // Cache

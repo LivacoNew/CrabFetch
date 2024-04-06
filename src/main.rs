@@ -41,9 +41,11 @@ pub struct Args {
     generate_config_file: bool,
 
     #[arg(long)]
-    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu - This will make CrabFetch a bit slower as
-    /// glxinfo is slow!
+    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu
     ignore_cache: bool,
+
+    #[arg(long)]
+    gpu_method: Option<String>,
 
     #[arg(short, long)]
     /// Overrides the distro ASCII to another distro.

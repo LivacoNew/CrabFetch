@@ -257,7 +257,7 @@ fn main() {
                 }
 
                 "os" => {
-                    print!("{}", style_entry(&CONFIG.os_title, &CONFIG.os_format, &os));
+                    print!("{}", os.style());
                 }
                 "terminal" => {
                     let terminal: TerminalInfo = terminal::get_terminal();

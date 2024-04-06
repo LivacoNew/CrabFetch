@@ -169,15 +169,12 @@ title = "Display {name}"
 format = "{width}x{height} @ {refresh_rate}Hz"
 
 
-# OS {{{
-
-# Title for the module
-os_title = "Operating System"
-
-# The format the OS should be in. Placeholders;
-# {distro}              -> The distro name
-# {kernel}              -> The kernel version
-os_format = "{distro} ({kernel})"
+[os]
+title = "Operating System"
+# Placeholders;
+# {distro} -> The distro name
+# {kernel} -> The kernel version
+format = "{distro} ({kernel})"
 
 # }}}
 # Packages {{{

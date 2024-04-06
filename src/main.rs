@@ -287,8 +287,7 @@ fn main() {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        let title: String = mount.replace_placeholders();
-                        print!("{}", style_entry(&title, &CONFIG.mount_format, mount));
+                        print!("{}", mount.style());
                         mount_index += 1;
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {

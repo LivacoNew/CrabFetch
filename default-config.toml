@@ -128,14 +128,14 @@ title = "Swap"
 # {percent} -> Percentage of swap used
 format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
-# Mounts {{{
 
-# Title for each mount. Placeholders;
+[mounts]
+# Each mount has it's own entry. Title Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
-mount_title = "Disk {mount}"
+title = "Disk {mount}"
 
-# The format each mount should be in. Placeholders;
+# Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
 # {space_used_mb}       -> The space used in megabytes.
@@ -145,11 +145,11 @@ mount_title = "Disk {mount}"
 # {space_avail_gb}      -> The space available in gigabytes.
 # {space_total_gb}      -> The total space in gigabytes.
 # {percent}             -> The percentage of the disk used.
-mount_format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
+format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
 # Mounts that shouldn't be included
 # The mounts only need to start with these
-mount_ignored = ["/boot", "/snap"]
+ignore = ["/boot", "/snap"]
 
 # }}}
 # Host {{{

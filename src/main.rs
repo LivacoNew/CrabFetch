@@ -91,12 +91,12 @@ trait Module {
         }
 
         let mut value: String = self.replace_placeholders();
-        value = HostnameInfo::replace_color_placeholders(&value); // TODO
+        value = self.replace_color_placeholders(&value); // TODO
         str.push_str(&value.to_string());
 
         str
     }
-    fn replace_color_placeholders(str: &String) -> String {
+    fn replace_color_placeholders(&self, str: &String) -> String {
         let mut new_string = String::new();
         let split: Vec<&str> = str.split("{color-").collect();
         if split.len() <= 1 {

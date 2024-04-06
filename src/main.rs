@@ -168,7 +168,7 @@ fn main() {
     // ascii we want.
     let os: OSInfo = os::get_os();
     let mut ascii: (String, u16) = (String::new(), 0);
-    if CONFIG.ascii_display {
+    if CONFIG.ascii.display {
         if ARGS.distro_override.is_some() {
             ascii = ascii::get_ascii(&ARGS.distro_override.clone().unwrap());
         } else {
@@ -178,7 +178,7 @@ fn main() {
 
     let mut line_number: u8 = 0;
     let mut ascii_line_number: u8 = 0;
-    let target_length: u16 = ascii.1 + CONFIG.ascii_margin;
+    let target_length: u16 = ascii.1 + CONFIG.ascii.margin;
 
     let split: Vec<&str> = ascii.0.split("\n").collect();
 
@@ -215,8 +215,8 @@ fn main() {
         // Figure out the color first
         let percentage: f32 = (ascii_line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573
-        let index: u8 = (((CONFIG.ascii_colors.len() - 1) as f32) * percentage).round() as u8;
-        let colored: ColoredString = color_string(line, CONFIG.ascii_colors.get(index as usize).unwrap());
+        let index: u8 = (((CONFIG.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+        let colored: ColoredString = color_string(line, CONFIG.ascii.colors.get(index as usize).unwrap());
 
         // Print the actual ASCII
         print!("{}", colored);

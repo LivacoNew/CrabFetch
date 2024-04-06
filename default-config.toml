@@ -45,21 +45,25 @@ suppress_errors = true
 
 # }}}
 
-# ASCII {{{
 
+[ascii]
 # If to display the ASCII distro art or not
-ascii_display = true
+display = true
 
 # The colors to render the ASCII in
 # This array can be as long as the actual ASCII. Each entry represents the color at a certain %
 # E.g ["red", "green"] would render the top half as red and the bottom half as green.
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
-ascii_colors = ["bright_magenta", "bright_magenta", "bright_blue", "bright_magenta", "bright_magenta"]
+colors = ["bright_magenta", "bright_magenta", "bright_blue", "bright_magenta", "bright_magenta"]
 
 # The amount of space to put between the ASCII and the info
-ascii_margin = 4
+margin = 4
 
-# }}}
+
+
+# Below here is the actual modules
+# Refer to the wiki for any module-specific parameters or hidden parameters
+# Also remember that you can override some stuff on these, e.g the title formatting.
 
 [hostname]
 title = ""

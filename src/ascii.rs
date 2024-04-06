@@ -1,4 +1,13 @@
-use crate::config_manager;
+use serde::Deserialize;
+
+use crate::config_manager::{self, CrabFetchColor};
+
+#[derive(Deserialize)]
+pub struct AsciiConfiguration {
+    pub display: bool,
+    pub colors: Vec<CrabFetchColor>,
+    pub margin: u16,
+}
 
 // Return type is the ascii & the maximum length of it
 pub fn get_ascii(os: &str) -> (String, u16) {

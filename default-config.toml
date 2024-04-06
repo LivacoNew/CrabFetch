@@ -184,18 +184,14 @@ title = "Packages"
 # {count}                -> The amount of packages that manager reports
 format = "{count} ({manager})"
 
-# }}}
-# Desktop {{{
 
-# Title for the module
-desktop_title = "Desktop"
-
-# The format the desktop should be in. Placeholders;
+[desktop]
+title = "Desktop"
+# Placeholders;
 # {desktop}             -> The name of the desktop
 # {display_type}        -> The type of display server, aka x11 or wayland.
-desktop_format = "{desktop} ({display_type})"
+format = "{desktop} ({display_type})"
 
-# }}}
 # Terminal {{{
 
 # Title for the module

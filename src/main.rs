@@ -252,37 +252,13 @@ fn main() {
                     let memory: MemoryInfo = memory::get_memory();
                     print!("{}", memory.style());
                 }
-                "swap" => {
-                    let swap: SwapInfo = swap::get_swap();
-                    print!("{}", swap.style());
-                }
-                "os" => {
-                    print!("{}", os.style());
-                }
-                "packages" => {
-                    let packages: PackagesInfo = packages::get_packages();
-                    print!("{}", packages.style());
-                }
-
-                "terminal" => {
-                    let terminal: TerminalInfo = terminal::get_terminal();
-                    print!("{}", style_entry(&CONFIG.terminal_title, &CONFIG.terminal_format, &terminal));
-                },
                 "host" => {
                     let host: HostInfo = host::get_host();
                     print!("{}", host.style());
                 },
-                "uptime" => {
-                    let uptime: UptimeInfo = uptime::get_uptime();
-                    print!("{}", style_entry(&CONFIG.uptime_title, &CONFIG.uptime_format, &uptime));
-                }
-                "desktop" => {
-                    let desktop: DesktopInfo = desktop::get_desktop();
-                    print!("{}", style_entry(&CONFIG.desktop_title, &CONFIG.desktop_format, &desktop));
-                }
-                "shell" => {
-                    let shell: ShellInfo = shell::get_shell();
-                    print!("{}", style_entry(&CONFIG.shell_title, &CONFIG.shell_format, &shell));
+                "swap" => {
+                    let swap: SwapInfo = swap::get_swap();
+                    print!("{}", swap.style());
                 }
                 "mounts" => {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
@@ -295,6 +271,30 @@ fn main() {
                             modules.insert(line_number as usize, "mounts".to_string());
                         }
                     }
+                }
+                "os" => {
+                    print!("{}", os.style());
+                }
+                "packages" => {
+                    let packages: PackagesInfo = packages::get_packages();
+                    print!("{}", packages.style());
+                }
+                "desktop" => {
+                    let desktop: DesktopInfo = desktop::get_desktop();
+                    print!("{}", desktop.style());
+                }
+
+                "terminal" => {
+                    let terminal: TerminalInfo = terminal::get_terminal();
+                    print!("{}", style_entry(&CONFIG.terminal_title, &CONFIG.terminal_format, &terminal));
+                },
+                "uptime" => {
+                    let uptime: UptimeInfo = uptime::get_uptime();
+                    print!("{}", style_entry(&CONFIG.uptime_title, &CONFIG.uptime_format, &uptime));
+                }
+                "shell" => {
+                    let shell: ShellInfo = shell::get_shell();
+                    print!("{}", style_entry(&CONFIG.shell_title, &CONFIG.shell_format, &shell));
                 }
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();

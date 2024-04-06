@@ -236,11 +236,6 @@ fn main() {
                     let hostname: HostnameInfo = hostname::get_hostname();
                     print!("{}", hostname.style());
                 },
-                "underline" => {
-                    for _ in 0..CONFIG.underline_length {
-                        print!("-");
-                    }
-                }
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();
                     print!("{}", style_entry(&CONFIG.cpu_title, &CONFIG.cpu_format, &cpu));

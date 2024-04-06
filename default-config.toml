@@ -7,7 +7,6 @@
 # All modules; hostname, underline, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
-    "underline",
 
     "cpu",
     "gpu",
@@ -66,15 +65,6 @@ ascii_margin = 4
 title = ""
 format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
 
-# Underline {{{
-
-# Length of the underline
-underline_length = 24
-
-# Whether to format the underline to the title formatting
-underline_format = true
-
-# }}}
 # CPU {{{
 
 # Title for the module

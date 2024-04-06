@@ -3,7 +3,7 @@ use std::{fmt::Display, process::Command, io::ErrorKind::NotFound};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, log_error, Module, CONFIG};
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -95,7 +95,7 @@ impl Display for MountInfo {
     }
 }
 impl MountInfo {
-    pub fn is_ignored(&self, config: &Configuration) -> bool {
+    pub fn is_ignored(&self) -> bool {
         for x in CONFIG.mounts.ignore.to_vec() {
             if self.mount.starts_with(&x) {
                 return true

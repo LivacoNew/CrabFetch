@@ -1,9 +1,8 @@
-use core::panic;
 use std::{cmp::max, env, process::exit, str::FromStr};
 
 use config_manager::CrabFetchColor;
 use lazy_static::lazy_static;
-use clap::{builder::styling::Color, ArgAction, Parser};
+use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
@@ -126,23 +125,6 @@ trait Module {
     }
 }
 
-fn style_entry(title: &str, format: &str, module: &impl Module) -> String { // TODO: Remove me!
-    let mut str: String = String::new();
-    let mut title: ColoredString = config_manager::color_string(title, &CONFIG.title_color);
-    if title.trim() != "" {
-        if CONFIG.title_bold {
-            title = title.bold();
-        }
-        if CONFIG.title_italic {
-            title = title.italic();
-        }
-        str.push_str(&title.to_string());
-        str.push_str(&CONFIG.seperator);
-    }
-    str.push_str(&module.replace_placeholders()); // TODO: Decimal
-    str
-}
-
 fn log_error(module: &str, message: String) {
     if CONFIG.suppress_errors && ARGS.suppress_errors {
         return
@@ -194,7 +176,7 @@ fn main() {
     let mut mount_index: u32 = 0;
     if modules.contains(&"mounts".to_string()) {
         mounts = Some(mounts::get_mounted_drives());
-        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&CONFIG));
+        mounts.as_mut().unwrap().retain(|x| !x.is_ignored());
         line_count += mounts.as_ref().unwrap().len() - 1; // TODO: And me!
     }
 

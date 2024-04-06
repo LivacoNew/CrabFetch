@@ -1,4 +1,3 @@
-use core::str;
 use std::fmt::Display;
 
 use crate::Module;

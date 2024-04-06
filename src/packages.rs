@@ -72,7 +72,7 @@ impl Module for PackagesInfo {
             value.push_str(&CONFIG.packages.format.replace("{manager}", &manager.manager_name)
                 .replace("{count}", &manager.package_count.to_string()));
         }
-        value = self.replace_color_placeholders(&value); // TODO
+        value = self.replace_color_placeholders(&value);
         str.push_str(&value.to_string());
 
         str

@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration};
+use crate::{cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -101,9 +101,7 @@ pub struct Configuration {
     pub desktop: DesktopConfiguration,
     pub terminal: TerminalConfiguration,
     pub shell: ShellConfiguration,
-
-    pub uptime_title: String,
-    pub uptime_format: String,
+    pub uptime: UptimeConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configuration {

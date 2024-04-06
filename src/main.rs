@@ -291,10 +291,9 @@ fn main() {
                     let shell: ShellInfo = shell::get_shell();
                     print!("{}", shell.style());
                 }
-
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
-                    print!("{}", style_entry(&CONFIG.uptime_title, &CONFIG.uptime_format, &uptime));
+                    print!("{}", uptime.style());
                 }
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();

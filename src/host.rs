@@ -12,8 +12,16 @@ impl Module for HostInfo {
             host: "".to_string()
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{host}", &self.host)
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{host}", &self.host)
+    // }
+
+    fn style(&self) -> String {
+        todo!()
+    }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
     }
 }
 impl Display for HostInfo {

@@ -1,12 +1,14 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
 
 use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
+use crate::hostname::HostnameConfiguration;
+
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
     Black,
@@ -26,6 +28,32 @@ pub enum CrabFetchColor {
     BrightCyan,
     BrightWhite
 }
+impl FromStr for CrabFetchColor {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "black" => Ok(CrabFetchColor::Black),
+            "red" => Ok(CrabFetchColor::Red),
+            "green" => Ok(CrabFetchColor::Green),
+            "yellow" => Ok(CrabFetchColor::Yellow),
+            "blue" => Ok(CrabFetchColor::Blue),
+            "magenta" => Ok(CrabFetchColor::Magenta),
+            "cyan" => Ok(CrabFetchColor::Cyan),
+            "white" => Ok(CrabFetchColor::White),
+            "brightblack" => Ok(CrabFetchColor::BrightBlack),
+            "brightred" => Ok(CrabFetchColor::BrightRed),
+            "brightgreen" => Ok(CrabFetchColor::BrightGreen),
+            "brightyellow" => Ok(CrabFetchColor::BrightYellow),
+            "brightblue" => Ok(CrabFetchColor::BrightBlue),
+            "brightmagenta" => Ok(CrabFetchColor::BrightMagenta),
+            "brightcyan" => Ok(CrabFetchColor::BrightCyan),
+            "brightwhite" => Ok(CrabFetchColor::BrightWhite),
+            _ => Err(())
+        }
+    }
+}
+
 pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
     match color {
         CrabFetchColor::Black => string.black(),
@@ -54,14 +82,6 @@ pub enum GPUMethod {
 }
 
 
-#[derive(Deserialize)]
-pub struct GenericModuleConfiguration {
-    pub title: String,
-    pub title_color: Option<CrabFetchColor>,
-    pub title_bold: Option<bool>,
-    pub title_italic: Option<bool>,
-    pub format: String
-}
 
 #[derive(Deserialize)]
 pub struct Configuration {
@@ -76,7 +96,7 @@ pub struct Configuration {
     pub ascii_colors: Vec<CrabFetchColor>,
     pub ascii_margin: u16,
 
-    pub hostname: GenericModuleConfiguration,
+    pub hostname: HostnameConfiguration,
 
     pub underline_length: u16,
     pub underline_format: bool,

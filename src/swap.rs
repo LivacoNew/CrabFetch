@@ -14,15 +14,23 @@ impl Module for SwapInfo {
             total_kib: 0
         }
     }
-    fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{used_kib}", &self.used_kib.to_string())
-            .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
-            .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
-            .replace("{total_kib}", &self.total_kib.to_string())
-            .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
-            .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
-            .replace("{percent}", &SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, float_places).to_string())
+
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, float_places: u32) -> String {
+    //     format.replace("{used_kib}", &self.used_kib.to_string())
+    //         .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
+    //         .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
+    //         .replace("{total_kib}", &self.total_kib.to_string())
+    //         .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
+    //         .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
+    //         .replace("{percent}", &SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, float_places).to_string())
+    // }
 }
 impl Display for SwapInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

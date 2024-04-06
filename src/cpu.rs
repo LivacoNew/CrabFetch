@@ -20,14 +20,22 @@ impl Module for CPUInfo {
             max_clock_mhz: 0.0,
         }
     }
-    fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{name}", &self.name)
-            .replace("{core_count}", &self.cores.to_string())
-            .replace("{thread_count}", &self.threads.to_string())
-            .replace("{current_clock_mhz}", &self.current_clock_mhz.to_string())
-            .replace("{current_clock_ghz}", &(self.current_clock_mhz / 1000.0).to_string())
-            .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, float_places).to_string())
-            .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, float_places).to_string())
+    // fn format(&self, format: &str, float_places: u32) -> String {
+    //     format.replace("{name}", &self.name)
+    //         .replace("{core_count}", &self.cores.to_string())
+    //         .replace("{thread_count}", &self.threads.to_string())
+    //         .replace("{current_clock_mhz}", &self.current_clock_mhz.to_string())
+    //         .replace("{current_clock_ghz}", &(self.current_clock_mhz / 1000.0).to_string())
+    //         .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, float_places).to_string())
+    //         .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, float_places).to_string())
+    // }
+
+    fn style(&self) -> String {
+        todo!()
+    }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
     }
 }
 impl Display for CPUInfo {

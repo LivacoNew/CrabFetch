@@ -62,14 +62,11 @@ ascii_margin = 4
 
 # }}}
 
-# Hostname {{{
-
 [hostname]
 title = "Hostname"
 format = "{color-magenta}{username}{color-white}@{color-magenta}{hostname}"
 title_seperator = ": "
 
-# }}}
 # Underline {{{
 
 # Length of the underline

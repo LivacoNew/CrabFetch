@@ -1,11 +1,22 @@
 use core::str;
 use std::{fmt::Display, env, fs::File, io::Read};
 
-use crate::{config_manager::{self, CrabFetchColor}, log_error, Module};
+use colored::{ColoredString, Colorize};
+use serde::Deserialize;
+
+use crate::{config_manager::{self, CrabFetchColor}, log_error, Module, CONFIG};
 
 pub struct HostnameInfo {
     username: String,
     hostname: String,
+}
+#[derive(Deserialize)]
+pub struct HostnameConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub format: String
 }
 impl Module for HostnameInfo {
     fn new() -> HostnameInfo {
@@ -14,9 +25,33 @@ impl Module for HostnameInfo {
             hostname: "".to_string(),
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{hostname}", &self.hostname)
-            .replace("{username}", &self.username)
+    fn style(&self) -> String {
+        let mut str: String = String::new();
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.hostname.title_color).is_some() {
+            title_color = &CONFIG.hostname.title_color.as_ref().unwrap();
+        }
+
+        let mut title: ColoredString = config_manager::color_string(&CONFIG.hostname.title, title_color);
+        if title.trim() != "" {
+            if CONFIG.title_bold {
+                title = title.bold();
+            }
+            if CONFIG.title_italic {
+                title = title.italic();
+            }
+            str.push_str(&title.to_string());
+            str.push_str(&CONFIG.seperator);
+        }
+        let mut value: String = self.replace_placeholders();
+        value = HostnameInfo::replace_color_placeholders(&value);
+        str.push_str(&value.to_string());
+        str
+    }
+    fn replace_placeholders(&self) -> String {
+        CONFIG.hostname.format.replace("{username}", &self.username)
+            .replace("{hostname}", &self.hostname)
+            .to_string()
     }
 }
 impl Display for HostnameInfo {

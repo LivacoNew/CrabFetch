@@ -16,14 +16,22 @@ impl Module for MemoryInfo {
             percentage: 0.0
         }
     }
-    fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, float_places).to_string())
-            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, float_places).to_string())
-            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, float_places).to_string())
-            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, float_places).to_string())
-            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, float_places).to_string())
-            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, float_places).to_string())
-            .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
+    // fn format(&self, format: &str, float_places: u32) -> String {
+    //     format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, float_places).to_string())
+    //         .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, float_places).to_string())
+    //         .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, float_places).to_string())
+    //         .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, float_places).to_string())
+    //         .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, float_places).to_string())
+    //         .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, float_places).to_string())
+    //         .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
+    // }
+
+    fn style(&self) -> String {
+        todo!()
+    }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
     }
 }
 impl Display for MemoryInfo {

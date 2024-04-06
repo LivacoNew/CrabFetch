@@ -1,7 +1,9 @@
-use std::{cmp::max, env, process::exit};
+use core::panic;
+use std::{cmp::max, env, process::exit, str::FromStr};
 
+use config_manager::CrabFetchColor;
 use lazy_static::lazy_static;
-use clap::{ArgAction, Parser};
+use clap::{builder::styling::Color, ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 use hostname::HostnameInfo;
 
@@ -63,15 +65,41 @@ lazy_static! {
 
 trait Module {
     fn new() -> Self;
-    fn format(&self, format: &str, float_decmials: u32) -> String;
+    fn style(&self) -> String;
+    fn replace_placeholders(&self) -> String;
+
     // This helps the format function lol
     fn round(number: f32, places: u32) -> f32 {
         let power: f32 = 10_u32.pow(places) as f32;
         (number * power).round() / power
     }
+    fn replace_color_placeholders(str: &String) -> String {
+        let mut new_string = String::new();
+        let split: Vec<&str> = str.split("{color-").collect();
+        for s in split {
+            // println!("Parsing: {}", s);
+            let len: usize = match s.find("}") {
+                Some(r) => r,
+                None => {
+                    continue;
+                },
+            };
+            let color_str: String = s[..len].to_string();
+            let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
+                Ok(r) => r,
+                Err(_) => {
+                    log_error("Formatting", format!("Unable to parse color {}", color_str));
+                    continue;
+                },
+            };
+            new_string.push_str(&color_string(&s[len + 1..], &color).to_string());
+        }
+
+        new_string
+    }
 }
 
-fn style_entry(title: &str, format: &str, module: &impl Module) -> String {
+fn style_entry(title: &str, format: &str, module: &impl Module) -> String { // TODO: Remove me!
     let mut str: String = String::new();
     let mut title: ColoredString = config_manager::color_string(title, &CONFIG.title_color);
     if title.trim() != "" {
@@ -84,7 +112,7 @@ fn style_entry(title: &str, format: &str, module: &impl Module) -> String {
         str.push_str(&title.to_string());
         str.push_str(&CONFIG.seperator);
     }
-    str.push_str(&module.format(format, 0)); // TODO: Decimal
+    str.push_str(&module.replace_placeholders()); // TODO: Decimal
     str
 }
 
@@ -182,29 +210,8 @@ fn main() {
                     print!("");
                 },
                 "hostname" => {
-                    // Pretty much reimplements style_entry
-                    // Sorry DRY enthusiasts
-                    let mut str: String = String::new();
-                    let mut title: ColoredString = config_manager::color_string(&CONFIG.hostname.title, &CONFIG.title_color);
-                    if title.trim() != "" {
-                        if CONFIG.title_bold {
-                            title = title.bold();
-                        }
-                        if CONFIG.title_italic {
-                            title = title.italic();
-                        }
-                        str.push_str(&title.to_string());
-                        str.push_str(&CONFIG.seperator);
-                    }
-
                     let hostname: HostnameInfo = hostname::get_hostname();
-                    if false { // TODO: Full hostname color
-                        str.push_str(&hostname.format_colored(&CONFIG.hostname.format, 0, &CONFIG.title_color)); // TODO: Decimal
-                    } else {
-                        str.push_str(&hostname.format(&CONFIG.hostname.format, 0)); // TODO: Decimal
-                    }
-
-                    print!("{}", str);
+                    print!("{}", hostname.style());
                 },
                 "underline" => {
                     for _ in 0..CONFIG.underline_length {
@@ -258,7 +265,7 @@ fn main() {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        let title: String = mount.format(&CONFIG.mount_title, 0);
+                        let title: String = mount.replace_placeholders();
                         print!("{}", style_entry(&title, &CONFIG.mount_format, mount));
                         mount_index += 1;
                         // sketchy - this is what makes it go through them all
@@ -271,7 +278,7 @@ fn main() {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
                         let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        let title: String = display.format(&CONFIG.display_title, 0);
+                        let title: String = display.replace_placeholders();
                         print!("{}", style_entry(&title, &CONFIG.display_format, display));
                         display_index += 1;
                         // once again, sketchy

@@ -12,17 +12,25 @@ impl Module for PackagesInfo {
             packages: Vec::new()
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        let mut str: String = String::new();
-        for manager in &self.packages {
-            if str.len() > 0 {
-                str.push_str(", ");
-            }
-            str.push_str(&format.replace("{manager}", &manager.manager_name)
-                         .replace("{count}", &manager.package_count.to_string()));
-        }
-        str
+
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     let mut str: String = String::new();
+    //     for manager in &self.packages {
+    //         if str.len() > 0 {
+    //             str.push_str(", ");
+    //         }
+    //         str.push_str(&format.replace("{manager}", &manager.manager_name)
+    //                      .replace("{count}", &manager.package_count.to_string()));
+    //     }
+    //     str
+    // }
 }
 impl Display for PackagesInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

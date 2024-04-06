@@ -16,11 +16,19 @@ impl Module for GPUInfo {
             vram_mb: 0
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{vendor}", &self.vendor)
-            .replace("{model}", &self.model)
-            .replace("{vram_mb}", &self.vram_mb.to_string())
-            .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{vendor}", &self.vendor)
+    //         .replace("{model}", &self.model)
+    //         .replace("{vram_mb}", &self.vram_mb.to_string())
+    //         .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
+    // }
+
+    fn style(&self) -> String {
+        todo!()
+    }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
     }
 }
 impl Display for GPUInfo {

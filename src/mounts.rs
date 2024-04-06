@@ -37,16 +37,24 @@ impl Module for MountInfo {
             percent: 0
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{device}", &self.device)
-            .replace("{mount}", &self.mount)
-            .replace("{space_used_mb}", &self.space_used_mb.to_string())
-            .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
-            .replace("{space_total_mb}", &self.space_total_mb.to_string())
-            .replace("{space_used_gb}", &(self.space_used_mb / 1024).to_string())
-            .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
-            .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
-            .replace("{percent}", &self.percent.to_string())
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{device}", &self.device)
+    //         .replace("{mount}", &self.mount)
+    //         .replace("{space_used_mb}", &self.space_used_mb.to_string())
+    //         .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
+    //         .replace("{space_total_mb}", &self.space_total_mb.to_string())
+    //         .replace("{space_used_gb}", &(self.space_used_mb / 1024).to_string())
+    //         .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
+    //         .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
+    //         .replace("{percent}", &self.percent.to_string())
+    // }
+
+    fn style(&self) -> String {
+        todo!()
+    }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
     }
 }
 impl Display for MountInfo {

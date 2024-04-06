@@ -21,12 +21,20 @@ impl Module for DisplayInfo {
             refresh_rate: 0
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{name}", &self.name)
-            .replace("{width}", &self.width.to_string())
-            .replace("{height}", &self.height.to_string())
-            .replace("{refresh_rate}", &self.refresh_rate.to_string())
+
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{name}", &self.name)
+    //         .replace("{width}", &self.width.to_string())
+    //         .replace("{height}", &self.height.to_string())
+    //         .replace("{refresh_rate}", &self.refresh_rate.to_string())
+    // }
 }
 impl Display for DisplayInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

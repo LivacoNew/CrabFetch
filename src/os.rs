@@ -16,10 +16,18 @@ impl Module for OSInfo {
             kernel: "".to_string(),
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{distro}", &self.distro)
-            .replace("{kernel}", &self.kernel)
+
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{distro}", &self.distro)
+    //         .replace("{kernel}", &self.kernel)
+    // }
 }
 impl Display for OSInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

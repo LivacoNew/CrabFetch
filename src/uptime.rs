@@ -11,16 +11,24 @@ impl Module for UptimeInfo {
             uptime: Duration::new(0, 0),
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        // https://www.reddit.com/r/rust/comments/gju305/comment/fqo9zbb/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-        let seconds = self.uptime.as_secs() % 60;
-        let minutes = (self.uptime.as_secs() / 60) % 60;
-        let hours = (self.uptime.as_secs() / 60) / 60;
 
-        format.replace("{seconds}", &seconds.to_string())
-            .replace("{minutes}", &minutes.to_string())
-            .replace("{hours}", &hours.to_string())
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     // https://www.reddit.com/r/rust/comments/gju305/comment/fqo9zbb/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    //     let seconds = self.uptime.as_secs() % 60;
+    //     let minutes = (self.uptime.as_secs() / 60) % 60;
+    //     let hours = (self.uptime.as_secs() / 60) / 60;
+    //
+    //     format.replace("{seconds}", &seconds.to_string())
+    //         .replace("{minutes}", &minutes.to_string())
+    //         .replace("{hours}", &hours.to_string())
+    // }
 }
 impl Display for UptimeInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

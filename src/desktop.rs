@@ -14,10 +14,18 @@ impl Module for DesktopInfo {
             display_type: "".to_string()
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{desktop}", &self.desktop)
-            .replace("{display_type}", &self.display_type)
+
+    fn style(&self) -> String {
+        todo!()
     }
+
+    fn replace_placeholders(&self) -> String {
+        todo!()
+    }
+    // fn format(&self, format: &str, _: u32) -> String {
+    //     format.replace("{desktop}", &self.desktop)
+    //         .replace("{display_type}", &self.display_type)
+    // }
 }
 impl Display for DesktopInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

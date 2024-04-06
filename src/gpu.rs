@@ -1,7 +1,7 @@
 use core::str;
-use std::{fmt::Display, fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, os::unix::raw::dev_t, path::Path, process::Command};
+use std::{fmt::Display, fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
 
-use crate::{log_error, Module};
+use crate::{config_manager::GPUMethod, log_error, Module, ARGS, CONFIG};
 
 pub struct GPUInfo {
     vendor: String,
@@ -29,12 +29,12 @@ impl Display for GPUInfo {
     }
 }
 
-pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
+pub fn get_gpu() -> GPUInfo {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
     let mut gpu: GPUInfo = GPUInfo::new();
-    if !ignore_cache {
+    if !ARGS.ignore_cache && CONFIG.gpu_cache {
         let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
         if cache_path.exists() {
             let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
@@ -64,9 +64,11 @@ pub fn get_gpu(ignore_cache: bool) -> GPUInfo {
         }
     }
 
-    // Grabs the info from glxinfo
-    // fill_from_glxinfo(&mut gpu);
-    fill_from_pcisysfile(&mut gpu);
+    // Get the GPU info via the selected method
+    match CONFIG.gpu_method {
+        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
+        GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
+    }
 
     // Cache
     let mut file: File = match File::create("/tmp/crabfetch-gpu") {

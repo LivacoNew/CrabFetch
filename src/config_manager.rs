@@ -47,6 +47,12 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
     }
 }
 
+#[derive(Deserialize)]
+pub enum GPUMethod {
+    GLXInfo,
+    PCISysFile
+}
+
 
 #[derive(Deserialize)]
 pub struct Configuration {
@@ -72,6 +78,8 @@ pub struct Configuration {
     pub cpu_title: String,
     pub cpu_format: String,
 
+    pub gpu_method: GPUMethod,
+    pub gpu_cache: bool,
     pub gpu_title: String,
     pub gpu_format: String,
 
@@ -208,6 +216,8 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("cpu_format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
 
     // GPU
+    builder = builder.set_default("gpu_method", "pcisysfile").unwrap();
+    builder = builder.set_default("gpu_cache", false).unwrap();
     builder = builder.set_default("gpu_title", "GPU").unwrap();
     builder = builder.set_default("gpu_format", "{vendor} {model} ({vram_gb} GB)").unwrap();
 

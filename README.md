@@ -25,8 +25,8 @@ All benchmarks were done via the zsh implemented `time` keyword, with as similar
 ### Dependencies
 These are only required if you are using their associated modules.
 - The `df` command, used for getting mounted disks.
-- The `glxinfo` command. Only required for the "glx" GPU method.
-- `pciutils` package, specifically only for the `pci.ids` file. Only required for the "pci-sysfile" GPU method.
+- The `glxinfo` command. Only required for the "glxinfo" GPU method.
+- `pciutils` package, specifically only for the `pci.ids` file. Only required for the "pcisysfile" GPU method.
 
 ### From Source
 ```sh

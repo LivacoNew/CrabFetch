@@ -222,7 +222,7 @@ fn main() {
                     print!("{}", style_entry(&CONFIG.swap_title, &CONFIG.swap_format, &swap));
                 }
                 "gpu" => {
-                    let gpu: GPUInfo = gpu::get_gpu(ARGS.ignore_cache);
+                    let gpu: GPUInfo = gpu::get_gpu();
                     print!("{}", style_entry(&CONFIG.gpu_title, &CONFIG.gpu_format, &gpu));
                 },
                 "os" => {

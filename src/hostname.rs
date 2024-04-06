@@ -59,12 +59,6 @@ impl Display for HostnameInfo {
         write!(f, "{}@{}", self.username, self.hostname)
     }
 }
-impl HostnameInfo {
-    pub fn format_colored(&self, format: &str, _: u32, color: &CrabFetchColor) -> String {
-        format.replace("{hostname}", &config_manager::color_string(&self.hostname, &color).to_string())
-            .replace("{username}", &config_manager::color_string(&self.username, &color).to_string())
-    }
-}
 
 pub fn get_hostname() -> HostnameInfo {
     let mut hostname: HostnameInfo = HostnameInfo::new();

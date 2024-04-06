@@ -69,7 +69,7 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Segment Modules
 - [ ] Kitty Image Support
 - [ ] Fix decimal places
-- [ ] Non-Cached GPU
+- [x] Non-Cached GPU
 - [ ] Multiple GPUs
 - [ ] Config Cleanup
 - [x] Mute errors parameter

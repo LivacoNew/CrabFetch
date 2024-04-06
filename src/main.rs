@@ -4,7 +4,6 @@ use config_manager::CrabFetchColor;
 use lazy_static::lazy_static;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
-use hostname::HostnameInfo;
 
 use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, displays::DisplayInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, shell::ShellInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
 
@@ -211,15 +210,23 @@ fn main() {
         }
 
         if modules.len() > line_number as usize {
-            let module: String = modules[line_number as usize].to_owned();
+            let module_split: Vec<&str> = modules[line_number as usize].split(":").collect();
+            let module: String = module_split[0].to_string();
             // print!("{}", module);
             match module.as_str() {
                 "space" => {
                     print!("");
                 },
+                "underline" => {
+                    let underline_length: u16 = module_split[1].parse().unwrap();
+                    for _ in 0..underline_length {
+                        print!("-");
+                    }
+                }
+
                 "hostname" => {
-                    let hostname: HostnameInfo = hostname::get_hostname();
-                    print!("{}", hostname.style());
+                    let str: String = hostname::get_hostname().style();
+                    print!("{}", str);
                 },
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();

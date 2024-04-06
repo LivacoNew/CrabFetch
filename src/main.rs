@@ -107,6 +107,7 @@ trait Module {
             let len: usize = match s.find("}") {
                 Some(r) => r,
                 None => {
+                    new_string.push_str(s);
                     continue;
                 },
             };

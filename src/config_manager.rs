@@ -1,12 +1,14 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
 
 use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
+use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
     Black,
@@ -26,6 +28,32 @@ pub enum CrabFetchColor {
     BrightCyan,
     BrightWhite
 }
+impl FromStr for CrabFetchColor {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "black" => Ok(CrabFetchColor::Black),
+            "red" => Ok(CrabFetchColor::Red),
+            "green" => Ok(CrabFetchColor::Green),
+            "yellow" => Ok(CrabFetchColor::Yellow),
+            "blue" => Ok(CrabFetchColor::Blue),
+            "magenta" => Ok(CrabFetchColor::Magenta),
+            "cyan" => Ok(CrabFetchColor::Cyan),
+            "white" => Ok(CrabFetchColor::White),
+            "brightblack" => Ok(CrabFetchColor::BrightBlack),
+            "brightred" => Ok(CrabFetchColor::BrightRed),
+            "brightgreen" => Ok(CrabFetchColor::BrightGreen),
+            "brightyellow" => Ok(CrabFetchColor::BrightYellow),
+            "brightblue" => Ok(CrabFetchColor::BrightBlue),
+            "brightmagenta" => Ok(CrabFetchColor::BrightMagenta),
+            "brightcyan" => Ok(CrabFetchColor::BrightCyan),
+            "brightwhite" => Ok(CrabFetchColor::BrightWhite),
+            _ => Err(())
+        }
+    }
+}
+
 pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
     match color {
         CrabFetchColor::Black => string.black(),
@@ -48,13 +76,6 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
 }
 
 #[derive(Deserialize)]
-pub enum GPUMethod {
-    GLXInfo,
-    PCISysFile
-}
-
-
-#[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
     pub seperator: String,
@@ -63,60 +84,22 @@ pub struct Configuration {
     pub title_italic: bool,
     pub suppress_errors: bool,
 
-    pub ascii_display: bool,
-    pub ascii_colors: Vec<CrabFetchColor>,
-    pub ascii_margin: u16,
+    pub ascii: AsciiConfiguration,
 
-
-    pub hostname_title: String,
-    pub hostname_format: String,
-    pub hostname_color: bool,
-
-    pub underline_length: u16,
-    pub underline_format: bool,
-
-    pub cpu_title: String,
-    pub cpu_format: String,
-
-    pub gpu_method: GPUMethod,
-    pub gpu_cache: bool,
-    pub gpu_title: String,
-    pub gpu_format: String,
-
-    pub memory_title: String,
-    pub memory_format: String,
-
-    pub swap_title: String,
-    pub swap_format: String,
-
-    pub mount_title: String,
-    pub mount_format: String,
-    pub mount_ignored: Vec<String>,
-
-    pub host_title: String,
-    pub host_format: String,
-
-    pub display_title: String,
-    pub display_format: String,
-
-
-    pub os_title: String,
-    pub os_format: String,
-
-    pub packages_title: String,
-    pub packages_format: String,
-
-    pub desktop_title: String,
-    pub desktop_format: String,
-
-    pub terminal_title: String,
-    pub terminal_format: String,
-
-    pub shell_title: String,
-    pub shell_format: String,
-
-    pub uptime_title: String,
-    pub uptime_format: String,
+    pub hostname: HostnameConfiguration,
+    pub cpu: CPUConfiguration,
+    pub gpu: GPUConfiguration,
+    pub memory: MemoryConfiguration,
+    pub swap: SwapConfiguration,
+    pub mounts: MountConfiguration,
+    pub host: HostConfiguration,
+    pub displays: DisplayConfiguration,
+    pub os: OSConfiguration,
+    pub packages: PackagesConfiguration,
+    pub desktop: DesktopConfiguration,
+    pub terminal: TerminalConfiguration,
+    pub shell: ShellConfiguration,
+    pub uptime: UptimeConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configuration {
@@ -201,11 +184,6 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("ascii_display", true).unwrap();
     builder = builder.set_default("ascii_colors", vec!["bright_magenta"]).unwrap();
     builder = builder.set_default("ascii_margin", 4).unwrap();
-
-    // Hostname
-    builder = builder.set_default("hostname_title", "").unwrap();
-    builder = builder.set_default("hostname_format", "{username}@{hostname}").unwrap();
-    builder = builder.set_default("hostname_color", true).unwrap();
 
     // Underline
     builder = builder.set_default("underline_length", 24).unwrap();
@@ -383,17 +361,10 @@ pub fn generate_config_file(location_override: Option<String>) {
 
 
 // The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = r#"
-# vim:foldmethod=marker
-# NOTE: This file is best used with Vim's folds.
-# Apolgies if your using something else.
-
-# General {{{
-# The modules to display and in what order.
-# All modules; hostname, underline, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
+const DEFAULT_CONFIG_CONTENTS: &str = r#"# The modules to display and in what order.
+# All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
-    "underline",
 
     "cpu",
     "gpu",
@@ -415,240 +386,194 @@ modules = [
     "bright_colors"
 ]
 
-
-# The seperator between a modules title and it's value
+# The default seperator between a modules title and it's value
 seperator = " > "
-
-# The color of a modules title
+# The default color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
 title_color = "bright_magenta"
-# Whether to bold/italic the title
-title_bold = true
-title_italic = true
+# Whether to bold/italic the title by default too
+title_bold = false
+title_italic = false
 
-# How many decimal places to use on float values. This is kinda inconsistent right now.
-decimal_places = 2
+# Whether to supress any errors that come or not
+suppress_errors = true
 
-# }}}
 
-# ASCII {{{
-
+[ascii]
 # If to display the ASCII distro art or not
-ascii_display = true
+display = true
 
 # The colors to render the ASCII in
 # This array can be as long as the actual ASCII. Each entry represents the color at a certain %
 # E.g ["red", "green"] would render the top half as red and the bottom half as green.
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
-ascii_colors = ["bright_magenta", "bright_magenta", "bright_blue", "bright_magenta", "bright_magenta"]
+colors = ["bright_magenta"]
 
 # The amount of space to put between the ASCII and the info
-ascii_margin = 4
+margin = 4
 
-# }}}
 
-# Hostname {{{
 
-# Title for the module
-hostname_title = ""
 
-# The format the hostname should be in. Placeholders;
-# {hostname}            -> The hostname of the system.
-# {username}            -> The username of the current user.
-hostname_format = "{username}@{hostname}"
+# Below here is the actual modules
+# Refer to the wiki for any module-specific parameters or hidden parameters
+# Also remember that you can override some stuff on these, e.g the title formatting.
 
-# Whether to color the hostname's placeholders the title color
-# Mainly for if you remove the title and want to use it like a header, Neofetch style
-hostname_color = true
+[hostname]
+title = ""
+# Placeholders;
+# {hostname} -> The hostname
+# {username} -> The username of the current user
+format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
 
-# }}}
-# Underline {{{
 
-# Length of the underline
-underline_length = 24
+[cpu]
+title = "CPU"
+# Placeholders;
+# {name} -> The name of the cpu.
+# {core_count} -> The number of cores.
+# {thread_count} -> The number of threads.
+# {current_clock_mhz} -> The current clock speed, in MHz.
+# {current_clock_ghz} -> The current clock speed, in GHz.
+# {max_clock_mhz} -> The maximum clock speed, in MHz.
+# {max_clock_ghz} -> The maximum clock speed, in GHz.
+format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
-# Whether to format the underline to the title formatting
-underline_format = true
 
-# }}}
-# CPU {{{
+[gpu]
+# The method for getting GPU info
+# Getting accurate GPU info can be really slow. Because of this CrabFetch gives you two options
+# - "pcisysfile" which searches the /sys/bus/pci/devices directory to find your GPU. This is fast but can be inaccurate due to decoding the vendor/product IDs
+# - "glxinfo" which uses the glxinfo command to get the primary GPU. This is more accurate but REALLY slow!
+# These methods may give be the exact same info, but if not you can swap to one or the other.
+method = "pcisysfile"
 
-# Title for the module
-cpu_title = "CPU"
+# On top of the above, this allows you to choose to cache the GPU info.
+# It's reccomended to use this with "glxinfo" to give you full speed while retaining accurate GPU info.
+cache = false
 
-# The format the module should be in. Placeholders;
-# {name}                -> The name of the cpu.
-# {core_count}          -> The number of cores.
-# {thread_count}        -> The number of threads.
-# {current_clock_mhz}   -> The current clock speed, in MHz.
-# {current_clock_ghz}   -> The current clock speed, in GHz.
-# {max_clock_mhz}       -> The maximum clock speed, in MHz.
-# {max_clock_ghz}       -> The maximum clock speed, in GHz.
-cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
+title = "GPU"
+# Placeholders;
+# {vendor} -> The vendor of the GPU, e.g AMD
+# {model} -> The model of the GPU, e.g Radeon RX 7800XT
+# {vram_mb} -> The total memory of the GPU in mb
+# {vram_gb} -> The total memory of the GPU in gb
+format = "{vendor} {model} ({vram_gb} GB)"
 
-# }}}
-# GPU {{{
 
-# Title for the module
-gpu_title = "GPU"
+[memory]
+title = "Memory"
+# Placeholders;
+# {phys_used_kib} -> The currently used memory in KiB.
+# {phys_used_mib} -> The currently used memory in MiB.
+# {phys_used_gib} -> The currently used memory in GiB.
+# {phys_max_kib} -> The maximum total memory in KiB.
+# {phys_max_mib} -> The maximum total memory in MiB.
+# {phys_max_gib} -> The maximum total memory in GiB.
+# {percent} -> Percentage of memory used
+format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
-# The format the module should be in. Placeholders;
-# {vendor}             -> The vendor of the GPU, e.g AMD
-# {model}              -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram_mb}            -> The total memory of the GPU in mb
-# {vram_gb}            -> The total memory of the GPU in gb
-gpu_format = "{vendor} {model} ({vram_gb} GB)"
 
-#}}}
-# Memory {{{
+[swap]
+title = "Swap"
+# Placeholders;
+# {used_kib} -> The currently used swap in KiB.
+# {used_mib} -> The currently used swap in MiB.
+# {used_gib} -> The currently used swap in GiB.
+# {max_kib} -> The maximum total swap  in KiB.
+# {max_mib} -> The maximum total swap in MiB.
+# {max_gib} -> The maximum total swap in GiB.
+# {percent} -> Percentage of swap used
+format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
-# Title for the module
-memory_title = "Memory"
 
-# The format the memory should be in. Placeholders;
-# {phys_used_kib}       -> The currently used memory in KiB.
-# {phys_used_mib}       -> The currently used memory in MiB.
-# {phys_used_gib}       -> The currently used memory in GiB.
-# {phys_max_kib}        -> The maximum total memory in KiB.
-# {phys_max_mib}        -> The maximum total memory in MiB.
-# {phys_max_gib}        -> The maximum total memory in GiB.
-# {percent}             -> Percentage of memory used
-memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
-
-#}}}
-# Swap {{{
-
-# Title for the module
-swap_title = "Swap"
-
-# The format the module should be in. Placeholders;
-# {used_kib}       -> The currently used swap in KiB.
-# {used_mib}       -> The currently used swap in MiB.
-# {used_gib}       -> The currently used swap in GiB.
-# {max_kib}        -> The maximum total swap  in KiB.
-# {max_mib}        -> The maximum total swap in MiB.
-# {max_gib}        -> The maximum total swap in GiB.
-# {percent}             -> Percentage of swap used
-swap_format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
-
-#}}}
-# Mounts {{{
-
-# Title for each mount. Placeholders;
+[mounts]
+# Each mount has it's own entry. Title Placeholders;
 # {device}              -> Device, e.g /dev/sda
 # {mount}               -> The mount point, e.g /home
-mount_title = "Disk {mount}"
+title = "Disk {mount}"
 
-# The format each mount should be in. Placeholders;
-# {device}              -> Device, e.g /dev/sda
-# {mount}               -> The mount point, e.g /home
-# {space_used_mb}       -> The space used in megabytes.
-# {space_avail_mb}      -> The space available in metabytes.
-# {space_total_mb}      -> The total space in metabytes.
-# {space_used_gb}       -> The space used in gigabytes.
-# {space_avail_gb}      -> The space available in gigabytes.
-# {space_total_gb}      -> The total space in gigabytes.
-# {percent}             -> The percentage of the disk used.
-mount_format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
+# Placeholders;
+# {device} -> Device, e.g /dev/sda
+# {mount} -> The mount point, e.g /home
+# {space_used_mb} -> The space used in megabytes.
+# {space_avail_mb} -> The space available in metabytes.
+# {space_total_mb} -> The total space in metabytes.
+# {space_used_gb} -> The space used in gigabytes.
+# {space_avail_gb} -> The space available in gigabytes.
+# {space_total_gb} -> The total space in gigabytes.
+# {percent} -> The percentage of the disk used.
+format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
 # Mounts that shouldn't be included
 # The mounts only need to start with these
-mount_ignored = ["/boot", "/snap"]
+ignore = ["/boot", "/snap"]
 
-# }}}
-# Host {{{
 
-# Title for the module
-host_title = "Host"
+[host]
+title = "Host"
 
-# The format the Host should be in. Placeholders;
-# {host}              -> The name of the host
-host_format = "{host}"
 
-# }}}
-# Displays {{{
-
-# Title for each display. Placeholders;
-# {name}                -> The monitor name, e.g eDP-2
-display_title = "Display {name}"
+[displays]
+# Same as mounts. Placeholders;
+# {name} -> The monitor name, e.g eDP-2
+title = "Display {name}"
 
 # The format each display should be in. Placeholders;
-# {name}                -> The monitor name, e.g eDP-2
-# {width}               -> The monitor's width
-# {height}              -> The monitor's height
-# {refresh_rate}        -> The monitor's refresh rate
-display_format = "{width}x{height} @ {refresh_rate}Hz"
+# {name} -> The monitor name, e.g eDP-2
+# {width} -> The monitor's width
+# {height} -> The monitor's height
+# {refresh_rate} -> The monitor's refresh rate
+format = "{width}x{height} @ {refresh_rate}Hz"
 
-# }}}
 
-# OS {{{
-
-# Title for the module
-os_title = "Operating System"
-
-# The format the OS should be in. Placeholders;
-# {distro}              -> The distro name
-# {kernel}              -> The kernel version
-os_format = "{distro} ({kernel})"
-
-# }}}
-# Packages {{{
-
-# Title for the module
-packages_title = "Packages"
-
-# The format the Packages should be in. This format is for each entry, with all entries being combined into a single string seperated by a comma.
+[os]
+title = "Operating System"
 # Placeholders;
-# {manager}              -> The name of the manager
-# {count}                -> The amount of packages that manager reports
-packages_format = "{count} ({manager})"
+# {distro} -> The distro name
+# {kernel} -> The kernel version
+format = "{distro} ({kernel})"
 
-# }}}
-# Desktop {{{
 
-# Title for the module
-desktop_title = "Desktop"
+[packages]
+title = "Packages"
+# This format is for each entry, with all entries being combined into a single string seperated by a comma. Placeholders;
+# {manager} -> The name of the manager
+# {count} -> The amount of packages that manager reports
+format = "{count} ({manager})"
 
-# The format the desktop should be in. Placeholders;
-# {desktop}             -> The name of the desktop
-# {display_type}        -> The type of display server, aka x11 or wayland.
-desktop_format = "{desktop} ({display_type})"
 
-# }}}
-# Terminal {{{
+[desktop]
+title = "Desktop"
+# Placeholders;
+# {desktop} -> The name of the desktop
+# {display_type} -> The type of display server, aka x11 or wayland.
+format = "{desktop} ({display_type})"
 
-# Title for the module
-terminal_title = "Terminal"
 
-# The format the Terminal should be in. Placeholders;
-# {terminal_name}              -> The terminal name
-terminal_format = "{terminal_name}"
+[terminal]
+title = "Terminal"
 
-# }}}
-# Shell {{{
 
-# Title for the module
-shell_title = "Shell"
+[shell]
+title = "Shell"
+# Placeholders;
+# {shell} -> The name of the shell, e.g zsh
+# {path} -> The path of the shell, e.g /bin/zsh
+format = "{shell} ({path})"
 
-# The format the shell should be in. Placeholders;
-# {shell}               -> The name of the shell, e.g zsh
-# {path}                -> The path of the shell, e.g /bin/zsh
-shell_format = "{shell}"
 
-# }}}
-# Uptime {{{
-
-# Title for the module
-uptime_title = "Uptime"
-
-# The format the uptime should be in. Placeholders;
-# {hours}               -> The hours
-# {minutes}             -> The minutes
-# {seconds}             -> The seconds
-#
+[uptime]
+title = "Uptime"
+# Placeholders;
+# {hours} -> The hours
+# {minutes} -> The minutes
+# {seconds} -> The seconds
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
-uptime_format = "{hours}h {minutes}m {seconds}s"
+format = "{hours}h {minutes}m {seconds}s"
 
-# }}}
-"#;
+
+
+
+# You've reached the end! Congrats, have a muffin :)"#;

@@ -1,7 +1,9 @@
 use core::str;
 use std::{fmt::Display, process::Command, io::ErrorKind::NotFound};
 
-use crate::{config_manager::Configuration, log_error, Module};
+use serde::Deserialize;
+
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -10,6 +12,16 @@ pub struct MountInfo {
     space_avail_mb: u64,
     space_total_mb: u64,
     percent: u8
+}
+#[derive(Deserialize)]
+pub struct MountConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: String,
+    pub ignore: Vec<String>
 }
 impl MountInfo {
     fn from(value: &str) -> Self {
@@ -37,8 +49,36 @@ impl Module for MountInfo {
             percent: 0
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{device}", &self.device)
+
+    fn style(&self) -> String {
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.mounts.title_color).is_some() {
+            title_color = &CONFIG.mounts.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.mounts.title_bold).is_some() {
+            title_bold = CONFIG.mounts.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.mounts.title_italic).is_some() {
+            title_italic = CONFIG.mounts.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.mounts.seperator.is_some() {
+            seperator = CONFIG.mounts.seperator.as_ref().unwrap();
+        }
+
+        let mut title: String = CONFIG.mounts.title.clone();
+        title = title.replace("{device}", &self.device)
+            .replace("{mount}", &self.mount);
+
+        self.default_style(&title, title_color, title_bold, title_italic, &seperator)
+    }
+
+    fn replace_placeholders(&self) -> String {
+        CONFIG.mounts.format.replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{space_used_mb}", &self.space_used_mb.to_string())
             .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
@@ -55,8 +95,8 @@ impl Display for MountInfo {
     }
 }
 impl MountInfo {
-    pub fn is_ignored(&self, config: &Configuration) -> bool {
-        for x in config.mount_ignored.to_vec() {
+    pub fn is_ignored(&self) -> bool {
+        for x in CONFIG.mounts.ignore.to_vec() {
             if self.mount.starts_with(&x) {
                 return true
             }

@@ -1,12 +1,24 @@
 use std::{fmt::Display, fs::File};
 use std::io::Read;
 
-use crate::{log_error, Module};
+use serde::Deserialize;
+
+use crate::config_manager::CrabFetchColor;
+use crate::{log_error, Module, CONFIG};
 
 pub struct MemoryInfo {
     used_kib: u32,
     max_kib: u32,
     percentage: f32
+}
+#[derive(Deserialize)]
+pub struct MemoryConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: String
 }
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
@@ -16,14 +28,38 @@ impl Module for MemoryInfo {
             percentage: 0.0
         }
     }
-    fn format(&self, format: &str, float_places: u32) -> String {
-        format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, float_places).to_string())
-            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, float_places).to_string())
-            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, float_places).to_string())
-            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, float_places).to_string())
-            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, float_places).to_string())
-            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, float_places).to_string())
-            .replace("{percent}", &MemoryInfo::round(self.percentage, float_places).to_string())
+
+    fn style(&self) -> String {
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.memory.title_color).is_some() {
+            title_color = &CONFIG.memory.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.memory.title_bold).is_some() {
+            title_bold = CONFIG.memory.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.memory.title_italic).is_some() {
+            title_italic = CONFIG.memory.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.memory.seperator.is_some() {
+            seperator = CONFIG.memory.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(&CONFIG.memory.title, title_color, title_bold, title_italic, &seperator)
+    }
+
+    fn replace_placeholders(&self) -> String {
+        CONFIG.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, 2).to_string())
+            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, 2).to_string())
+            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, 2).to_string())
+            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, 2).to_string())
+            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, 2).to_string())
+            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, 2).to_string())
+            .replace("{percent}", &MemoryInfo::round(self.percentage, 2).to_string())
     }
 }
 impl Display for MemoryInfo {

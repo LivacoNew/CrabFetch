@@ -1,11 +1,22 @@
 use core::str;
 use std::{fmt::Display, env, fs::File, io::Read};
 
-use crate::{config_manager::{self, CrabFetchColor}, log_error, Module};
+use serde::Deserialize;
+
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 pub struct HostnameInfo {
     username: String,
     hostname: String,
+}
+#[derive(Deserialize)]
+pub struct HostnameConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: String
 }
 impl Module for HostnameInfo {
     fn new() -> HostnameInfo {
@@ -14,20 +25,37 @@ impl Module for HostnameInfo {
             hostname: "".to_string(),
         }
     }
-    fn format(&self, format: &str, _: u32) -> String {
-        format.replace("{hostname}", &self.hostname)
-            .replace("{username}", &self.username)
+    fn style(&self) -> String {
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.hostname.title_color).is_some() {
+            title_color = &CONFIG.hostname.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.hostname.title_bold).is_some() {
+            title_bold = CONFIG.hostname.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.hostname.title_italic).is_some() {
+            title_italic = CONFIG.hostname.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.hostname.seperator.is_some() {
+            seperator = CONFIG.hostname.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(&CONFIG.hostname.title, title_color, title_bold, title_italic, &seperator)
+    }
+    fn replace_placeholders(&self) -> String {
+        CONFIG.hostname.format.replace("{username}", &self.username)
+            .replace("{hostname}", &self.hostname)
+            .to_string()
     }
 }
 impl Display for HostnameInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}@{}", self.username, self.hostname)
-    }
-}
-impl HostnameInfo {
-    pub fn format_colored(&self, format: &str, _: u32, color: &CrabFetchColor) -> String {
-        format.replace("{hostname}", &config_manager::color_string(&self.hostname, &color).to_string())
-            .replace("{username}", &config_manager::color_string(&self.username, &color).to_string())
     }
 }
 

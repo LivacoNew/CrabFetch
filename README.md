@@ -77,5 +77,5 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Fix decimal places
 - [x] Non-Cached GPU
 - [ ] Multiple GPUs
-- [ ] Config Cleanup
+- [x] Config Cleanup
 - [x] Mute errors parameter

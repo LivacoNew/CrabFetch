@@ -247,11 +247,11 @@ fn main() {
                     let gpu: GPUInfo = gpu::get_gpu();
                     print!("{}", gpu.style());
                 },
-
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();
-                    print!("{}", style_entry(&CONFIG.memory_title, &CONFIG.memory_format, &memory));
+                    print!("{}", memory.style());
                 }
+
                 "swap" => {
                     let swap: SwapInfo = swap::get_swap();
                     print!("{}", style_entry(&CONFIG.swap_title, &CONFIG.swap_format, &swap));

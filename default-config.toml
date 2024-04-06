@@ -102,23 +102,19 @@ title = "GPU"
 # {vram_gb} -> The total memory of the GPU in gb
 format = "{vendor} {model} ({vram_gb} GB)"
 
-#}}}
-# Memory {{{
 
-# Title for the module
-memory_title = "Memory"
+[memory]
+title = "Memory"
+# Placeholders;
+# {phys_used_kib} -> The currently used memory in KiB.
+# {phys_used_mib} -> The currently used memory in MiB.
+# {phys_used_gib} -> The currently used memory in GiB.
+# {phys_max_kib} -> The maximum total memory in KiB.
+# {phys_max_mib} -> The maximum total memory in MiB.
+# {phys_max_gib} -> The maximum total memory in GiB.
+# {percent} -> Percentage of memory used
+format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
-# The format the memory should be in. Placeholders;
-# {phys_used_kib}       -> The currently used memory in KiB.
-# {phys_used_mib}       -> The currently used memory in MiB.
-# {phys_used_gib}       -> The currently used memory in GiB.
-# {phys_max_kib}        -> The maximum total memory in KiB.
-# {phys_max_mib}        -> The maximum total memory in MiB.
-# {phys_max_gib}        -> The maximum total memory in GiB.
-# {percent}             -> Percentage of memory used
-memory_format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
-
-#}}}
 # Swap {{{
 
 # Title for the module

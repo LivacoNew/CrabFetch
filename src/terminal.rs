@@ -1,10 +1,21 @@
 use core::str;
 use std::{fmt::Display, fs::File, io::Read, os::unix::process};
 
-use crate::{log_error, Module};
+use serde::Deserialize;
+
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 pub struct TerminalInfo {
     terminal_name: String
+}
+#[derive(Deserialize)]
+pub struct TerminalConfiguration {
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: Option<String>
 }
 impl Module for TerminalInfo {
     fn new() -> TerminalInfo {
@@ -14,15 +25,36 @@ impl Module for TerminalInfo {
     }
 
     fn style(&self) -> String {
-        todo!()
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.terminal.title_color).is_some() {
+            title_color = &CONFIG.terminal.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.terminal.title_bold).is_some() {
+            title_bold = CONFIG.terminal.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.terminal.title_italic).is_some() {
+            title_italic = CONFIG.terminal.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.terminal.seperator.is_some() {
+            seperator = CONFIG.terminal.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(&CONFIG.terminal.title, title_color, title_bold, title_italic, &seperator)
     }
 
     fn replace_placeholders(&self) -> String {
-        todo!()
+        let mut format: String = "{terminal_name}".to_string();
+        if CONFIG.host.format.is_some() {
+            format = CONFIG.host.format.clone().unwrap();
+        }
+
+        format.replace("{terminal_name}", &self.terminal_name)
     }
-    // fn format(&self, format: &str, _: u32) -> String {
-    //     format.replace("{terminal_name}", &self.terminal_name)
-    // }
 }
 impl Display for TerminalInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

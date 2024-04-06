@@ -180,26 +180,21 @@ format = "{distro} ({kernel})"
 [packages]
 title = "Packages"
 # This format is for each entry, with all entries being combined into a single string seperated by a comma. Placeholders;
-# {manager}              -> The name of the manager
-# {count}                -> The amount of packages that manager reports
+# {manager} -> The name of the manager
+# {count} -> The amount of packages that manager reports
 format = "{count} ({manager})"
 
 
 [desktop]
 title = "Desktop"
 # Placeholders;
-# {desktop}             -> The name of the desktop
-# {display_type}        -> The type of display server, aka x11 or wayland.
+# {desktop} -> The name of the desktop
+# {display_type} -> The type of display server, aka x11 or wayland.
 format = "{desktop} ({display_type})"
 
-# Terminal {{{
 
-# Title for the module
-terminal_title = "Terminal"
-
-# The format the Terminal should be in. Placeholders;
-# {terminal_name}              -> The terminal name
-terminal_format = "{terminal_name}"
+[terminal]
+title = "Terminal"
 
 # }}}
 # Shell {{{

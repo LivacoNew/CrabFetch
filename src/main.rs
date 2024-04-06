@@ -283,11 +283,11 @@ fn main() {
                     let desktop: DesktopInfo = desktop::get_desktop();
                     print!("{}", desktop.style());
                 }
-
                 "terminal" => {
                     let terminal: TerminalInfo = terminal::get_terminal();
-                    print!("{}", style_entry(&CONFIG.terminal_title, &CONFIG.terminal_format, &terminal));
+                    print!("{}", terminal.style());
                 },
+
                 "uptime" => {
                     let uptime: UptimeInfo = uptime::get_uptime();
                     print!("{}", style_entry(&CONFIG.uptime_title, &CONFIG.uptime_format, &uptime));

@@ -184,7 +184,7 @@ fn main() {
     let mut display_index: u32 = 0;
     if modules.contains(&"displays".to_string()) {
         displays = Some(displays::get_displays());
-        line_count += displays.as_ref().unwrap().len(); // TODO: Investigate me!
+        line_count += displays.as_ref().unwrap().len() - 1; // TODO: Investigate me!
     }
 
     for x in 0..line_count {
@@ -317,7 +317,7 @@ fn main() {
         }
         line_number = line_number + 1;
 
-        if line_number != (line_count -1) as u8 {
+        if line_number != (line_count + 1) as u8 {
             print!("\n");
         }
     }

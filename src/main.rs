@@ -91,7 +91,7 @@ trait Module {
         }
 
         let mut value: String = self.replace_placeholders();
-        value = HostnameInfo::replace_color_placeholders(&value);
+        value = HostnameInfo::replace_color_placeholders(&value); // TODO
         str.push_str(&value.to_string());
 
         str
@@ -99,6 +99,9 @@ trait Module {
     fn replace_color_placeholders(str: &String) -> String {
         let mut new_string = String::new();
         let split: Vec<&str> = str.split("{color-").collect();
+        if split.len() <= 1 {
+            return str.clone();
+        }
         for s in split {
             // println!("Parsing: {}", s);
             let len: usize = match s.find("}") {
@@ -238,7 +241,7 @@ fn main() {
                 },
                 "cpu" => {
                     let cpu: CPUInfo = cpu::get_cpu();
-                    print!("{}", style_entry(&CONFIG.cpu_title, &CONFIG.cpu_format, &cpu));
+                    print!("{}", cpu.style());
                 },
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();

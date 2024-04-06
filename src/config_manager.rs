@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::hostname::HostnameConfiguration;
+use crate::{cpu::CPUConfiguration, hostname::HostnameConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -96,12 +96,7 @@ pub struct Configuration {
     pub ascii_margin: u16,
 
     pub hostname: HostnameConfiguration,
-
-    pub underline_length: u16,
-    pub underline_format: bool,
-
-    pub cpu_title: String,
-    pub cpu_format: String,
+    pub cpu: CPUConfiguration,
 
     pub gpu_method: GPUMethod,
     pub gpu_cache: bool,

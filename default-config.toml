@@ -63,24 +63,24 @@ ascii_margin = 4
 
 [hostname]
 title = ""
+# Placeholders;
+# {hostname} -> The hostname
+# {username} -> The username of the current user
 format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
 
-# CPU {{{
 
-# Title for the module
-cpu_title = "CPU"
+[cpu]
+title = "CPU"
+# Placeholders;
+# {name} -> The name of the cpu.
+# {core_count} -> The number of cores.
+# {thread_count} -> The number of threads.
+# {current_clock_mhz} -> The current clock speed, in MHz.
+# {current_clock_ghz} -> The current clock speed, in GHz.
+# {max_clock_mhz} -> The maximum clock speed, in MHz.
+# {max_clock_ghz} -> The maximum clock speed, in GHz.
+format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
-# The format the module should be in. Placeholders;
-# {name}                -> The name of the cpu.
-# {core_count}          -> The number of cores.
-# {thread_count}        -> The number of threads.
-# {current_clock_mhz}   -> The current clock speed, in MHz.
-# {current_clock_ghz}   -> The current clock speed, in GHz.
-# {max_clock_mhz}       -> The maximum clock speed, in MHz.
-# {max_clock_ghz}       -> The maximum clock speed, in GHz.
-cpu_format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
-
-# }}}
 # GPU {{{
 
 # The method for getting GPU info

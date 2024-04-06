@@ -243,6 +243,11 @@ fn main() {
                     let cpu: CPUInfo = cpu::get_cpu();
                     print!("{}", cpu.style());
                 },
+                "gpu" => {
+                    let gpu: GPUInfo = gpu::get_gpu();
+                    print!("{}", gpu.style());
+                },
+
                 "memory" => {
                     let memory: MemoryInfo = memory::get_memory();
                     print!("{}", style_entry(&CONFIG.memory_title, &CONFIG.memory_format, &memory));
@@ -251,10 +256,6 @@ fn main() {
                     let swap: SwapInfo = swap::get_swap();
                     print!("{}", style_entry(&CONFIG.swap_title, &CONFIG.swap_format, &swap));
                 }
-                "gpu" => {
-                    let gpu: GPUInfo = gpu::get_gpu();
-                    print!("{}", style_entry(&CONFIG.gpu_title, &CONFIG.gpu_format, &gpu));
-                },
                 "os" => {
                     print!("{}", style_entry(&CONFIG.os_title, &CONFIG.os_format, &os));
                 }

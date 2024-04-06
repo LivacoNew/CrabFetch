@@ -81,29 +81,26 @@ title = "CPU"
 # {max_clock_ghz} -> The maximum clock speed, in GHz.
 format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
-# GPU {{{
 
+[gpu]
 # The method for getting GPU info
 # Getting accurate GPU info can be really slow. Because of this CrabFetch gives you two options
 # - "pcisysfile" which searches the /sys/bus/pci/devices directory to find your GPU. This is fast but can be inaccurate due to decoding the vendor/product IDs
 # - "glxinfo" which uses the glxinfo command to get the primary GPU. This is more accurate but REALLY slow!
 # These methods may give be the exact same info, but if not you can swap to one or the other.
-gpu_method = "pcisysfile"
+method = "pcisysfile"
 
 # On top of the above, this allows you to choose to cache the GPU info.
 # It's reccomended to use this with "glxinfo" to give you full speed while retaining accurate GPU info.
-gpu_cache = false
+cache = false
 
-
-# Title for the module
-gpu_title = "GPU"
-
-# The format the module should be in. Placeholders;
-# {vendor}             -> The vendor of the GPU, e.g AMD
-# {model}              -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram_mb}            -> The total memory of the GPU in mb
-# {vram_gb}            -> The total memory of the GPU in gb
-gpu_format = "{vendor} {model} ({vram_gb} GB)"
+title = "GPU"
+# Placeholders;
+# {vendor} -> The vendor of the GPU, e.g AMD
+# {model} -> The model of the GPU, e.g Radeon RX 7800XT
+# {vram_mb} -> The total memory of the GPU in mb
+# {vram_gb} -> The total memory of the GPU in gb
+format = "{vendor} {model} ({vram_gb} GB)"
 
 #}}}
 # Memory {{{

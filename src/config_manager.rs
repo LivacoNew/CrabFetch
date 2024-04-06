@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{cpu::CPUConfiguration, hostname::HostnameConfiguration};
+use crate::{cpu::CPUConfiguration, gpu::GPUConfiguration, hostname::HostnameConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -76,13 +76,6 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
 }
 
 #[derive(Deserialize)]
-pub enum GPUMethod {
-    GLXInfo,
-    PCISysFile
-}
-
-
-#[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
     pub seperator: String,
@@ -97,11 +90,7 @@ pub struct Configuration {
 
     pub hostname: HostnameConfiguration,
     pub cpu: CPUConfiguration,
-
-    pub gpu_method: GPUMethod,
-    pub gpu_cache: bool,
-    pub gpu_title: String,
-    pub gpu_format: String,
+    pub gpu: GPUConfiguration,
 
     pub memory_title: String,
     pub memory_format: String,

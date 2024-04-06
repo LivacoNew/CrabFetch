@@ -1,10 +1,9 @@
 use core::str;
 use std::{fmt::Display, env, fs::File, io::Read};
 
-use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::{self, CrabFetchColor}, log_error, Module, CONFIG};
+use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 
 pub struct HostnameInfo {
     username: String,

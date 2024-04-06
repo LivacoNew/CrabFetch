@@ -1,13 +1,33 @@
 use core::str;
 use std::{fmt::Display, fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
 
-use crate::{config_manager::GPUMethod, log_error, Module, ARGS, CONFIG};
+use serde::Deserialize;
+
+use crate::{config_manager::CrabFetchColor, log_error, Module, ARGS, CONFIG};
 
 pub struct GPUInfo {
     vendor: String,
     model: String,
     vram_mb: u32,
 }
+#[derive(Deserialize)]
+pub enum GPUMethod {
+    GLXInfo,
+    PCISysFile
+}
+#[derive(Deserialize)]
+pub struct GPUConfiguration {
+    pub method: GPUMethod,
+    pub cache: bool,
+
+    pub title: String,
+    pub title_color: Option<CrabFetchColor>,
+    pub title_bold: Option<bool>,
+    pub title_italic: Option<bool>,
+    pub seperator: Option<String>,
+    pub format: String
+}
+
 impl Module for GPUInfo {
     fn new() -> GPUInfo {
         GPUInfo {
@@ -16,19 +36,35 @@ impl Module for GPUInfo {
             vram_mb: 0
         }
     }
-    // fn format(&self, format: &str, _: u32) -> String {
-    //     format.replace("{vendor}", &self.vendor)
-    //         .replace("{model}", &self.model)
-    //         .replace("{vram_mb}", &self.vram_mb.to_string())
-    //         .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
-    // }
 
     fn style(&self) -> String {
-        todo!()
+        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
+        if (&CONFIG.gpu.title_color).is_some() {
+            title_color = &CONFIG.gpu.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = CONFIG.title_bold;
+        if (CONFIG.gpu.title_bold).is_some() {
+            title_bold = CONFIG.gpu.title_bold.unwrap();
+        }
+        let mut title_italic: bool = CONFIG.title_italic;
+        if (CONFIG.gpu.title_italic).is_some() {
+            title_italic = CONFIG.gpu.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = CONFIG.seperator.as_str();
+        if CONFIG.gpu.seperator.is_some() {
+            seperator = CONFIG.gpu.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(&CONFIG.gpu.title, title_color, title_bold, title_italic, &seperator)
     }
 
     fn replace_placeholders(&self) -> String {
-        todo!()
+        CONFIG.gpu.format.replace("{vendor}", &self.vendor)
+            .replace("{model}", &self.model)
+            .replace("{vram_mb}", &self.vram_mb.to_string())
+            .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
     }
 }
 impl Display for GPUInfo {
@@ -42,7 +78,7 @@ pub fn get_gpu() -> GPUInfo {
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
     let mut gpu: GPUInfo = GPUInfo::new();
-    if !ARGS.ignore_cache && CONFIG.gpu_cache {
+    if !ARGS.ignore_cache && CONFIG.gpu.cache {
         let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
         if cache_path.exists() {
             let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
@@ -80,7 +116,7 @@ pub fn get_gpu() -> GPUInfo {
             _ => {}
         }
     } else {
-        match CONFIG.gpu_method {
+        match CONFIG.gpu.method {
             GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
             GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
         }

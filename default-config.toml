@@ -176,17 +176,13 @@ title = "Operating System"
 # {kernel} -> The kernel version
 format = "{distro} ({kernel})"
 
-# }}}
-# Packages {{{
 
-# Title for the module
-packages_title = "Packages"
-
-# The format the Packages should be in. This format is for each entry, with all entries being combined into a single string seperated by a comma.
-# Placeholders;
+[packages]
+title = "Packages"
+# This format is for each entry, with all entries being combined into a single string seperated by a comma. Placeholders;
 # {manager}              -> The name of the manager
 # {count}                -> The amount of packages that manager reports
-packages_format = "{count} ({manager})"
+format = "{count} ({manager})"
 
 # }}}
 # Desktop {{{

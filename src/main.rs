@@ -255,10 +255,14 @@ fn main() {
                     let swap: SwapInfo = swap::get_swap();
                     print!("{}", swap.style());
                 }
-
                 "os" => {
                     print!("{}", os.style());
                 }
+                "packages" => {
+                    let packages: PackagesInfo = packages::get_packages();
+                    print!("{}", packages.style());
+                }
+
                 "terminal" => {
                     let terminal: TerminalInfo = terminal::get_terminal();
                     print!("{}", style_entry(&CONFIG.terminal_title, &CONFIG.terminal_format, &terminal));
@@ -278,10 +282,6 @@ fn main() {
                 "shell" => {
                     let shell: ShellInfo = shell::get_shell();
                     print!("{}", style_entry(&CONFIG.shell_title, &CONFIG.shell_format, &shell));
-                }
-                "packages" => {
-                    let packages: PackagesInfo = packages::get_packages();
-                    print!("{}", style_entry(&CONFIG.packages_title, &CONFIG.packages_format, &packages));
                 }
                 "mounts" => {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();

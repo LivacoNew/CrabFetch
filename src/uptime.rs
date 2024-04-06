@@ -1,4 +1,4 @@
-use std::{fmt::Display, fs::File, io::Read, time::Duration};
+use std::{fs::File, io::Read, time::Duration};
 
 use serde::Deserialize;
 
@@ -55,11 +55,6 @@ impl Module for UptimeInfo {
         CONFIG.uptime.format.replace("{seconds}", &seconds.to_string())
             .replace("{minutes}", &minutes.to_string())
             .replace("{hours}", &hours.to_string())
-    }
-}
-impl Display for UptimeInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} seconds", self.uptime.as_secs())
     }
 }
 

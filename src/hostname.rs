@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, env, fs::File, io::Read};
+use std::{env, fs::File, io::Read};
 
 use serde::Deserialize;
 
@@ -51,11 +51,6 @@ impl Module for HostnameInfo {
         CONFIG.hostname.format.replace("{username}", &self.username)
             .replace("{hostname}", &self.hostname)
             .to_string()
-    }
-}
-impl Display for HostnameInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}@{}", self.username, self.hostname)
     }
 }
 

@@ -1,4 +1,4 @@
-use std::{fmt::Display, env};
+use std::env;
 
 use serde::Deserialize;
 
@@ -49,11 +49,6 @@ impl Module for ShellInfo {
     fn replace_placeholders(&self) -> String {
         CONFIG.shell.format.replace("{shell}", &self.shell_name.split("/").collect::<Vec<&str>>().last().unwrap())
             .replace("{path}", &self.shell_name)
-    }
-}
-impl Display for ShellInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.shell_name)
     }
 }
 

@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, fmt::Display, process::Command, io::ErrorKind::NotFound};
+use std::{env, process::Command, io::ErrorKind::NotFound};
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -63,11 +63,6 @@ impl Module for DisplayInfo {
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
             .replace("{refresh_rate}", &self.refresh_rate.to_string())
-    }
-}
-impl Display for DisplayInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}x{} @ {}hz", self.name, self.width, self.height, self.refresh_rate)
     }
 }
 

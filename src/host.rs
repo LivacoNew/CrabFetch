@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
@@ -54,11 +54,6 @@ impl Module for HostInfo {
         }
 
         format.replace("{host}", &self.host)
-    }
-}
-impl Display for HostInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.host)
     }
 }
 

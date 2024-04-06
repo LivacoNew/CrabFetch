@@ -1,4 +1,4 @@
-use std::{fmt::Display, fs::File};
+use std::fs::File;
 use std::io::Read;
 
 use serde::Deserialize;
@@ -60,11 +60,6 @@ impl Module for MemoryInfo {
             .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, 2).to_string())
             .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, 2).to_string())
             .replace("{percent}", &MemoryInfo::round(self.percentage, 2).to_string())
-    }
-}
-impl Display for MemoryInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", (self.used_kib as f32 / 102400.0), (self.max_kib as f32 / 102400.0))
     }
 }
 

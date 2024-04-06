@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, io::Read, os::unix::process};
+use std::{fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
@@ -54,11 +54,6 @@ impl Module for TerminalInfo {
         }
 
         format.replace("{terminal_name}", &self.terminal_name)
-    }
-}
-impl Display for TerminalInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.terminal_name)
     }
 }
 

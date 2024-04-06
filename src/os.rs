@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
@@ -54,11 +54,6 @@ impl Module for OSInfo {
     fn replace_placeholders(&self) -> String {
         CONFIG.os.format.replace("{distro}", &self.distro)
             .replace("{kernel}", &self.kernel)
-    }
-}
-impl Display for OSInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} on {}", self.distro, self.kernel)
     }
 }
 

@@ -1,4 +1,4 @@
-use std::{fmt::Display, env};
+use std::env;
 
 use serde::Deserialize;
 
@@ -51,11 +51,6 @@ impl Module for DesktopInfo {
     fn replace_placeholders(&self) -> String {
         CONFIG.desktop.format.replace("{desktop}", &self.desktop)
             .replace("{display_type}", &self.display_type)
-    }
-}
-impl Display for DesktopInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({})", self.desktop, self.display_type)
     }
 }
 

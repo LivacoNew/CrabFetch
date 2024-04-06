@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::{read_dir, File, ReadDir}, io::Read, path::Path};
+use std::{fs::{read_dir, File, ReadDir}, io::Read, path::Path};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -80,12 +80,6 @@ impl Module for PackagesInfo {
 
     fn replace_placeholders(&self) -> String {
         unimplemented!()
-    }
-}
-impl Display for PackagesInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO
-        write!(f, "")
     }
 }
 

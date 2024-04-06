@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, process::Command, io::ErrorKind::NotFound};
+use std::{process::Command, io::ErrorKind::NotFound};
 
 use serde::Deserialize;
 
@@ -87,11 +87,6 @@ impl Module for MountInfo {
             .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
             .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
             .replace("{percent}", &self.percent.to_string())
-    }
-}
-impl Display for MountInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}) w/ {} / {}", self.device, self.mount, self.space_used_mb, self.space_total_mb)
     }
 }
 impl MountInfo {

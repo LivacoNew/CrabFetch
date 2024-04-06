@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, io::Read, path::Path};
+use std::{fs::File, io::Read, path::Path};
 
 use serde::Deserialize;
 
@@ -64,11 +64,6 @@ impl Module for CPUInfo {
             .replace("{current_clock_ghz}", &(self.current_clock_mhz / 1000.0).to_string())
             .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, 2).to_string())
             .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, 2).to_string())
-    }
-}
-impl Display for CPUInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} ({}c {}t) @ {}GHz", self.name, self.cores, self.threads, self.max_clock_mhz / 1000.0)
     }
 }
 

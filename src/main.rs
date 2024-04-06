@@ -24,7 +24,6 @@ mod terminal;
 mod host;
 mod packages;
 mod displays;
-mod segment;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]

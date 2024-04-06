@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
@@ -57,11 +57,6 @@ impl Module for SwapInfo {
             .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
             .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
             .replace("{percent}", &SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2).to_string())
-    }
-}
-impl Display for SwapInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", self.used_kib, self.total_kib)
     }
 }
 

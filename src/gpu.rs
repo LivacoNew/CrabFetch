@@ -1,5 +1,5 @@
 use core::str;
-use std::{fmt::Display, fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
+use std::{fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
 
 use serde::Deserialize;
 
@@ -65,11 +65,6 @@ impl Module for GPUInfo {
             .replace("{model}", &self.model)
             .replace("{vram_mb}", &self.vram_mb.to_string())
             .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
-    }
-}
-impl Display for GPUInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {} w/ {} mb", self.vendor, self.model, self.vram_mb)
     }
 }
 

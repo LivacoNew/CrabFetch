@@ -10,10 +10,18 @@ pub struct GPUInfo {
     model: String,
     vram_mb: u32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum GPUMethod {
     GLXInfo,
     PCISysFile
+}
+impl ToString for GPUMethod {
+    fn to_string(&self) -> String {
+        match &self {
+            GPUMethod::GLXInfo => "glxinfo".to_string(),
+            GPUMethod::PCISysFile => "pcisysfile".to_string()
+        }
+    }
 }
 #[derive(Deserialize)]
 pub struct GPUConfiguration {
@@ -73,63 +81,74 @@ pub fn get_gpu() -> GPUInfo {
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
     let mut gpu: GPUInfo = GPUInfo::new();
+
+    // Get the GPU info via the selected method
+    let mut method: GPUMethod = CONFIG.gpu.method.clone();
+    if ARGS.gpu_method.is_some() {
+        method = match ARGS.gpu_method.clone().unwrap().as_str() {
+            "pcisysfile" => GPUMethod::PCISysFile,
+            "glxinfo" => GPUMethod::GLXInfo,
+            _ => GPUMethod::PCISysFile
+        }
+    }
+
     if !ARGS.ignore_cache && CONFIG.gpu.cache {
         let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
         if cache_path.exists() {
             let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
-            match cache_file {
-                Ok(mut r) => {
-                    let mut contents: String = String::new();
-                    match r.read_to_string(&mut contents) {
-                        Ok(_) => {
-                            let split: Vec<&str> = contents.split("\n").collect();
-                            gpu.vendor = split[0].to_string();
-                            gpu.model = split[1].to_string();
-                            gpu.vram_mb = split[2].parse::<u32>().unwrap();
-                            return gpu;
-                        },
-                        Err(e) => {
-                            log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e));
-                        },
-                    }
-                },
+            let file: Option<File> = match cache_file {
+                Ok(r) => Some(r),
                 Err(_) => {
                     // Assume the file is somehow corrupt
-                    // Spooky but this time the spook won't delete your home directory (in theory) :)
-                    drop(cache_file);
-                    fs::remove_file("/tmp/crabfetch-gpu").expect("Unable to delete potentially corrupt GPU cache file.");
+                    None
                 }
             };
+
+            if file.is_some() {
+                let mut contents: String = String::new();
+                match file.as_ref().unwrap().read_to_string(&mut contents) {
+                    Ok(_) => {
+                        let split: Vec<&str> = contents.split("\n").collect();
+                        if split[0] == method.to_string() {
+                            gpu.vendor = split[1].to_string();
+                            gpu.model = split[2].to_string();
+                            gpu.vram_mb = split[3].parse::<u32>().unwrap();
+                            return gpu;
+                        }
+                    },
+                    Err(e) => {
+                        log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e));
+                    },
+                }
+            }
+            // We've not returned yet so we can only assume it's fucked
+            // Spooky but this time the spook won't delete your home directory (in theory) :)
+            drop(file);
+            fs::remove_file("/tmp/crabfetch-gpu").expect("Unable to delete potentially corrupt GPU cache file.");
         }
     }
 
-    // Get the GPU info via the selected method
-    if ARGS.gpu_method.is_some() {
-        match ARGS.gpu_method.clone().unwrap().as_str() {
-            "pcisysfile" => fill_from_pcisysfile(&mut gpu),
-            "glxinfo" => fill_from_glxinfo(&mut gpu),
-            _ => {}
-        }
-    } else {
-        match CONFIG.gpu.method {
-            GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
-            GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
-        }
+
+    match method {
+        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
+        GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
     }
 
     // Cache
-    let mut file: File = match File::create("/tmp/crabfetch-gpu") {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("GPU", format!("Unable to cache GPU info: {}", e));
-            return gpu;
-        }
-    };
-    let write: String = format!("{}\n{}\n{}", gpu.vendor, gpu.model, gpu.vram_mb);
-    match file.write(write.as_bytes()) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("GPU", format!("Error writing to GPU cache: {}", e));
+    if !ARGS.ignore_cache && CONFIG.gpu.cache {
+        let mut file: File = match File::create("/tmp/crabfetch-gpu") {
+            Ok(r) => r,
+            Err(e) => {
+                log_error("GPU", format!("Unable to cache GPU info: {}", e));
+                return gpu;
+            }
+        };
+        let write: String = format!("{}\n{}\n{}\n{}", method.to_string(), gpu.vendor, gpu.model, gpu.vram_mb);
+        match file.write(write.as_bytes()) {
+            Ok(_) => {},
+            Err(e) => {
+                log_error("GPU", format!("Error writing to GPU cache: {}", e));
+            }
         }
     }
 

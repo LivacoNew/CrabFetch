@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -129,7 +129,8 @@ pub struct Configuration {
     pub desktop: DesktopConfiguration,
     pub terminal: TerminalConfiguration,
     pub shell: ShellConfiguration,
-    pub uptime: UptimeConfiguration
+    pub uptime: UptimeConfiguration,
+    pub battery: BatteryConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configuration {
@@ -260,6 +261,10 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
     builder = builder.set_default("uptime.format", "{hours}h {minutes}m {seconds}s").unwrap();
+
+    builder = builder.set_default("battery.title", "Battery").unwrap();
+    builder = builder.set_default("battery.format", "{percentage}%").unwrap();
+    builder = builder.set_default("battery.path", "BAT0").unwrap();
 
 
 

@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 
-use crate::{config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, displays::DisplayInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, shell::ShellInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
+use crate::{battery::BatteryInfo, config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, displays::DisplayInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, shell::ShellInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
 
 mod cpu;
 mod memory;
@@ -23,6 +23,7 @@ mod terminal;
 mod host;
 mod packages;
 mod displays;
+mod battery;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -280,6 +281,10 @@ fn main() {
                             modules.insert(line_number as usize, "displays".to_string());
                         }
                     }
+                }
+                "battery" => {
+                    let battery: BatteryInfo = battery::get_battery();
+                    print!("{}", battery.style());
                 }
                 "colors" => {
                     let str = "   ";

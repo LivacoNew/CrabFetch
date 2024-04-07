@@ -22,6 +22,7 @@ modules = [
     "terminal",
     "shell",
     "uptime",
+    "battery",
 
     "space",
     "colors",

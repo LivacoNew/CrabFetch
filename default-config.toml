@@ -2,10 +2,10 @@
 # All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
-    # "underline:16",
-    "space",
+    "underline:16",
 
-    "segment:Hardware",
+    # "space",
+    # "segment:Hardware",
     "cpu",
     "gpu",
     "memory",
@@ -14,8 +14,8 @@ modules = [
     "host",
     "displays",
 
-    "space",
-    "segment:Software",
+    # "space",
+    # "segment:Software",
     "os",
     "packages",
     "desktop",

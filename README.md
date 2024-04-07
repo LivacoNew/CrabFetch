@@ -71,6 +71,9 @@ Ultimately, this is up to the user to select. **By default, CrabFetch will use s
 ### So how does CrabFetch get it's performance in everything else aside from the GPU?
 Honestly, aside from using Rust (hence the name) and trying not to reinvent the wheel it's just me programming with a keen eye on the runtime duration. Not really much else too it.
 
+### Why make this in the first place?
+I was fed up of NeoFetch having to load in every time I spawned a terminal. FastFetch is fine enough with performance however I find it's config really unintuitive and in general it's just kind of yucky. Hence CrabFetch was born to try to solve both problems.
+
 ### Do you plan on supporting other operating systems?
 Not anytime soon. I already work on limited time for all my projects, and having to boot up VM's to test beta software constantly is annoying. That plus the idea of working with Windows again scares me.
 

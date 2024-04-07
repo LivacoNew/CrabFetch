@@ -73,7 +73,7 @@ Not anytime soon. I already work on limited time for all my projects, and having
 
 ## Working On (Roadmap)
 - [ ] Battery Module
-- [ ] Segment Modules
+- [x] Segment Modules
 - [ ] Kitty Image Support
 - [ ] Fix decimal places
 - [x] Non-Cached GPU

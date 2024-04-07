@@ -44,6 +44,7 @@ pub struct Args {
     ignore_cache: bool,
 
     #[arg(long)]
+    /// Sets the GPU method to use. Can either be "glxinfo" or "pcisysfile"
     gpu_method: Option<String>,
 
     #[arg(short, long)]

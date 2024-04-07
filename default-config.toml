@@ -38,6 +38,9 @@ title_color = "bright_magenta"
 title_bold = false
 title_italic = false
 
+# The default decimal places to provide in a module
+decimal_places = 2
+
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"

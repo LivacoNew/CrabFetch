@@ -19,7 +19,8 @@ pub struct CPUConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: String
+    pub format: String,
+    pub decimal_places: Option<u32>
 }
 
 impl Module for CPUInfo {
@@ -57,13 +58,18 @@ impl Module for CPUInfo {
     }
 
     fn replace_placeholders(&self) -> String {
+        let mut dec_places: u32 = CONFIG.decimal_places;
+        if CONFIG.cpu.decimal_places.is_some() {
+            dec_places = CONFIG.cpu.decimal_places.unwrap();
+        }
+
         CONFIG.cpu.format.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
-            .replace("{current_clock_mhz}", &self.current_clock_mhz.to_string())
-            .replace("{current_clock_ghz}", &(self.current_clock_mhz / 1000.0).to_string())
-            .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, 2).to_string())
-            .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, 2).to_string())
+            .replace("{current_clock_mhz}", &CPUInfo::round(self.current_clock_mhz, dec_places).to_string())
+            .replace("{current_clock_ghz}", &CPUInfo::round(self.current_clock_mhz / 1000.0, dec_places).to_string())
+            .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, dec_places).to_string())
+            .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, dec_places).to_string())
     }
 }
 

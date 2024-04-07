@@ -18,7 +18,8 @@ pub struct MemoryConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: String
+    pub format: String,
+    pub decimal_places: Option<u32>
 }
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
@@ -53,13 +54,18 @@ impl Module for MemoryInfo {
     }
 
     fn replace_placeholders(&self) -> String {
-        CONFIG.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, 2).to_string())
-            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, 2).to_string())
-            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, 2).to_string())
-            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, 2).to_string())
-            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, 2).to_string())
-            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, 2).to_string())
-            .replace("{percent}", &MemoryInfo::round(self.percentage, 2).to_string())
+        let mut dec_places: u32 = CONFIG.decimal_places;
+        if CONFIG.memory.decimal_places.is_some() {
+            dec_places = CONFIG.memory.decimal_places.unwrap();
+        }
+
+        CONFIG.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
+            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, dec_places).to_string())
+            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 104857.0, dec_places).to_string())
+            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, dec_places).to_string())
+            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, dec_places).to_string())
+            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 104857.0, dec_places).to_string())
+            .replace("{percent}", &MemoryInfo::round(self.percentage, dec_places).to_string())
     }
 }
 

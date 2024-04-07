@@ -22,7 +22,6 @@ modules = [
     "terminal",
     "shell",
     "uptime",
-    "battery",
 
     "space",
     "colors",
@@ -223,6 +222,12 @@ title = "Uptime"
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
 format = "{hours}h {minutes}m {seconds}s"
 
+
+[battery]
+title = "Battery"
+# Placeholders;
+# {percentage} -> The battery percentage
+format = "{percentage}%"
 
 
 

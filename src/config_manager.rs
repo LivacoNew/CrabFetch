@@ -155,7 +155,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     // General
     builder = builder.set_default("modules", vec![
         "hostname".to_string(),
-        "underline".to_string(),
+        "underline:16".to_string(),
 
         "cpu".to_string(),
         "gpu".to_string(),
@@ -180,72 +180,59 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
+    builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
+    builder = builder.set_default("segment_end", "{color-black}[======{repeat-to-fit:-}======]").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
-    builder = builder.set_default("ascii_display", true).unwrap();
-    builder = builder.set_default("ascii_colors", vec!["bright_magenta"]).unwrap();
-    builder = builder.set_default("ascii_margin", 4).unwrap();
+    builder = builder.set_default("ascii.display", true).unwrap();
+    builder = builder.set_default("ascii.colors", vec!["bright_magenta"]).unwrap();
+    builder = builder.set_default("ascii.margin", 4).unwrap();
 
-    // Underline
-    builder = builder.set_default("underline_length", 24).unwrap();
-    builder = builder.set_default("underline_format", true).unwrap();
+    // Modules
+    builder = builder.set_default("hostname.title", "").unwrap();
+    builder = builder.set_default("hostname.format", "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}").unwrap();
 
-    // CPU
-    builder = builder.set_default("cpu_title", "CPU").unwrap();
-    builder = builder.set_default("cpu_format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
+    builder = builder.set_default("cpu.title", "CPU").unwrap();
+    builder = builder.set_default("cpu.format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
 
-    // GPU
-    builder = builder.set_default("gpu_method", "pcisysfile").unwrap();
-    builder = builder.set_default("gpu_cache", false).unwrap();
-    builder = builder.set_default("gpu_title", "GPU").unwrap();
-    builder = builder.set_default("gpu_format", "{vendor} {model} ({vram_gb} GB)").unwrap();
+    builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
+    builder = builder.set_default("gpu.cache", false).unwrap();
+    builder = builder.set_default("gpu.title", "GPU").unwrap();
+    builder = builder.set_default("gpu.format", "{vendor} {model} ({vram_gb} GB)").unwrap();
 
-    // Memory
-    builder = builder.set_default("memory_title", "Memory").unwrap();
-    builder = builder.set_default("memory_format", "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)").unwrap();
+    builder = builder.set_default("memory.title", "Memory").unwrap();
+    builder = builder.set_default("memory.format", "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)").unwrap();
 
-    // Swap
-    builder = builder.set_default("swap_title", "Swap").unwrap();
-    builder = builder.set_default("swap_format", "{used_gib} GiB / {total_gib} GiB ({percent}%)").unwrap();
+    builder = builder.set_default("swap.title", "Swap").unwrap();
+    builder = builder.set_default("swap.format", "{used_gib} GiB / {total_gib} GiB ({percent}%)").unwrap();
 
-    // Mounts
-    builder = builder.set_default("mount_title", "Disk {mount}").unwrap();
-    builder = builder.set_default("mount_format", "{space_used_gb} GB used of {space_total_gb} GB @ ({percent}%)").unwrap();
-    builder = builder.set_default("mount_ignored", vec!["/boot", "/snap"]).unwrap();
+    builder = builder.set_default("mounts.title", "Disk {mount}").unwrap();
+    builder = builder.set_default("mounts.format", "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)").unwrap();
+    builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
 
-    // Host
-    builder = builder.set_default("host_title", "Host").unwrap();
-    builder = builder.set_default("host_format", "{host}").unwrap();
+    builder = builder.set_default("host.title", "host").unwrap();
 
-    // Displays
-    builder = builder.set_default("display_title", "Display {name}").unwrap();
-    builder = builder.set_default("display_format", "{width}x{height} @ {refresh_rate}Hz").unwrap();
+    builder = builder.set_default("displays.title", "Display {name}").unwrap();
+    builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz").unwrap();
 
+    builder = builder.set_default("os.title", "Operating System").unwrap();
+    builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
 
-    // OS
-    builder = builder.set_default("os_title", "Operating System").unwrap();
-    builder = builder.set_default("os_format", "{distro} ({kernel})").unwrap();
+    builder = builder.set_default("packages.title", "Packages").unwrap();
+    builder = builder.set_default("packages.format", "{count} ({manager})").unwrap();
 
-    // Packages
-    builder = builder.set_default("packages_title", "Packages").unwrap();
-    builder = builder.set_default("packages_format", "{count} ({manager})").unwrap();
+    builder = builder.set_default("desktop.title", "Desktop").unwrap();
+    builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();
 
-    // Desktop
-    builder = builder.set_default("desktop_title", "Desktop").unwrap();
-    builder = builder.set_default("desktop_format", "{desktop} ({display_type})").unwrap();
+    builder = builder.set_default("terminal.title", "Terminal").unwrap();
 
-    // Terminal
-    builder = builder.set_default("terminal_title", "Terminal").unwrap();
-    builder = builder.set_default("terminal_format", "{terminal_name}").unwrap();
+    builder = builder.set_default("shell.title", "Shell").unwrap();
+    builder = builder.set_default("shell.format", "{shell} ({path})").unwrap();
 
-    // Shell
-    builder = builder.set_default("shell_title", "Shell").unwrap();
-    builder = builder.set_default("shell_format", "{shell}").unwrap();
+    builder = builder.set_default("uptime.title", "Uptime").unwrap();
+    builder = builder.set_default("uptime.format", "{hours}h {minutes}m {seconds}s").unwrap();
 
-    // And finally, uptime
-    builder = builder.set_default("uptime_title", "Uptime").unwrap();
-    builder = builder.set_default("uptime_format", "{hours}h {minutes}m {seconds}s").unwrap();
 
 
     // Now stop.

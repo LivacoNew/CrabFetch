@@ -75,7 +75,7 @@ Not anytime soon. I already work on limited time for all my projects, and having
 - [ ] Battery Module
 - [x] Segment Modules
 - [ ] Kitty Image Support
-- [ ] Fix decimal places
+- [x] Fix decimal places
 - [x] Non-Cached GPU
 - [ ] Multiple GPUs
 - [x] Config Cleanup

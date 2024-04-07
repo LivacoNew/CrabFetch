@@ -1,6 +1,6 @@
-use std::{cmp::max, env, process::exit, str::FromStr};
+use std::{cmp::max, env, process::exit};
 
-use config_manager::{replace_color_placeholders, CrabFetchColor};
+use config_manager::CrabFetchColor;
 use lazy_static::lazy_static;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};

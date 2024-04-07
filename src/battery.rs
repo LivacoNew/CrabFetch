@@ -74,7 +74,7 @@ pub fn get_battery() -> BatteryInfo {
         },
     }
 
-    battery.percentage = match contents.parse() {
+    battery.percentage = match contents.trim().parse() {
         Ok(r) => r,
         Err(e) => {
             log_error("Battery", format!("Can't parse value from {} - {}", path, e));

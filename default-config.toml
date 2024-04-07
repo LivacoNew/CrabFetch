@@ -2,8 +2,10 @@
 # All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
-    "underline:16",
+    # "underline:16",
+    "space",
 
+    "segment:Hardware",
     "cpu",
     "gpu",
     "memory",
@@ -11,13 +13,17 @@ modules = [
     "mounts",
     "host",
     "displays",
+    "end_segment",
 
+    "space",
+    "segment:Software",
     "os",
     "packages",
     "desktop",
     "terminal",
     "shell",
     "uptime",
+    "end_segment",
 
     "space",
     "colors",
@@ -33,6 +39,12 @@ title_color = "bright_magenta"
 # Whether to bold/italic the title by default too
 title_bold = false
 title_italic = false
+
+# Format of segments
+# Segments can be defined in the modules array
+# The {repeat-to-fit:[char]} placeholder can be used only for the end, not the top.
+segment_top = "[======------ {name} -----======]"
+segment_end = "[======{repeat-to-fit:-}======]"
 
 # Whether to supress any errors that come or not
 suppress_errors = true

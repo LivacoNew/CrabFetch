@@ -82,6 +82,8 @@ pub struct Configuration {
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
     pub title_italic: bool,
+    pub segment_top: String,
+    pub segment_end: String,
     pub suppress_errors: bool,
 
     pub ascii: AsciiConfiguration,

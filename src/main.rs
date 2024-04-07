@@ -186,6 +186,8 @@ fn main() {
         line_count += displays.as_ref().unwrap().len() - 1; // TODO: Investigate me!
     }
 
+    let mut segment_length: Option<u64> = None;
+
     for x in 0..line_count {
         let mut line = "";
         if split.len() > x {
@@ -222,6 +224,37 @@ fn main() {
                     for _ in 0..underline_length {
                         print!("-");
                     }
+                }
+
+                // Segments
+                // This is very crudely done for now but I'll expand it at a later date
+                "segment" => {
+                    let segment_name: &str = module_split[1];
+                    let str: String = CONFIG.segment_top.replace("{name}", segment_name);
+                    print!("{}", str);
+                    segment_length = Some(str.len() as u64);
+                }
+                "end_segment" => {
+                    if segment_length.is_none() {
+                        log_error("End Segment", "Tried to end a segment while having no segment.".to_string());
+                        continue
+                    }
+
+                    let mut str: String = CONFIG.segment_end.to_string();
+                    if str.contains("{repeat-to-fit") {
+                        let pos: usize = str.find("{repeat-to-fit:").unwrap();
+                        let ch: char = str[pos + 15..pos + 16].chars().next().unwrap();
+
+                        let mut new_str: String = str[0..pos].to_string();
+                        let ending: String = str[pos + 17..].to_string();
+                        while new_str.len() as u64 != (segment_length.unwrap() - ending.len() as u64) {
+                            new_str.push_str("-");
+                        }
+                        new_str.push_str(&ending);
+
+                        str = new_str;
+                    }
+                    print!("{}", str);
                 }
 
                 "hostname" => {

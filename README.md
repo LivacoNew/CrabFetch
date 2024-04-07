@@ -73,10 +73,5 @@ Not anytime soon. I already work on limited time for all my projects, and having
 
 ## Working On (Roadmap)
 - [ ] Battery Module
-- [x] Segment Modules
 - [ ] Kitty Image Support
-- [x] Fix decimal places
-- [x] Non-Cached GPU
 - [ ] Multiple GPUs
-- [x] Config Cleanup
-- [x] Mute errors parameter

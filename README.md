@@ -73,5 +73,5 @@ Not anytime soon. I already work on limited time for all my projects, and having
 
 ## Working On (Roadmap)
 - [ ] Battery Module
-- [ ] Kitty Image Support
+- [ ] [Kitty Image Support](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
 - [ ] Multiple GPUs

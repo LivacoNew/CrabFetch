@@ -22,6 +22,8 @@ pub fn get_ascii(os: &str) -> (String, u16) {
     match os {
         "arch" => arch(),
         "debian" => debian(),
+        "ubuntu" => ubuntu(),
+        "fedora" => fedora(),
         _ => ("".to_string(), 0)
     }
 }
@@ -61,4 +63,40 @@ fn debian() -> (String, u16) { // Generated from https://www.text-image.com/conv
        ~??~^.
          .^~~:..            "
  .to_string(), 28)
+}
+fn ubuntu() -> (String, u16) { // https://www.text-image.com/convert/ascii.html
+("           .^~7?JJYYYYJJ?7~^.
+        :!?JYYYYYYYYYYYYY55YY?!:
+     .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
+    ~JYYYYYYYYYYYYYJJYYY^   .?YYYYJ~
+  .?YYYYYYYYYYY!::.....7!.  :?YYYYYY?.
+ .JYYYYYYYY?^.7?. .::.  ^~~~?YYYYYYYYJ.
+ ?YYYYYYYY~   .JYJYYYYJ?~.   ~YYYYYYYY?
+~YYYYYYYY^   ~YYYYYYYYYYYY~   ^YYYYYYYY~
+JYYY7^:^7~  ~5YYYYYYYYYYYY5~   7YYYYYYYJ
+JYYJ     J: ?YYYYYYYYYYYYYYJ!77?YYYYYYYJ
+JYYY7^:^7~  ~5YYYYYYYYYYYY5~   7YYYYYYYJ
+~YYYYYYYY^   ~YYYYYYYYYYYY~   ^YYYYYYYY~
+ ?YYYYYYYY~   .JYJYYYYJ?~.   ~YYYYYYYY?
+ .JYYYYYYYY?^.7?. .::.  ^~~~?YYYYYYYYJ.
+  .?YYYYYYYYYYY!::.....7!.  :?YYYYYY?.
+    ~JYYYYYYYYYYYYYJJYYY^   .?YYYYJ~
+     .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
+        :!?JYYYYYYYYYYYYY55YY?!:
+           .^~7?JJYYYYJJ?7~^.           ".to_string(), 40) // fatty
+}
+fn fedora() -> (String, u16) { // https://www.text-image.com/convert/ascii.html
+("      .^7J5PGGGGGPY7~.
+    ^JPGGGGGGGP5J??J5PJ^
+  ^YGBGGGGGGP!.   . ^5PGY^
+ !GGGGGGGGGP:  !5PPPP5Y5GG!
+~GGGGGGGGGB?  ~BGGGGGPYY5GG~
+5GGGGGGGGGB?  ~BGGGGP5Y5PGG5
+GGGGPP57:::.  .:::!5Y55PGGGG
+GGP5Y55J~~~:  :~~~?PPGGGGGG5
+GP5Y5PGGBGB?  ~BGGGGGGGGGGG~
+GPY55GGGGGB!  !BGGGGGGGGGG!
+GG5Y55Y55J~  :5GGGGGGGBGY^
+PGGP5!     :7PGGGGGGGPJ^
+~YGGGPYJJY5GGGGGP5J7^.      ".to_string(), 28)
 }

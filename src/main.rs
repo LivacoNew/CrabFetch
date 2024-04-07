@@ -1,6 +1,6 @@
 use std::{cmp::max, env, process::exit, str::FromStr};
 
-use config_manager::CrabFetchColor;
+use config_manager::{replace_color_placeholders, CrabFetchColor};
 use lazy_static::lazy_static;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
@@ -94,32 +94,7 @@ trait Module {
         str
     }
     fn replace_color_placeholders(&self, str: &String) -> String {
-        let mut new_string = String::new();
-        let split: Vec<&str> = str.split("{color-").collect();
-        if split.len() <= 1 {
-            return str.clone();
-        }
-        for s in split {
-            // println!("Parsing: {}", s);
-            let len: usize = match s.find("}") {
-                Some(r) => r,
-                None => {
-                    new_string.push_str(s);
-                    continue;
-                },
-            };
-            let color_str: String = s[..len].to_string();
-            let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
-                Ok(r) => r,
-                Err(_) => {
-                    log_error("Formatting", format!("Unable to parse color {}", color_str));
-                    continue;
-                },
-            };
-            new_string.push_str(&color_string(&s[len + 1..], &color).to_string());
-        }
-
-        new_string
+        config_manager::replace_color_placeholders(str)
     }
 }
 
@@ -186,7 +161,6 @@ fn main() {
         line_count += displays.as_ref().unwrap().len() - 1; // TODO: Investigate me!
     }
 
-    let mut segment_length: Option<u64> = None;
 
     for x in 0..line_count {
         let mut line = "";
@@ -230,30 +204,8 @@ fn main() {
                 // This is very crudely done for now but I'll expand it at a later date
                 "segment" => {
                     let segment_name: &str = module_split[1];
-                    let str: String = CONFIG.segment_top.replace("{name}", segment_name);
-                    print!("{}", str);
-                    segment_length = Some(str.len() as u64);
-                }
-                "end_segment" => {
-                    if segment_length.is_none() {
-                        log_error("End Segment", "Tried to end a segment while having no segment.".to_string());
-                        continue
-                    }
-
-                    let mut str: String = CONFIG.segment_end.to_string();
-                    if str.contains("{repeat-to-fit") {
-                        let pos: usize = str.find("{repeat-to-fit:").unwrap();
-                        let ch: char = str[pos + 15..pos + 16].chars().next().unwrap();
-
-                        let mut new_str: String = str[0..pos].to_string();
-                        let ending: String = str[pos + 17..].to_string();
-                        while new_str.len() as u64 != (segment_length.unwrap() - ending.len() as u64) {
-                            new_str.push_str("-");
-                        }
-                        new_str.push_str(&ending);
-
-                        str = new_str;
-                    }
+                    let mut str: String = CONFIG.segment_top.replace("{name}", segment_name);
+                    str = config_manager::replace_color_placeholders(&str);
                     print!("{}", str);
                 }
 

@@ -13,7 +13,6 @@ modules = [
     "mounts",
     "host",
     "displays",
-    "end_segment",
 
     "space",
     "segment:Software",
@@ -23,7 +22,6 @@ modules = [
     "terminal",
     "shell",
     "uptime",
-    "end_segment",
 
     "space",
     "colors",
@@ -42,9 +40,7 @@ title_italic = false
 
 # Format of segments
 # Segments can be defined in the modules array
-# The {repeat-to-fit:[char]} placeholder can be used only for the end, not the top.
-segment_top = "[======------ {name} -----======]"
-segment_end = "[======{repeat-to-fit:-}======]"
+segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
 # Whether to supress any errors that come or not
 suppress_errors = true

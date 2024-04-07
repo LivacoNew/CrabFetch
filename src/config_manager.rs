@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -73,6 +73,34 @@ pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
         CrabFetchColor::BrightCyan => string.bright_cyan(),
         CrabFetchColor::BrightWhite => string.bright_white(),
     }
+}
+pub fn replace_color_placeholders(str: &String) -> String { // out of place here?
+    let mut new_string = String::new();
+    let split: Vec<&str> = str.split("{color-").collect();
+    if split.len() <= 1 {
+        return str.clone();
+    }
+    for s in split {
+        // println!("Parsing: {}", s);
+        let len: usize = match s.find("}") {
+            Some(r) => r,
+            None => {
+                new_string.push_str(s);
+                continue;
+            },
+        };
+        let color_str: String = s[..len].to_string();
+        let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
+            Ok(r) => r,
+            Err(_) => {
+                log_error("Color Placeholders", format!("Unable to parse color {}", color_str));
+                continue;
+            },
+        };
+        new_string.push_str(&color_string(&s[len + 1..], &color).to_string());
+    }
+
+    new_string
 }
 
 #[derive(Deserialize)]
@@ -181,7 +209,6 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
-    builder = builder.set_default("segment_end", "{color-black}[======{repeat-to-fit:-}======]").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII

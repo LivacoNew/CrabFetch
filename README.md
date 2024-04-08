@@ -81,3 +81,5 @@ Not anytime soon. I already work on limited time for all my projects, and having
 ## Working On (Roadmap)
 - [ ] [Kitty Image Support](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
 - [ ] Multiple GPUs
+- [ ] Local IP
+- [ ] Music Player / Song

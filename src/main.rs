@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 
-use crate::{battery::BatteryInfo, config_manager::{color_string, Configuration}, cpu::CPUInfo, desktop::DesktopInfo, displays::DisplayInfo, gpu::GPUInfo, host::HostInfo, memory::MemoryInfo, mounts::MountInfo, os::OSInfo, packages::PackagesInfo, shell::ShellInfo, swap::SwapInfo, terminal::TerminalInfo, uptime::UptimeInfo};
+use crate::{config_manager::{color_string, Configuration}, displays::DisplayInfo, mounts::MountInfo, os::OSInfo};
 
 mod cpu;
 mod memory;
@@ -212,28 +212,22 @@ fn main() {
                 }
 
                 "hostname" => {
-                    let str: String = hostname::get_hostname().style();
-                    print!("{}", str);
+                    print!("{}", hostname::get_hostname().style());
                 },
                 "cpu" => {
-                    let cpu: CPUInfo = cpu::get_cpu();
-                    print!("{}", cpu.style());
+                    print!("{}", cpu::get_cpu().style());
                 },
                 "gpu" => {
-                    let gpu: GPUInfo = gpu::get_gpu();
-                    print!("{}", gpu.style());
+                    print!("{}", gpu::get_gpu().style());
                 },
                 "memory" => {
-                    let memory: MemoryInfo = memory::get_memory();
-                    print!("{}", memory.style());
+                    print!("{}", memory::get_memory().style());
                 }
                 "host" => {
-                    let host: HostInfo = host::get_host();
-                    print!("{}", host.style());
+                    print!("{}", host::get_host().style());
                 },
                 "swap" => {
-                    let swap: SwapInfo = swap::get_swap();
-                    print!("{}", swap.style());
+                    print!("{}", swap::get_swap().style());
                 }
                 "mounts" => {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
@@ -251,24 +245,19 @@ fn main() {
                     print!("{}", os.style());
                 }
                 "packages" => {
-                    let packages: PackagesInfo = packages::get_packages();
-                    print!("{}", packages.style());
+                    print!("{}", packages::get_packages().style());
                 }
                 "desktop" => {
-                    let desktop: DesktopInfo = desktop::get_desktop();
-                    print!("{}", desktop.style());
+                    print!("{}", desktop::get_desktop().style());
                 }
                 "terminal" => {
-                    let terminal: TerminalInfo = terminal::get_terminal();
-                    print!("{}", terminal.style());
+                    print!("{}", terminal::get_terminal().style());
                 },
                 "shell" => {
-                    let shell: ShellInfo = shell::get_shell();
-                    print!("{}", shell.style());
+                    print!("{}", shell::get_shell().style());
                 }
                 "uptime" => {
-                    let uptime: UptimeInfo = uptime::get_uptime();
-                    print!("{}", uptime.style());
+                    print!("{}", uptime::get_uptime().style());
                 }
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
@@ -283,8 +272,7 @@ fn main() {
                     }
                 }
                 "battery" => {
-                    let battery: BatteryInfo = battery::get_battery();
-                    print!("{}", battery.style());
+                    print!("{}", battery::get_battery().style());
                 }
                 "colors" => {
                     let str = "   ";

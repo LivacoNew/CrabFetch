@@ -21,28 +21,12 @@ All benchmarks were done via the zsh implemented `time` keyword, with as similar
 ## Installation
 > [!IMPORTANT]
 > Only Linux based OS's are supported. Any other operating system will not work.
-
-### Dependencies
-These are only required if you are using their associated modules.
-- The `df` command, used for getting mounted disks.
-- The `glxinfo` command. Only required for the "glxinfo" GPU method.
-- `pciutils` package, specifically only for the `pci.ids` file. Only required for the "pcisysfile" GPU method.
-
-### From Source
-```sh
-git clone git@github.com:LivacoNew/CrabFetch.git
-cd CrabFetch
-cargo install --path .
-```
-Ensure you've got your $PATH set to include ~/.cargo/bin/<br>
-Alternatively you can move it straight into your `/usr/bin` to install without modifying your PATH.
-```sh
-sudo mv ~/.cargo/bin/crabfetch /usr/bin
-```
+> 
+Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for how to install CrabFetch.
 
 ## Configuration
 To generate the default configuration file, run `crabfetch -g`.<br>
-The configuration file should be in `~/.config/CrabFetch/config.toml`. From there, the comments should keep you right.
+The configuration file should be in `~/.config/CrabFetch/config.toml`. From there, refer to either the comments or the [wiki page](https://github.com/LivacoNew/CrabFetch/wiki/Configuration).
 
 
 ## Not got what you want?

@@ -15,7 +15,11 @@ pub fn get_ascii(os: &str) -> (String, u16) {
     let user_override: Option<String> = config_manager::check_for_ascii_override();
     if user_override != None {
         let mut length: u16 = 0;
-        user_override.as_ref().unwrap().split("\n").for_each(|x| if x.len() > length as usize { length = x.len() as u16 });
+        user_override.as_ref().unwrap().split("\n").for_each(|x| {
+            // x.len() hated ascii art using weird characters, this works fine tho
+            let len: usize = x.chars().collect::<Vec<char>>().len();
+            if len > length as usize { length = len as u16 }
+        });
         return (user_override.unwrap(), length)
     }
 

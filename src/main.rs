@@ -141,8 +141,7 @@ fn main() {
 
     // Figure out how many total lines we have
     let mut modules = CONFIG.modules.clone();
-    let mut line_count = max(split.len(), modules.len());
-
+    let mut module_count = modules.len();
 
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
@@ -152,7 +151,7 @@ fn main() {
     if modules.contains(&"mounts".to_string()) {
         mounts = Some(mounts::get_mounted_drives());
         mounts.as_mut().unwrap().retain(|x| !x.is_ignored());
-        line_count += mounts.as_ref().unwrap().len() - 1; // TODO: And me!
+        module_count += 1;
     }
 
     // AND displays
@@ -160,9 +159,10 @@ fn main() {
     let mut display_index: u32 = 0;
     if modules.contains(&"displays".to_string()) {
         displays = Some(displays::get_displays());
-        line_count += displays.as_ref().unwrap().len() - 1; // TODO: Investigate me!
+        module_count += 1;
     }
 
+    let line_count = max(split.len(), module_count);
 
     for x in 0..line_count {
         let mut line = "";
@@ -182,7 +182,7 @@ fn main() {
             // We're still going
             ascii_line_number = ascii_line_number + 1;
         }
-        let remainder: u16 = target_length - (line.len() as u16);
+        let remainder: u16 = target_length - (line.chars().collect::<Vec<char>>().len() as u16);
         for _ in 0..remainder {
             print!(" ");
         }

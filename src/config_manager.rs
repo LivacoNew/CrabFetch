@@ -213,7 +213,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_italic", true).unwrap();
     builder = builder.set_default("decimal_places", 2).unwrap();
     builder = builder.set_default("inline_values", false).unwrap();
-    builder = builder.set_default("underline_character", "-").unwrap();
+    builder = builder.set_default("underline_character", "―").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 

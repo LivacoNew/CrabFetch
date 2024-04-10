@@ -42,7 +42,7 @@ decimal_places = 2
 inline_values = false
 
 # The character to use in the underline module
-underline_character = '-'
+underline_character = '―'
 
 # Format of segments
 # Segments can be defined in the modules array

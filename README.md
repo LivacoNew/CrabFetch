@@ -21,7 +21,7 @@ All benchmarks were done via the zsh implemented `time` keyword, with as similar
 ## Installation
 > [!IMPORTANT]
 > Only Linux based OS's are supported. Any other operating system will not work.
-> 
+>
 Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for how to install CrabFetch.
 
 ## Configuration

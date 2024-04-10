@@ -57,9 +57,36 @@ pub struct Args {
     suppress_errors: bool,
 }
 
+fn calc_max_title_length() -> u64 {
+    let mut res: u64 = 0;
+    // this kinda sucks
+    for module in &CONFIG.modules {
+        match module.as_str() {
+            "hostname" => res = max(res, CONFIG.hostname.title.len() as u64),
+            "cpu" => res = max(res, CONFIG.cpu.title.len() as u64),
+            "gpu" => res = max(res, CONFIG.gpu.title.len() as u64),
+            "memory" => res = max(res, CONFIG.memory.title.len() as u64),
+            "swap" => res = max(res, CONFIG.swap.title.len() as u64),
+            "mounts" => res = max(res, CONFIG.mounts.title.len() as u64),
+            "host" => res = max(res, CONFIG.host.title.len() as u64),
+            "displays" => res = max(res, CONFIG.displays.title.len() as u64),
+            "os" => res = max(res, CONFIG.os.title.len() as u64),
+            "packages" => res = max(res, CONFIG.packages.title.len() as u64),
+            "desktop" => res = max(res, CONFIG.desktop.title.len() as u64),
+            "terminal" => res = max(res, CONFIG.terminal.title.len() as u64),
+            "shell" => res = max(res, CONFIG.shell.title.len() as u64),
+            "battery" => res = max(res, CONFIG.battery.title.len() as u64),
+            "uptime" => res = max(res, CONFIG.uptime.title.len() as u64),
+            _ => {}
+        }
+    }
+
+    res
+}
 lazy_static! {
     pub static ref ARGS: Args = Args::parse();
     pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.ignore_config_file);
+    pub static ref MAX_TITLE_LENGTH: u64 = calc_max_title_length();
 }
 
 trait Module {
@@ -86,6 +113,12 @@ trait Module {
             }
 
             str.push_str(&title.to_string());
+            // Inline value stuff
+            if CONFIG.inline_values {
+                for _ in 0..(*MAX_TITLE_LENGTH - (title.len() as u64)) {
+                    str.push_str(" ");
+                }
+            }
             str.push_str(seperator);
         }
 

@@ -111,6 +111,7 @@ pub struct Configuration {
     pub title_bold: bool,
     pub title_italic: bool,
     pub decimal_places: u32,
+    pub inline_values: bool,
     pub segment_top: String,
     pub suppress_errors: bool,
 
@@ -210,6 +211,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
     builder = builder.set_default("decimal_places", 2).unwrap();
+    builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
@@ -383,10 +385,12 @@ pub fn generate_config_file(location_override: Option<String>) {
 
 
 // The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = r#"# The modules to display and in what order.
+const DEFAULT_CONFIG_CONTENTS: &str = r#"
+# The modules to display and in what order.
 # All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
 modules = [
     "hostname",
+    "underline:16",
 
     "cpu",
     "gpu",
@@ -417,6 +421,17 @@ title_color = "bright_magenta"
 # Whether to bold/italic the title by default too
 title_bold = false
 title_italic = false
+
+# The default decimal places to provide in a module
+decimal_places = 2
+
+# Whether to have all module values as inline, e.g; https://i.imgur.com/UNyq2zj.png
+# To add padding use the "seperator" and add some spaces
+inline_values = false
+
+# Format of segments
+# Segments can be defined in the modules array
+segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
 # Whether to supress any errors that come or not
 suppress_errors = true
@@ -595,6 +610,12 @@ title = "Uptime"
 # NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
 format = "{hours}h {minutes}m {seconds}s"
 
+
+[battery]
+title = "Battery"
+# Placeholders;
+# {percentage} -> The battery percentage
+format = "{percentage}%"
 
 
 

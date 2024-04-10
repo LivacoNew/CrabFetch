@@ -4,7 +4,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::Read, path::Path};
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::{self, CrabFetchColor}, Module, CONFIG};
+use crate::{config_manager::{self, CrabFetchColor}, Module, CONFIG, MAX_TITLE_LENGTH};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -60,6 +60,12 @@ impl Module for PackagesInfo {
             }
 
             str.push_str(&title.to_string());
+            // Inline value stuff
+            if CONFIG.inline_values {
+                for _ in 0..(*MAX_TITLE_LENGTH - (title.len() as u64)) {
+                    str.push_str(" ");
+                }
+            }
             str.push_str(seperator);
         }
 

@@ -4,8 +4,6 @@ modules = [
     "hostname",
     "underline:16",
 
-    # "space",
-    # "segment:Hardware",
     "cpu",
     "gpu",
     "memory",
@@ -14,8 +12,6 @@ modules = [
     "host",
     "displays",
 
-    # "space",
-    # "segment:Software",
     "os",
     "packages",
     "desktop",
@@ -40,6 +36,10 @@ title_italic = false
 
 # The default decimal places to provide in a module
 decimal_places = 2
+
+# Whether to have all module values as inline, e.g; https://i.imgur.com/UNyq2zj.png
+# To add padding use the "seperator" and add some spaces
+inline_values = false
 
 # Format of segments
 # Segments can be defined in the modules array

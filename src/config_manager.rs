@@ -112,6 +112,7 @@ pub struct Configuration {
     pub title_italic: bool,
     pub decimal_places: u32,
     pub inline_values: bool,
+    pub underline_character: char,
     pub segment_top: String,
     pub suppress_errors: bool,
 
@@ -212,6 +213,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("title_italic", true).unwrap();
     builder = builder.set_default("decimal_places", 2).unwrap();
     builder = builder.set_default("inline_values", false).unwrap();
+    builder = builder.set_default("underline_character", "-").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
@@ -428,6 +430,9 @@ decimal_places = 2
 # Whether to have all module values as inline, e.g; https://i.imgur.com/UNyq2zj.png
 # To add padding use the "seperator" and add some spaces
 inline_values = false
+
+# The character to use in the underline module
+underline_character = '-'
 
 # Format of segments
 # Segments can be defined in the modules array

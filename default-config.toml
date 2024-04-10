@@ -41,6 +41,9 @@ decimal_places = 2
 # To add padding use the "seperator" and add some spaces
 inline_values = false
 
+# The character to use in the underline module
+underline_character = '-'
+
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"

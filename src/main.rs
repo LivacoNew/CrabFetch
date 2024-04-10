@@ -231,7 +231,7 @@ fn main() {
                 "underline" => {
                     let underline_length: u16 = module_split[1].parse().unwrap();
                     for _ in 0..underline_length {
-                        print!("-");
+                        print!("{}", CONFIG.underline_character);
                     }
                 }
 

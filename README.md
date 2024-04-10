@@ -38,7 +38,7 @@ Make a issue and I'll see if I can add it in. I'm aware support is kind of spars
 - [FastFetch](https://github.com/fastfetch-cli/fastfetch) Also a source for system info.
 
 ## Showcase
-A peek at what you can do with CrabFetch.<br><br>
+A peek at what you can do with CrabFetch.<br>
 ![Showcase 1](https://i.imgur.com/c6S2q9n.png)
 ![Showcase 2](https://i.imgur.com/jz2ioEH.png)
 ![Showcase 3](https://i.imgur.com/kJ7l93H.png)

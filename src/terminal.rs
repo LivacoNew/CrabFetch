@@ -1,9 +1,8 @@
-use core::str;
 use std::{fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::CrabFetchColor, log_error, shell, Module, CONFIG};
 
 pub struct TerminalInfo {
     terminal_name: String
@@ -69,40 +68,78 @@ pub fn get_terminal() -> TerminalInfo {
     // gets the name of it from ps
 
     // println!("Starting terminal:");
-    let parent_pid: u32 = process::parent_id();
-    let path: String = format!("/proc/{}/stat", parent_pid);
-    // println!("Shell proccess ID should be {} leading to {}", parent_pid, path);
+    let default_shell: String = shell::get_default_shell().shell_name;
+    let mut terminal_pid: Option<u32> = None;
 
-    let mut parent_stat: File = match File::open(path.to_string()) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Terminal", format!("Can't open from {} - {}", path, e));
-            return terminal
-        },
-    };
-    let mut contents: String = String::new();
-    match parent_stat.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("Terminal", format!("Can't open from {} - {}", path, e));
-            return terminal
-        },
+    let mut found_terminal_pid: bool = false;
+    let mut loops = 0; // always use protection against infinite loops kids
+    let mut parent_pid: u32 = process::parent_id();
+    while !found_terminal_pid {
+        // Once we reach the default shell's PID, go up once more and we're at the terminal PID.
+        // This is scrappy but it's the best solution I have for the time being
+        // This also breaks if you enter multiple shells and go default shell -> some other shell
+        // -> back to your default shell
+        // but I don't really care once your at that point
+        if loops > 10 {
+            panic!("Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.");
+        }
+        loops += 1;
+
+        let path: String = format!("/proc/{}/stat", parent_pid);
+        // println!("Shell proccess ID should be {} leading to {}", parent_pid, path);
+
+        let mut parent_stat: File = match File::open(path.to_string()) {
+            Ok(r) => r,
+            Err(e) => {
+                log_error("Terminal", format!("Can't open from {} - {}", path, e));
+                return terminal
+            },
+        };
+        let mut contents: String = String::new();
+        match parent_stat.read_to_string(&mut contents) {
+            Ok(_) => {},
+            Err(e) => {
+                log_error("Terminal", format!("Can't open from {} - {}", path, e));
+                return terminal
+            },
+        }
+        // println!("Got contents: {}", contents);
+
+        let content_split: Vec<&str> = contents.split(" ").collect::<Vec<&str>>();
+        let mut pid_name: String = content_split[1].to_string();
+        pid_name = pid_name[1..pid_name.len() - 1].to_string();
+
+        if pid_name == default_shell {
+            found_terminal_pid = true;
+            terminal_pid = Some(match content_split[3].parse() {
+                Ok(r) => r,
+                Err(e) => {
+                    log_error("Terminal", format!("Can't parse terminal pid: {}", e));
+                    return terminal
+                },
+            });
+        } else {
+            // go up a level
+            parent_pid = match content_split[3].parse() {
+                Ok(r) => r,
+                Err(e) => {
+                    log_error("Terminal", format!("Can't parse parent pid: {}", e));
+                    return terminal
+                },
+            };
+        }
     }
-    // println!("Got contents: {}", contents);
-
-    let terminal_pid: u32 = match contents.split(" ").collect::<Vec<&str>>()[3].parse() {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Terminal", format!("Can't parse terminal pid: {}", e));
-            return terminal
-        },
-    };
 
     // And credit to https://superuser.com/a/632984 for the file based solution, as ps and
     // sysinfo were too slow
     // println!("{}", terminal_pid);
+    if terminal_pid.is_none() {
+        log_error("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid));
+        return terminal
+    }
+
+    let terminal_pid: u32 = terminal_pid.unwrap();
     let path: String = format!("/proc/{}/cmdline", terminal_pid);
-    // println!("Got terminal process ID as {} leading to {}", terminal_pid, path);
 
     let mut terminal_cmdline: File = match File::open(path.to_string()) {
         Ok(r) => r,

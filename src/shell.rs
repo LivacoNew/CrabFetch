@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, os::unix::process};
+use std::{env, fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
@@ -76,6 +76,23 @@ pub fn get_shell() -> ShellInfo {
     }
 
     shell.shell_name = contents.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
+
+    shell
+}
+
+pub fn get_default_shell() -> ShellInfo {
+    let mut shell: ShellInfo = ShellInfo::new();
+
+    // This is mostly here for terminal detection, but there's a config option to use this instead
+    // too :)
+    // This definitely isn't the old $SHELL grabbing code, no sir.
+    shell.shell_name = match env::var("SHELL") {
+        Ok(r) => r,
+        Err(e) => {
+            log_error("Shell", format!("Could not parse $SHELL env variable: {}", e));
+            "".to_string()
+        }
+    };
 
     shell
 }

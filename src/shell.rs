@@ -1,4 +1,4 @@
-use std::env;
+use std::{fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
@@ -47,22 +47,35 @@ impl Module for ShellInfo {
     }
 
     fn replace_placeholders(&self) -> String {
-        CONFIG.shell.format.replace("{shell}", &self.shell_name.split("/").collect::<Vec<&str>>().last().unwrap())
-            .replace("{path}", &self.shell_name)
+        CONFIG.shell.format.replace("{shell}", &self.shell_name)
     }
 }
 
 pub fn get_shell() -> ShellInfo {
     let mut shell: ShellInfo = ShellInfo::new();
 
-    // Just grabs whatevers in $SHELL
-    shell.shell_name = match env::var("SHELL") {
+
+    // Grabs the parent process and uses that
+    let parent_pid: u32 = process::parent_id();
+    let path: String = format!("/proc/{}/cmdline", parent_pid);
+
+    let mut parent_stat: File = match File::open(path.to_string()) {
         Ok(r) => r,
         Err(e) => {
-            log_error("Shell", format!("Could not parse $SHELL env variable: {}", e));
-            "".to_string()
-        }
+            log_error("Shell", format!("Can't open from {} - {}", path, e));
+            return shell
+        },
     };
+    let mut contents: String = String::new();
+    match parent_stat.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(e) => {
+            log_error("Shell", format!("Can't open from {} - {}", path, e));
+            return shell
+        },
+    }
+
+    shell.shell_name = contents.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
     shell
 }

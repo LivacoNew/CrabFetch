@@ -15,6 +15,7 @@ pub struct ShellConfiguration {
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
     pub format: String,
+    pub show_default_shell: bool
 }
 impl Module for ShellInfo {
     fn new() -> ShellInfo {
@@ -54,6 +55,9 @@ impl Module for ShellInfo {
 pub fn get_shell() -> ShellInfo {
     let mut shell: ShellInfo = ShellInfo::new();
 
+    if CONFIG.shell.show_default_shell {
+        return get_default_shell();
+    }
 
     // Grabs the parent process and uses that
     let parent_pid: u32 = process::parent_id();
@@ -92,7 +96,7 @@ pub fn get_default_shell() -> ShellInfo {
             log_error("Shell", format!("Could not parse $SHELL env variable: {}", e));
             "".to_string()
         }
-    };
+    }.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
     shell
 }

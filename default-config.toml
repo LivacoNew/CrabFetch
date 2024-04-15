@@ -212,8 +212,10 @@ title = "Terminal"
 title = "Shell"
 # Placeholders;
 # {shell} -> The name of the shell, e.g zsh
-# {path} -> The path of the shell, e.g /bin/zsh
-format = "{shell} ({path})"
+format = "{shell}"
+
+# Whether to show your default shell, instead of your current shell.
+show_default_shell = false
 
 
 [uptime]

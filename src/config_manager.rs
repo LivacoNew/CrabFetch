@@ -261,7 +261,8 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("terminal.title", "Terminal").unwrap();
 
     builder = builder.set_default("shell.title", "Shell").unwrap();
-    builder = builder.set_default("shell.format", "{shell} ({path})").unwrap();
+    builder = builder.set_default("shell.format", "{shell}").unwrap();
+    builder = builder.set_default("shell.show_default_shell", "false").unwrap();
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
     builder = builder.set_default("uptime.format", "{hours}h {minutes}m {seconds}s").unwrap();
@@ -604,6 +605,9 @@ title = "Shell"
 # {shell} -> The name of the shell, e.g zsh
 # {path} -> The path of the shell, e.g /bin/zsh
 format = "{shell} ({path})"
+
+# Whether to show your default shell, instead of your current shell.
+show_default_shell = false
 
 
 [uptime]

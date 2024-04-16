@@ -244,7 +244,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("mounts.format", "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)").unwrap();
     builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
 
-    builder = builder.set_default("host.title", "host").unwrap();
+    builder = builder.set_default("host.title", "Host").unwrap();
 
     builder = builder.set_default("displays.title", "Display {name}").unwrap();
     builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz").unwrap();

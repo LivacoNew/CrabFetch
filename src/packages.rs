@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path, time::Instant};
+use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -168,17 +168,56 @@ fn process_flatpak_packages() -> Option<u64> {
 }
 fn process_dpkg_packages() -> Option<u64> {
     // This counts all the ok entries in /var/lib/dpkg/status
-    let file: File = match File::open("/var/lib/dpkg/status") {
+    // This is extremely highly over-optimised, I'm comparing the raw bytes opposed to converting
+    // to strings or whatever as the file is so large I need as much raw performance as possible
+    // All of this took the legacy function (down below) from 7ms to 3ms in this new function
+    let mut result: u64 = 0;
+    let file_bytes: Vec<u8> = fs::read("/var/lib/dpkg/status").unwrap();
+    let target_bytes: Vec<u8> = vec![83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100];
+
+    let mut count = 0;
+    for y in file_bytes {
+        if y == target_bytes[count] {
+            count += 1;
+            if count == (target_bytes.len() - 1) {
+                result += 1;
+                count = 0;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    // Some(_process_dpkg_packages_legacy().unwrap())
+    Some(result)
+}
+// This does the same as above, but in a more sensible way
+// This is just for me checking if any changes I've done to the above are valid, as I don't trust
+// myself nevermind my code
+fn _process_dpkg_packages_legacy() -> Option<u64> {
+    // This counts all the ok entries in /var/lib/dpkg/status
+    let dpkg_status_path: &Path = Path::new("/var/lib/dpkg/status");
+    if !dpkg_status_path.exists() {
+        return None
+    }
+
+    let mut file: File = match File::open(dpkg_status_path) {
         Ok(r) => r,
         Err(_) => {
             return None
         },
     };
+    let mut contents: String = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => {},
+        Err(_) => {
+            return None
+        },
+    }
 
     let mut result: u64 = 0;
-    let buffer: BufReader<File> = BufReader::new(file);
-    for line in buffer.lines() {
-        if !line.unwrap().contains("Status: install ok installed") {
+    for entry in contents.split("\n") {
+        if !entry.contains("Status: install ok installed") {
             continue
         }
         result += 1;

@@ -69,10 +69,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
     let mut displays: Vec<DisplayInfo> = Vec::new();
 
     // (Thanks to FastFetch's SC for hinting the existance of edid to me and https://www.extron.com/article/uedid for a actual explanation for what it is)
-    // - Find all /sys/class/drm/card-* folders
-    // - Check for a "enabled" file and ensure it reads "enabled"
-    // - "status" file gives if it's connected or not
-    // - if it is connected, go into "edid" and parse it
+    // And to address the elephant in the room, yes this is a cheap and not technically correct way to do this. Unfortunately I don't have the knowledge, time nor patience to write a display server connection just for some resolution details.
 
     // Find all /sys/class/drm/ folders and scan for any that read card*-*
     let dir: ReadDir = match read_dir("/sys/class/drm") {
@@ -135,6 +132,12 @@ pub fn get_displays() -> Vec<DisplayInfo> {
                 continue
             },
         };
+        if edid_bytes.len() == 0 {
+            // This can happen in VM's, meaning no display output. Cus of this, I just push the
+            // display empty
+            displays.push(display);
+            continue
+        }
 
         // DTD starts at byte 54
         // Formula thanks to https://stackoverflow.com/a/10299885 and https://stackoverflow.com/a/4476144

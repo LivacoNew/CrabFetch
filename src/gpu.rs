@@ -256,7 +256,7 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         // Finally, Vram
         let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
             Ok(r) => r,
-            Err(e) => {
+            Err(_) => {
                 // dw about it, this can happen on VM's for some reason
                 return
             },

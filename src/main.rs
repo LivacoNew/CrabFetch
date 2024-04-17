@@ -184,7 +184,7 @@ fn main() {
     if modules.contains(&"mounts".to_string()) {
         mounts = Some(mounts::get_mounted_drives());
         mounts.as_mut().unwrap().retain(|x| !x.is_ignored());
-        module_count += 1;
+        module_count += mounts.as_ref().unwrap().len() - 1
     }
 
     // AND displays

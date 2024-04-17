@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, path::Path};
 
 use serde::Deserialize;
 
@@ -60,11 +60,23 @@ impl Module for HostInfo {
 pub fn get_host() -> HostInfo {
     let mut host: HostInfo = HostInfo::new();
 
-    // Uses /sys/devices/virtual/dmi/id/board_name
-    let mut file: File = match File::open("/sys/devices/virtual/dmi/id/board_name") {
+    // Prioritises product_name for laptops, then goes to board_name
+    let mut chosen_path: Option<&str> = None;
+    if Path::new("/sys/devices/virtual/dmi/id/product_name").exists() {
+        chosen_path = Some("/sys/devices/virtual/dmi/id/product_name");
+    } else if Path::new("/sys/devices/virtual/dmi/id/board_name").exists() {
+        chosen_path = Some("/sys/devices/virtual/dmi/id/board_name");
+    }
+    if chosen_path.is_none() {
+        log_error("Host", "Can't find an appropriate path for host.".to_string());
+        return host
+    }
+    let chosen_path: &str = chosen_path.unwrap();
+
+    let mut file: File = match File::open(chosen_path) {
         Ok(r) => r,
         Err(e) => {
-            log_error("Host", format!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e));
+            log_error("Host", format!("Can't read from {} - {}", chosen_path, e));
             return host
         },
     };
@@ -72,7 +84,7 @@ pub fn get_host() -> HostInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            log_error("Host", format!("Can't read from /sys/devices/virtual/dmi/id/board_name - {}", e));
+            log_error("Host", format!("Can't read from {} - {}", chosen_path, e));
             return host
         },
     }

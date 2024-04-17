@@ -50,13 +50,18 @@ impl Module for SwapInfo {
     }
 
     fn replace_placeholders(&self) -> String {
+        let swap_percent: String = if self.total_kib != 0 {
+            SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2).to_string()
+        } else {
+            "0".to_string()
+        };
         CONFIG.swap.format.replace("{used_kib}", &self.used_kib.to_string())
             .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
             .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
             .replace("{total_kib}", &self.total_kib.to_string())
             .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
             .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
-            .replace("{percent}", &SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2).to_string())
+            .replace("{percent}", &swap_percent)
     }
 }
 

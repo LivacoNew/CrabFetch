@@ -257,8 +257,8 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
             Ok(r) => r,
             Err(e) => {
-                log_error("GPU", format!("Failed to open file {}: {}", d.path().join("mem_info_vram_total").to_str().unwrap(), e));
-                continue;
+                // dw about it, this can happen on VM's for some reason
+                return
             },
         };
         let mut vram_str: String = String::new();

@@ -123,15 +123,9 @@ pub fn get_packages() -> PackagesInfo {
 
 // Credit for Pacman, Flatpak and dpkg detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
 fn process_pacman_packages() -> Option<u64> {
-    let pacman_path: &Path = Path::new("/var/lib/pacman/local");
-    if !pacman_path.exists() {
-        return None
-    }
-
-    let dir: ReadDir = match read_dir(pacman_path) {
+    let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
         Ok(r) => r,
         Err(_) => {
-            // Silent error!
             return None
         },
     };
@@ -140,31 +134,25 @@ fn process_pacman_packages() -> Option<u64> {
 }
 fn process_flatpak_packages() -> Option<u64> {
     // This counts everything in /app and /runtime
-    let flatpak_apps_path: &Path = Path::new("/var/lib/flatpak/app");
-    if !flatpak_apps_path.exists() {
-        return None
-    }
-    let flatpak_apps_dir: ReadDir = match read_dir(flatpak_apps_path) {
+    let mut result: usize = 0;
+
+    let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
         Ok(r) => r,
         Err(_) => {
             return None
         },
     };
-    let flatpak_apps: u64 = flatpak_apps_dir.count() as u64;
+    result += flatpak_apps_dir.count();
 
-    let flatpak_runtime_path: &Path = Path::new("/var/lib/flatpak/runtime");
-    if !flatpak_runtime_path.exists() {
-        return None
-    }
-    let flatpak_runtime_dir: ReadDir = match read_dir(flatpak_runtime_path) {
+    let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
         Ok(r) => r,
         Err(_) => {
             return None
         },
     };
-    let flatpak_runtime: u64 = flatpak_runtime_dir.count() as u64;
+    result += flatpak_runtime_dir.count();
 
-    Some(flatpak_apps + flatpak_runtime)
+    Some(result as u64)
 }
 fn process_dpkg_packages() -> Option<u64> {
     // This counts all the ok entries in /var/lib/dpkg/status

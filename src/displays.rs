@@ -1,10 +1,9 @@
 use core::str;
-use std::{env, process::Command, io::ErrorKind::NotFound};
+use std::{fs::{read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Split};
 
 use serde::Deserialize;
-use serde_json::Value;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::CrabFetchColor, Module, CONFIG};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -69,251 +68,66 @@ impl Module for DisplayInfo {
 pub fn get_displays() -> Vec<DisplayInfo> {
     let mut displays: Vec<DisplayInfo> = Vec::new();
 
-    let desktop = match env::var("XDG_CURRENT_DESKTOP") {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e));
-            "Unknown".to_string()
-        }
-    };
-    // KDE support
-    if desktop == "KDE" {
-        displays = match parse_kscreen_doctor() {
-            Some(r) => r,
-            None => Vec::new(),
-        };
-    } else {
-        // Check if we're in x11 or wayland
-        let session_type: Option<String> = match env::var("XDG_SESSION_TYPE") {
-            Ok(r) => Some(r),
-            Err(e) => {
-                log_error("Displays", format!("Could not parse $XDG_SESSION_TYPE env variable: {}", e));
-                None
-            }
-        };
+    // (Thanks to FastFetch's SC for hinting the existance of edid to me and https://www.extron.com/article/uedid for a actual explanation for what it is)
+    // - Find all /sys/class/drm/card-* folders
+    // - Check for a "enabled" file and ensure it reads "enabled"
+    // - "status" file gives if it's connected or not
+    // - if it is connected, go into "edid" and parse it
 
-        match session_type {
-            Some(r) => {
-                match r.as_str() {
-                    "x11" => {
-                        displays = match parse_xrandr() {
-                            Some(r) => r,
-                            None => Vec::new(),
-                        };
-                    }
-                    "wayland" => {
-                        // TODO: This only works on wlroots
-                        displays = match parse_wlr_randr() {
-                            Some(r) => r,
-                            None => Vec::new(),
-                        };
-                    }
-                    _ => {
-                        log_error("Displays", format!("Unknown display server."));
-                        return displays
-                    }
-                }
+    // Find all /sys/class/drm/ folders and scan for any that read card*-*
+    let dir: ReadDir = match read_dir("/sys/class/drm") {
+        Ok(r) => r,
+        Err(_) => {
+            return displays
+        },
+    };
+    for d in dir {
+        let mut display: DisplayInfo = DisplayInfo::new();
+
+        if d.is_err() {
+            continue
+        }
+        let path: PathBuf = d.unwrap().path();
+        let file_name: &str = match path.file_name() {
+            Some(r) => r.to_str().unwrap(),
+            None => "",
+        };
+        if !file_name.starts_with("card") || !file_name.contains('-') || file_name.contains("Writeback") {
+            continue
+        }
+
+        // We've confirmed it's a valid display, now we check it's enabled
+        let enabled_path: PathBuf = path.join("enabled");
+        if !enabled_path.exists() {
+            continue
+        }
+        let mut enabled_file: File = match File::open(enabled_path) {
+            Ok(f) => f,
+            Err(_) => {
+                continue
             },
-            None => {
-                log_error("Displays", format!("Unknown display server."));
-                return displays
+        };
+        let mut contents: String = String::new();
+        match enabled_file.read_to_string(&mut contents) {
+            Ok(_) => {},
+            Err(_) => {
+                continue
             },
         }
+        if contents.trim() != "enabled" {
+            continue
+        }
+
+        // Display Name
+        let mut file_name_split: Split<'_, &str> = file_name.split("-");
+        file_name_split.next();
+        display.name = file_name_split.collect::<Vec<&str>>().join("-");
+
+        // And now the hard part; edid
+
+
+        displays.push(display);
     }
 
     displays
-}
-
-fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
-    let output: Vec<u8> = match Command::new("xrandr")
-        .output() {
-            Ok(r) => r.stdout,
-            Err(e) => {
-                if NotFound == e.kind() {
-                    log_error("Displays", format!("Display on x11 requires the 'xrandr' command, which is not present!"));
-                } else {
-                    log_error("Displays", format!("Unknown error while fetching x11 displays: {}", e));
-                }
-
-                return None
-            },
-        };
-    let contents: String = match String::from_utf8(output) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Unknown error while fetching x11 displays: {}", e));
-            return None
-        },
-    };
-
-    let mut result: Vec<DisplayInfo> = Vec::new();
-
-    // This is really fuckin annoying to parse
-    let mut last_display_index: usize = 0;
-    for line in contents.split("\n") {
-        if line.contains("disconnected") {
-            continue;
-        }
-        if !line.contains("connected") {
-            if !line.contains("*") {
-                continue
-            }
-            if last_display_index == 0 {
-                continue // oops
-            }
-
-            // Likely our last display's mode, meaning we get the refresh rate here
-            let mut mode: Vec<&str> = line.split(" ").collect();
-            mode.retain(|x| x.trim() != "");
-            let mut rate: String = mode[1].to_string();
-            rate = rate.replace("*", "");
-            rate = rate.replace("+", "");
-
-            result[last_display_index - 1].refresh_rate = rate.parse::<f32>().unwrap().round() as u32;
-            continue
-        }
-
-        let values: Vec<&str> = line.split(" ").collect();
-        let mut display = DisplayInfo::new();
-
-        // Resolution
-        let resolution_raw = match values[2] {
-            "primary" => values[3],
-            _ => values[2]
-        };
-        let resolution_str: Vec<&str> = resolution_raw[0..resolution_raw.find("+").unwrap()].split("x").collect();
-        display.width = resolution_str[0].parse().unwrap();
-        display.height = resolution_str[1].parse().unwrap();
-
-        // Name
-        display.name = values[0].to_string();
-
-        result.push(display);
-        last_display_index = result.len();
-    }
-
-    Some(result)
-}
-
-fn parse_wlr_randr() -> Option<Vec<DisplayInfo>> {
-    let output: Vec<u8> = match Command::new("wlr-randr")
-        .arg("--json") // GOD BLESS
-        .output() {
-            Ok(r) => r.stdout,
-            Err(e) => {
-                if NotFound == e.kind() {
-                    log_error("Displays", format!("Display on wlroots requires the 'wlr-randr' command, which is not present!"));
-                } else {
-                    log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
-                }
-
-                return None
-            },
-        };
-    let contents: String = match String::from_utf8(output) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
-            return None
-        },
-    };
-
-    let mut result: Vec<DisplayInfo> = Vec::new();
-
-    let parsed: Vec<Value> = match serde_json::from_str(&contents) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Unknown error while fetching wlroots displays: {}", e));
-            return None
-        },
-    };
-
-    for entry in parsed {
-        // threw error checking out the window here, fuck that
-        let mut display = DisplayInfo::new();
-
-        // Resolution
-        let modes: &Vec<Value> = entry["modes"].as_array().unwrap();
-        for mode in modes {
-            if !mode["current"].as_bool().unwrap() {
-                continue
-            }
-
-            display.width = mode["width"].as_u64().unwrap();
-            display.height = mode["height"].as_u64().unwrap();
-            display.refresh_rate = mode["refresh"].as_f64().unwrap().round() as u32; // also stinky
-        }
-
-        // Name
-        display.name = entry["name"].as_str().unwrap().to_string();
-
-        result.push(display);
-    }
-
-    Some(result)
-}
-
-fn parse_kscreen_doctor() -> Option<Vec<DisplayInfo>> {
-    let output: Vec<u8> = match Command::new("kscreen-doctor")
-        .arg("--json")
-        .output() {
-            Ok(r) => r.stdout,
-            Err(e) => {
-                if NotFound == e.kind() {
-                    log_error("Displays", format!("Display on KDE requires the 'kscreen-doctor' command, which is not present!"));
-                } else {
-                    log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
-                }
-
-                return None
-            },
-        };
-    let contents: String = match String::from_utf8(output) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
-            return None
-        },
-    };
-
-    let mut result: Vec<DisplayInfo> = Vec::new();
-
-    let parsed: Value = match serde_json::from_str(&contents) {
-        Ok(r) => r,
-        Err(e) => {
-            log_error("Displays", format!("Unknown error while fetching KDE displays: {}", e));
-            return None
-        },
-    };
-
-
-    let outputs: &Vec<Value> = &parsed["outputs"].as_array().unwrap();
-    for output in outputs {
-        let mut display = DisplayInfo::new();
-        if !output["enabled"].as_bool().unwrap() {
-            continue
-        }
-
-        // Name
-        display.name = (&output["name"]).as_str().unwrap().to_string();
-
-        let current_mode: &str = output["currentModeId"].as_str().unwrap();
-        for mode in output["modes"].as_array().unwrap() {
-            if mode["id"] != current_mode {
-                continue
-            }
-
-            // Resolution
-            let size: &Value = &mode["size"];
-            display.width = size["width"].as_u64().unwrap();
-            display.height = size["height"].as_u64().unwrap();
-
-            // Refresh Rate
-            display.refresh_rate = mode["refreshRate"].as_f64().unwrap().round() as u32;
-        }
-
-        result.push(display);
-    }
-
-    Some(result)
 }

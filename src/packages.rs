@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{read_dir, File, ReadDir}, io::Read, path::Path};
+use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path, time::Instant};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -168,28 +168,17 @@ fn process_flatpak_packages() -> Option<u64> {
 }
 fn process_dpkg_packages() -> Option<u64> {
     // This counts all the ok entries in /var/lib/dpkg/status
-    let dpkg_status_path: &Path = Path::new("/var/lib/dpkg/status");
-    if !dpkg_status_path.exists() {
-        return None
-    }
-
-    let mut file: File = match File::open(dpkg_status_path) {
+    let file: File = match File::open("/var/lib/dpkg/status") {
         Ok(r) => r,
         Err(_) => {
             return None
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(_) => {
-            return None
-        },
-    }
 
     let mut result: u64 = 0;
-    for entry in contents.split("\n") {
-        if !entry.contains("Status: install ok installed") {
+    let buffer: BufReader<File> = BufReader::new(file);
+    for line in buffer.lines() {
+        if !line.unwrap().contains("Status: install ok installed") {
             continue
         }
         result += 1;

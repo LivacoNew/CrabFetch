@@ -129,7 +129,6 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         // The only disadvantage here is that we can't get the *current* resolution, only the max
         // res but I'm fine with that
 
-        println!("{:?}", path.join("edid"));
         let edid_bytes: Vec<u8> = match fs::read(path.join("edid")) {
             Ok(r) => r,
             Err(_) => {
@@ -147,18 +146,10 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         // Refresh rate now, this is grabbed from the Pixel Clock
         // Credit for the formula: https://electronics.stackexchange.com/a/492180
         let pixel_clock: u64 = u64::from(edid_bytes[54]) << 8 | u64::from(edid_bytes[55]) * 10000000;
-
-        // Total horizontal blanking
-        let blanking_w: u32 = (u32::from(edid_bytes[63]) | u32::from((edid_bytes[65]) & 0b00110000) << 4) +     // Pulse Width
-            (u32::from(edid_bytes[57]) | (u32::from(edid_bytes[58]) & 0b00001111) << 8) +                       // Horizontal Blanking
-            (u32::from(edid_bytes[62]) | u32::from(edid_bytes[65] >> 6));                                       // Front Porch
-
-        let blanking_h: u32 = (u32::from(edid_bytes[64] & 0b0000) | u32::from(edid_bytes[65] & 0b00000011) << 4) +      // Pulse Width
-            (u32::from(edid_bytes[60]) | (u32::from(edid_bytes[61]) & 0b00001111) << 8) +                               // Vertical Blanking
-            (u32::from(edid_bytes[64] >> 4) | u32::from(edid_bytes[65] & 0b00001100) << 2);                             // Front Porch
+        let blanking_w: u32 = u32::from(edid_bytes[57]) | (u32::from(edid_bytes[58]) & 0b00001111) << 8;
+        let blanking_h: u32 = u32::from(edid_bytes[60]) | (u32::from(edid_bytes[61]) & 0b00001111) << 8;
 
         let total_pixels: u64 = (resolution_w as u64 + blanking_w as u64) * (resolution_h as u64 + blanking_h as u64);
-        // println!("{}", blanking_percent * 100.0);
         let refresh_rate: u32 = (pixel_clock / total_pixels) as u32;
         display.refresh_rate = refresh_rate;
 

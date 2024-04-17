@@ -151,6 +151,9 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
     // This is really fuckin annoying to parse
     let mut last_display_index: usize = 0;
     for line in contents.split("\n") {
+        if line.contains("disconnected") {
+            continue;
+        }
         if !line.contains("connected") {
             if !line.contains("*") {
                 continue
@@ -174,8 +177,11 @@ fn parse_xrandr() -> Option<Vec<DisplayInfo>> {
         let mut display = DisplayInfo::new();
 
         // Resolution
-        // let resolution_str_full: &str = values[2];
-        let resolution_str: Vec<&str> = values[2][0..values[2].find("+").unwrap()].split("x").collect();
+        let resolution_raw = match values[2] {
+            "primary" => values[3],
+            _ => values[2]
+        };
+        let resolution_str: Vec<&str> = resolution_raw[0..resolution_raw.find("+").unwrap()].split("x").collect();
         display.width = resolution_str[0].parse().unwrap();
         display.height = resolution_str[1].parse().unwrap();
 

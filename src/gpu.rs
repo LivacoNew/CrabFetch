@@ -307,7 +307,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
     let mut device_result: String = String::new();
     // Find the vendor ID + device in the list
     let vendor_term: String = String::from(vendor);
-    let dev_term: String = String::from(device);
+    let dev_term: String = String::from('\t') + device;
     let mut in_vendor: bool = false;
     for line in contents.split("\n") {
         if line.trim().starts_with("#") {
@@ -318,17 +318,18 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
             in_vendor = line.chars().next().unwrap().is_whitespace();
         }
 
-        let line: &str = line.trim();
-
         if line.starts_with(&vendor_term) && vendor_result.is_empty() {
             // Assume the first hit of this is our full vendor name
-            vendor_result = line[4..].trim().to_string();
+            vendor_result = line[vendor_term.len()..].trim().to_string();
             in_vendor = true;
-        }
-        if line.starts_with(&dev_term) && in_vendor {
+        } else if line.starts_with(&dev_term) && in_vendor {
             // And here's the device name
-            device_result = line[4..].trim().to_string();
+            device_result = line[dev_term.len()..].trim().to_string();
         }
+    }
+
+    if device_result.is_empty() {
+        device_result += device;
     }
 
     (vendor_result.to_string(), device_result.to_string())

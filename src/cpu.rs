@@ -165,7 +165,11 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     }
 
     if freq_path.is_none() {
-        log_error("CPU", format!("Could not find an appropriate path for getting max CPU Frequency."));
+        // Back up to the repoted value in /proc/cpuinfo
+        // At this point all I can assume is your in a VM, which doesn't have any of the above
+        // paths and seems to keep a steady CPU frequency in here instead
+        // Not the most elegant thing but I can't seem to find anything else to do
+        cpu.max_clock_mhz = cpu.current_clock_mhz;
         return
     }
 

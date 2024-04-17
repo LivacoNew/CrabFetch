@@ -160,7 +160,12 @@ fn process_dpkg_packages() -> Option<u64> {
     // to strings or whatever as the file is so large I need as much raw performance as possible
     // All of this took the legacy function (down below) from 7ms to 3ms in this new function
     let mut result: u64 = 0;
-    let file_bytes: Vec<u8> = fs::read("/var/lib/dpkg/status").unwrap();
+    let file_bytes: Vec<u8> = match fs::read("/var/lib/dpkg/status") {
+        Ok(r) => r,
+        Err(_) => {
+            return None
+        },
+    };
     let target_bytes: Vec<u8> = vec![83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100];
 
     let mut count = 0;

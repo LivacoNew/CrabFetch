@@ -49,7 +49,7 @@ underline_character = '―'
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
 # Whether to supress any errors that come or not
-suppress_errors = true
+suppress_errors = false
 
 
 [ascii]

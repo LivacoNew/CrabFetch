@@ -279,6 +279,8 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
     let mut ids_path: Option<&str> = None;
     if Path::new("/usr/share/hwdata/pci.ids").exists() {
         ids_path = Some("/usr/share/hwdata/pci.ids");
+    } else if Path::new("/usr/share/misc/pci.ids").exists() {
+        ids_path = Some("/usr/share/misc/pci.ids");
     }
 
     if ids_path.is_none() {

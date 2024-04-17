@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, fs::File, io::Read};
+use std::{env, fs::File, io::Read, process::Command};
 
 use serde::Deserialize;
 
@@ -70,20 +70,47 @@ pub fn get_hostname() -> HostnameInfo {
     // Hostname
     let mut file: File = match File::open("/etc/hostname") {
         Ok(r) => r,
-        Err(e) => {
-            log_error("Hostname", format!("Can't read from /etc/hostname - {}", e));
-            return hostname
+        Err(_) => {
+            backup_to_hostname_command(&mut hostname);
+            return hostname;
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            log_error("Hostname", format!("Can't read from /etc/hostname - {}", e));
+        Err(_) => {
+            backup_to_hostname_command(&mut hostname);
             return hostname
         },
     }
-    hostname.hostname = contents.trim().to_string();
+    if contents.trim().is_empty() {
+        backup_to_hostname_command(&mut hostname);
+    } else {
+        hostname.hostname = contents.trim().to_string();
+    }
 
     hostname
+}
+
+fn backup_to_hostname_command(hostname: &mut HostnameInfo) {
+    // If /etc/hostname is fucked, it'll come here
+    // This method is requried e.g in a default fedora install, where they don't bother filling out
+    // the /etc/hostname file
+    let output: Vec<u8> = match Command::new("hostname")
+        .output() {
+            Ok(r) => r.stdout,
+            Err(_) => {
+                // fuck it
+                log_error("Hostname", format!("Can't find hostname source."));
+                return
+            },
+        };
+
+    hostname.hostname = match String::from_utf8(output) {
+        Ok(r) => r.trim().to_string(),
+        Err(_) => {
+            log_error("Hostname", format!("Can't find hostname source."));
+            return
+        },
+    };
 }

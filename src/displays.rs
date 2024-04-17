@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Split};
+use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Split};
 
 use serde::Deserialize;
 
@@ -123,8 +123,44 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         file_name_split.next();
         display.name = file_name_split.collect::<Vec<&str>>().join("-");
 
-        // And now the hard part; edid
+        // And now the hard part; edid - If this is wrong let me know and point me in the right
+        // direction, as I've never worked with this before
+        // HUGE thanks to this lovely document https://glenwing.github.io/docs/VESA-EEDID-A2.pdf
+        // The only disadvantage here is that we can't get the *current* resolution, only the max
+        // res but I'm fine with that
 
+        println!("{:?}", path.join("edid"));
+        let edid_bytes: Vec<u8> = match fs::read(path.join("edid")) {
+            Ok(r) => r,
+            Err(_) => {
+                continue
+            },
+        };
+
+        // DTD starts at byte 54
+        // Formula thanks to https://stackoverflow.com/a/10299885 and https://stackoverflow.com/a/4476144
+        let resolution_w: u32 = (u32::from(edid_bytes[58]) >> 4) << 8 | u32::from(edid_bytes[56]);
+        let resolution_h: u32 = (u32::from(edid_bytes[61]) >> 4) << 8 | u32::from(edid_bytes[59]);
+        display.width = resolution_w as u64;
+        display.height = resolution_h as u64;
+
+        // Refresh rate now, this is grabbed from the Pixel Clock
+        // Credit for the formula: https://electronics.stackexchange.com/a/492180
+        let pixel_clock: u64 = u64::from(edid_bytes[54]) << 8 | u64::from(edid_bytes[55]) * 10000000;
+
+        // Total horizontal blanking
+        let blanking_w: u32 = (u32::from(edid_bytes[63]) | u32::from((edid_bytes[65]) & 0b00110000) << 4) +     // Pulse Width
+            (u32::from(edid_bytes[57]) | (u32::from(edid_bytes[58]) & 0b00001111) << 8) +                       // Horizontal Blanking
+            (u32::from(edid_bytes[62]) | u32::from(edid_bytes[65] >> 6));                                       // Front Porch
+
+        let blanking_h: u32 = (u32::from(edid_bytes[64] & 0b0000) | u32::from(edid_bytes[65] & 0b00000011) << 4) +      // Pulse Width
+            (u32::from(edid_bytes[60]) | (u32::from(edid_bytes[61]) & 0b00001111) << 8) +                               // Vertical Blanking
+            (u32::from(edid_bytes[64] >> 4) | u32::from(edid_bytes[65] & 0b00001100) << 2);                             // Front Porch
+
+        let total_pixels: u64 = (resolution_w as u64 + blanking_w as u64) * (resolution_h as u64 + blanking_h as u64);
+        // println!("{}", blanking_percent * 100.0);
+        let refresh_rate: u32 = (pixel_clock / total_pixels) as u32;
+        display.refresh_rate = refresh_rate;
 
         displays.push(display);
     }

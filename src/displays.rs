@@ -139,21 +139,27 @@ pub fn get_displays() -> Vec<DisplayInfo> {
             continue
         }
 
+        // println!("Monitor {}", display.name);
         // DTD starts at byte 54
         // Formula thanks to https://stackoverflow.com/a/10299885 and https://stackoverflow.com/a/4476144
         let resolution_w: u32 = (u32::from(edid_bytes[58]) >> 4) << 8 | u32::from(edid_bytes[56]);
         let resolution_h: u32 = (u32::from(edid_bytes[61]) >> 4) << 8 | u32::from(edid_bytes[59]);
         display.width = resolution_w as u64;
         display.height = resolution_h as u64;
+        // println!("  Resolution: {}x{}", display.width, display.height);
 
         // Refresh rate now, this is grabbed from the Pixel Clock
         // Credit for the formula: https://electronics.stackexchange.com/a/492180
-        let pixel_clock: u64 = u64::from(edid_bytes[54]) << 8 | u64::from(edid_bytes[55]) * 10000000;
+        let pixel_clock: u64 = (u64::from(edid_bytes[54]) | u64::from(edid_bytes[55]) << 8) * 10000;
         let blanking_w: u32 = u32::from(edid_bytes[57]) | (u32::from(edid_bytes[58]) & 0b00001111) << 8;
         let blanking_h: u32 = u32::from(edid_bytes[60]) | (u32::from(edid_bytes[61]) & 0b00001111) << 8;
+        // println!("  Pixel Clock: {}", pixel_clock);
+        // println!("  Blanking Pixels: {}x{}", blanking_w, blanking_h);
 
         let total_pixels: u64 = (resolution_w as u64 + blanking_w as u64) * (resolution_h as u64 + blanking_h as u64);
         let refresh_rate: u32 = (pixel_clock / total_pixels) as u32;
+        // println!("  Total Pixels: {}", total_pixels);
+        // println!("  Refresh Rate: {}", refresh_rate);
         display.refresh_rate = refresh_rate;
 
         displays.push(display);

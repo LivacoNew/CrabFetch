@@ -117,6 +117,10 @@ pub fn get_packages() -> PackagesInfo {
         Some(r) => {packages.packages.push(ManagerInfo::fill("dpkg", r));},
         None => {}
     };
+    match process_rpm_packages() {
+        Some(r) => {packages.packages.push(ManagerInfo::fill("rpm", r));},
+        None => {}
+    };
 
     packages
 }
@@ -217,4 +221,29 @@ fn _process_dpkg_packages_legacy() -> Option<u64> {
     }
 
     Some(result)
+}
+
+fn process_rpm_packages() -> Option<u64> {
+    let mut result: u64 = 0;
+
+    // Expected in my test env: 1981
+    // Grabs from /var/lib/rpm/rpmdb.sqlite
+    let db: sqlite::Connection = match sqlite::open("/var/lib/rpm/rpmdb.sqlite") {
+        Ok(r) => r,
+        Err(_) => {
+            return None
+        },
+    };
+    match db.iterate("SELECT COUNT(1) FROM `Packages`;", |v| {
+        if v[0].1.is_some() {
+            result = match v[0].1.unwrap().parse() {
+                Ok(r) => r,
+                Err(_) => {return false},
+            };
+        }
+        true
+    }) {
+        Ok(_) => Some(result),
+        Err(_) => None,
+    }
 }

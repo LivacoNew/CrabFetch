@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, ARGS};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -266,7 +266,11 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("battery.format", "{percentage}%").unwrap();
     builder = builder.set_default("battery.path", "BAT0").unwrap();
 
-
+    // Check for any module overrides
+    if ARGS.module_override.is_some() {
+        let module_override: String = ARGS.module_override.clone().unwrap();
+        builder = builder.set_override("modules", module_override.split(',').collect::<Vec<&str>>()).unwrap();
+    }
 
     // Now stop.
     let config: Config = match builder.build() {
@@ -274,10 +278,13 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
 
+
     let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
         Ok(r) => r,
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
+
+
     deserialized
 }
 

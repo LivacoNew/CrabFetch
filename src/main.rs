@@ -55,6 +55,11 @@ pub struct Args {
     #[arg(short, long, require_equals(true), default_missing_value("true"), default_value("true"), action=ArgAction::Set)]
     /// Whether to suppress any errors or not.
     suppress_errors: bool,
+
+    #[arg(long)]
+    /// Overrides the modules set in your config file. This should be a comma seperated list of
+    /// modules. E.g cpu,gpu,underline:16,title
+    module_override: Option<String>
 }
 
 fn calc_max_title_length() -> u64 {

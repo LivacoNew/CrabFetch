@@ -225,9 +225,7 @@ fn main() {
             let module: String = module_split[0].to_string();
             // print!("{}", module);
             match module.as_str() {
-                "space" => {
-                    print!("");
-                },
+                "space" => print!(""),
                 "underline" => {
                     let underline_length: u16 = module_split[1].parse().unwrap();
                     for _ in 0..underline_length {
@@ -244,24 +242,12 @@ fn main() {
                     print!("{}", str);
                 }
 
-                "hostname" => {
-                    print!("{}", hostname::get_hostname().style());
-                },
-                "cpu" => {
-                    print!("{}", cpu::get_cpu().style());
-                },
-                "gpu" => {
-                    print!("{}", gpu::get_gpu().style());
-                },
-                "memory" => {
-                    print!("{}", memory::get_memory().style());
-                }
-                "host" => {
-                    print!("{}", host::get_host().style());
-                },
-                "swap" => {
-                    print!("{}", swap::get_swap().style());
-                }
+                "hostname" => print!("{}", hostname::get_hostname().style()),
+                "cpu" => print!("{}", cpu::get_cpu().style()),
+                "gpu" => print!("{}", gpu::get_gpu().style()),
+                "memory" => print!("{}", memory::get_memory().style()),
+                "host" => print!("{}", host::get_host().style()),
+                "swap" => print!("{}", swap::get_swap().style()),
                 "mounts" => {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
@@ -274,24 +260,12 @@ fn main() {
                         }
                     }
                 }
-                "os" => {
-                    print!("{}", os.style());
-                }
-                "packages" => {
-                    print!("{}", packages::get_packages().style());
-                }
-                "desktop" => {
-                    print!("{}", desktop::get_desktop().style());
-                }
-                "terminal" => {
-                    print!("{}", terminal::get_terminal().style());
-                },
-                "shell" => {
-                    print!("{}", shell::get_shell().style());
-                }
-                "uptime" => {
-                    print!("{}", uptime::get_uptime().style());
-                }
+                "os" => print!("{}", os.style()),
+                "packages" => print!("{}", packages::get_packages().style()),
+                "desktop" => print!("{}", desktop::get_desktop().style()),
+                "terminal" => print!("{}", terminal::get_terminal().style()),
+                "shell" => print!("{}", shell::get_shell().style()),
+                "uptime" => print!("{}", uptime::get_uptime().style()),
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
@@ -304,9 +278,7 @@ fn main() {
                         }
                     }
                 }
-                "battery" => {
-                    print!("{}", battery::get_battery().style());
-                }
+                "battery" => print!("{}", battery::get_battery().style()),
                 "colors" => {
                     let str = "   ";
                     print!("{}", str.on_black());
@@ -329,9 +301,7 @@ fn main() {
                     print!("{}", str.on_bright_cyan());
                     print!("{}", str.on_bright_white());
                 }
-                _ => {
-                    print!("Unknown module: {}", module);
-                }
+                _ => print!("Unknown module: {}", module),
             }
         }
         line_number = line_number + 1;

@@ -74,9 +74,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
     // Find all /sys/class/drm/ folders and scan for any that read card*-*
     let dir: ReadDir = match read_dir("/sys/class/drm") {
         Ok(r) => r,
-        Err(_) => {
-            return displays
-        },
+        Err(_) => return displays,
     };
     for d in dir {
         let mut display: DisplayInfo = DisplayInfo::new();
@@ -100,16 +98,12 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         }
         let mut enabled_file: File = match File::open(enabled_path) {
             Ok(f) => f,
-            Err(_) => {
-                continue
-            },
+            Err(_) => continue,
         };
         let mut contents: String = String::new();
         match enabled_file.read_to_string(&mut contents) {
             Ok(_) => {},
-            Err(_) => {
-                continue
-            },
+            Err(_) => continue,
         }
         if contents.trim() != "enabled" {
             continue
@@ -128,9 +122,7 @@ pub fn get_displays() -> Vec<DisplayInfo> {
 
         let edid_bytes: Vec<u8> = match fs::read(path.join("edid")) {
             Ok(r) => r,
-            Err(_) => {
-                continue
-            },
+            Err(_) => continue,
         };
         if edid_bytes.len() == 0 {
             // This can happen in VM's, meaning no display output. Cus of this, I just push the

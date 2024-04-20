@@ -190,9 +190,7 @@ fn get_max_clock(cpu: &mut CPUInfo) {
     }
 
     match contents.trim().parse::<f32>() {
-        Ok(r) => {
-            cpu.max_clock_mhz = r / 1000.0
-        },
+        Ok(r) => cpu.max_clock_mhz = r / 1000.0,
         Err(_) => {}
     };
 }

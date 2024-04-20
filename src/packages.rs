@@ -106,19 +106,19 @@ pub fn get_packages() -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
     match process_pacman_packages() {
-        Some(r) => {packages.packages.push(ManagerInfo::fill("pacman", r));},
+        Some(r) => packages.packages.push(ManagerInfo::fill("pacman", r)),
         None => {}
     };
     match process_flatpak_packages() {
-        Some(r) => {packages.packages.push(ManagerInfo::fill("flatpak", r));},
+        Some(r) => packages.packages.push(ManagerInfo::fill("flatpak", r)),
         None => {}
     };
     match process_dpkg_packages() {
-        Some(r) => {packages.packages.push(ManagerInfo::fill("dpkg", r));},
+        Some(r) => packages.packages.push(ManagerInfo::fill("dpkg", r)),
         None => {}
     };
     match process_rpm_packages() {
-        Some(r) => {packages.packages.push(ManagerInfo::fill("rpm", r));},
+        Some(r) => packages.packages.push(ManagerInfo::fill("rpm", r)),
         None => {}
     };
 
@@ -129,9 +129,7 @@ pub fn get_packages() -> PackagesInfo {
 fn process_pacman_packages() -> Option<u64> {
     let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
 
     Some(dir.count() as u64)
@@ -142,17 +140,13 @@ fn process_flatpak_packages() -> Option<u64> {
 
     let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
     result += flatpak_apps_dir.count();
 
     let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
     result += flatpak_runtime_dir.count();
 
@@ -166,9 +160,7 @@ fn process_dpkg_packages() -> Option<u64> {
     let mut result: u64 = 0;
     let file_bytes: Vec<u8> = match fs::read("/var/lib/dpkg/status") {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
     let target_bytes: Vec<u8> = vec![83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100];
 
@@ -200,16 +192,12 @@ fn _process_dpkg_packages_legacy() -> Option<u64> {
 
     let mut file: File = match File::open(dpkg_status_path) {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     }
 
     let mut result: u64 = 0;
@@ -230,15 +218,13 @@ fn process_rpm_packages() -> Option<u64> {
     // Grabs from /var/lib/rpm/rpmdb.sqlite
     let db: sqlite::Connection = match sqlite::open("/var/lib/rpm/rpmdb.sqlite") {
         Ok(r) => r,
-        Err(_) => {
-            return None
-        },
+        Err(_) => return None,
     };
     match db.iterate("SELECT COUNT(1) FROM `Packages`;", |v| {
         if v[0].1.is_some() {
             result = match v[0].1.unwrap().parse() {
                 Ok(r) => r,
-                Err(_) => {return false},
+                Err(_) => return false,
             };
         }
         true

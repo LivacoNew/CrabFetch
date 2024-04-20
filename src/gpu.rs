@@ -98,10 +98,7 @@ pub fn get_gpu() -> GPUInfo {
             let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
             let file: Option<File> = match cache_file {
                 Ok(r) => Some(r),
-                Err(_) => {
-                    // Assume the file is somehow corrupt
-                    None
-                }
+                Err(_) => None, // Assume the file is somehow corrupt
             };
 
             if file.is_some() {
@@ -116,9 +113,7 @@ pub fn get_gpu() -> GPUInfo {
                             return gpu;
                         }
                     },
-                    Err(e) => {
-                        log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e));
-                    },
+                    Err(e) => log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e)),
                 }
             }
             // We've not returned yet so we can only assume it's fucked
@@ -256,10 +251,7 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         // Finally, Vram
         let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
             Ok(r) => r,
-            Err(_) => {
-                // dw about it, this can happen on VM's for some reason
-                return
-            },
+            Err(_) => return, // dw about it, this can happen on VM's for some reason
         };
         let mut vram_str: String = String::new();
         match vram_file.read_to_string(&mut vram_str) {

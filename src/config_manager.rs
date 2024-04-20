@@ -164,13 +164,8 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
             Err(_) => {
                 // Let's try the home directory
                 let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => {
-                        r
-                    },
-                    Err(e) => {
-                        // why tf would you unset home lmao
-                        panic!("Unable to find config folder; {}", e);
-                    }
+                    Ok(r) => r,
+                    Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
                 };
                 home_dir.push_str("/.config/CrabFetch/config.toml");
                 home_dir
@@ -295,13 +290,8 @@ pub fn check_for_ascii_override() -> Option<String> {
         Err(_) => {
             // Let's try the home directory
             let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => {
-                    r
-                },
-                Err(e) => {
-                    // why tf would you unset home lmao
-                    panic!("Unable to find config folder; {}", e);
-                }
+                Ok(r) => r,
+                Err(e) => panic!("Unable to find config folder; {}", e) // bruh
             };
             home_dir.push_str("/.config/CrabFetch/ascii");
             home_dir
@@ -315,16 +305,12 @@ pub fn check_for_ascii_override() -> Option<String> {
 
     let mut file: File = match File::open(path) {
         Ok(r) => r,
-        Err(e) => {
-            panic!("Can't read from ASCII override - {}", e);
-        },
+        Err(e) => panic!("Can't read from ASCII override - {}", e),
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            panic!("Can't read from ASCII override - {}", e);
-        },
+        Err(e) => panic!("Can't read from ASCII override - {}", e),
     }
 
     Some(contents)

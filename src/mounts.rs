@@ -1,6 +1,7 @@
-use core::str;
-use std::{process::Command, io::ErrorKind::NotFound};
+use std::{fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::mem;
 
+use libc::statfs;
 use serde::Deserialize;
 
 use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
@@ -8,9 +9,8 @@ use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
 pub struct MountInfo {
     device: String,     // /dev/sda
     mount: String,      // /hdd
-    space_used_mb: u64,
-    space_avail_mb: u64,
-    space_total_mb: u64,
+    space_avail_mb: i64,
+    space_total_mb: i64,
     percent: u8
 }
 #[derive(Deserialize)]
@@ -23,27 +23,11 @@ pub struct MountConfiguration {
     pub format: String,
     pub ignore: Vec<String>
 }
-impl MountInfo {
-    fn from(value: &str) -> Self {
-        // Parses from a df entry
-        let mut values: Vec<&str> = value.split(" ").collect();
-        values.retain(|x| x.trim() != "");
-        MountInfo {
-            device: values[0].to_string(),
-            mount: values[5].to_string(),
-            space_used_mb: values[2].parse::<u64>().unwrap() / 1024,
-            space_avail_mb: values[3].parse::<u64>().unwrap() / 1024,
-            space_total_mb: values[1].parse::<u64>().unwrap() / 1024,
-            percent: values[4][..values[4].len() - 1].parse::<u8>().unwrap()
-        }
-    }
-}
 impl Module for MountInfo {
     fn new() -> MountInfo {
         MountInfo {
             device: "".to_string(),
             mount: "".to_string(),
-            space_used_mb: 0,
             space_avail_mb: 0,
             space_total_mb: 0,
             percent: 0
@@ -80,10 +64,10 @@ impl Module for MountInfo {
     fn replace_placeholders(&self) -> String {
         CONFIG.mounts.format.replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
-            .replace("{space_used_mb}", &self.space_used_mb.to_string())
+            .replace("{space_used_mb}", &(self.space_total_mb - self.space_avail_mb).to_string())
             .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
             .replace("{space_total_mb}", &self.space_total_mb.to_string())
-            .replace("{space_used_gb}", &(self.space_used_mb / 1024).to_string())
+            .replace("{space_used_gb}", &((self.space_total_mb - self.space_avail_mb) / 1024).to_string())
             .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
             .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
             .replace("{percent}", &self.percent.to_string())
@@ -104,40 +88,84 @@ impl MountInfo {
 pub fn get_mounted_drives() -> Vec<MountInfo> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
-    // This uses the "df" command to grab the outputs
-    let output: Vec<u8> = match Command::new("df")
-        .args(["-x", "tmpfs", "-x", "efivarfs", "-x", "devtmpfs"])
-        .output() {
-            Ok(r) => r.stdout,
-            Err(e) => {
-                if NotFound == e.kind() {
-                    log_error("Mounts", format!("Mounts requires the 'df' command, which is not present!"));
-                } else {
-                    log_error("Mounts", format!("Unknown error while fetching mounts: {}", e));
-                }
-
-                return mounts
-            },
-        };
-
-    let contents: String = match String::from_utf8(output) {
+    // Read from /etc/fstab to get all currently mounted disks
+    let file: File = match File::open("/etc/fstab") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Mounts", format!("Unknown error while fetching mounts: {}", e));
-            return mounts
+            // Best guess I've got is that we're not on Linux
+            // In which case, L
+            log_error("Mounts", format!("Can't read from /etc/stab - {}", e));
+            return mounts;
         },
     };
-
-    // Parse
-    let mut entries: Vec<&str> = contents.split("\n").collect::<Vec<&str>>();
-    entries.remove(0);
-    for entry in entries {
-        if entry.trim() == "" {
-            continue;
+    let buffer: BufReader<File> = BufReader::new(file);
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue
         }
-        let mount: MountInfo = MountInfo::from(entry);
-        mounts.insert(mounts.len(), mount);
+        let line: String = line.unwrap();
+        if line.starts_with("#") || line.trim().is_empty() {
+            continue
+        }
+
+        let entries: Vec<&str> = line.split([' ', '\t'])
+            .filter(|x| x.trim() != "")
+            .map(|x| x.trim())
+            .collect();
+        let mount_point: &str = entries[1];
+        if mount_point == "none" {
+            continue
+        }
+
+        let mut mount: MountInfo = MountInfo::new();
+        mount.mount = mount_point.to_string();
+
+        // Convert the device entries to device names
+        // TODO: support LABEL and PARTLABEL
+        let device_name: &str = entries[0];
+        if device_name.starts_with("UUID=") {
+            // UUID
+            let uuid: String = device_name[5..].to_string();
+            let uuid_path: PathBuf = Path::new("/dev/disk/by-uuid/").join(uuid);
+            if !uuid_path.is_symlink() {
+                continue; // ??
+            }
+            let device = match fs::canonicalize(uuid_path) {
+                Ok(r) => r,
+                Err(_) => continue, // ??
+            };
+            mount.device = device.to_str().unwrap().to_string();
+        } else {
+            // regular old devices
+            mount.device = device_name.to_string();
+        }
+
+        // statfs to get space data
+        call_statfs(mount_point, &mut mount);
+
+        mounts.push(mount);
     }
 
     mounts
+}
+
+// Credit to sysinfo crate for letting me see how to impl this in Rust (and no it's not just copy
+// pasted i swear)
+// https://github.com/GuillaumeGomez/sysinfo/blob/master/src/unix/linux/disk.rs#L96
+fn call_statfs(path: &str, mount: &mut MountInfo) {
+    let mut bytes: Vec<u8> = path.as_bytes().to_vec();
+    bytes.push(0);
+    unsafe { // spooky
+        let mut buffer: statfs = mem::zeroed();
+        // wtf does this "*const _" do
+        let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
+        if x != 0 {
+            log_error("Mount", "'statfs' syscall failed for mount point {path} - Returned code {x}".to_string());
+            return
+        }
+
+        mount.space_total_mb = ((buffer.f_blocks as i64) * buffer.f_bsize) / 1024 / 1024;
+        mount.space_avail_mb = ((buffer.f_bavail as i64) * buffer.f_bsize) / 1024 / 1024;
+        mount.percent = ((((mount.space_total_mb - mount.space_avail_mb) as f64) / mount.space_total_mb as f64) * 100.0) as u8;
+    }
 }

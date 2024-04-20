@@ -225,6 +225,7 @@ dependencies = [
  "colored",
  "config",
  "lazy_static",
+ "libc",
  "serde",
  "serde_json",
  "shellexpand",

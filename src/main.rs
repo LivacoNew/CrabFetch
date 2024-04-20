@@ -123,7 +123,7 @@ trait Module {
         }
 
         let mut value: String = self.replace_placeholders();
-        value = self.replace_color_placeholders(&value); // TODO
+        value = self.replace_color_placeholders(&value);
         str.push_str(&value.to_string());
 
         str

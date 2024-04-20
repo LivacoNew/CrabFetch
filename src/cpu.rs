@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::File, io::Read, path::Path};
+use std::{fs::File, io::{BufRead, BufReader, Read}, path::Path};
 
 use serde::Deserialize;
 
@@ -85,7 +85,7 @@ pub fn get_cpu() -> CPUInfo {
 fn get_basic_info(cpu: &mut CPUInfo) {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
-    let mut file: File = match File::open("/proc/cpuinfo") {
+    let file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
         Err(e) => {
             // Best guess I've got is that we're not on Linux
@@ -94,40 +94,40 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             return
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("CPU", format!("Can't read from /proc/cpuinfo - {}", e));
-            return
-        },
-    }
 
-    // Now we parse
-    // Just doing one entry as the rest are kinda redundant
-    let entry: &str = contents.split("\n\n").collect::<Vec<&str>>()[0];
-    let lines: Vec<&str> = entry.split("\n").collect();
+    let buffer: BufReader<File> = BufReader::new(file);
     let mut cpu_mhz_count: u8 = 0;
-    for line in lines {
-        if line.starts_with("model name") {
-            cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
+    let mut first_entry: bool = true;
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue;
         }
-        if line.starts_with("cpu cores") {
-            cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
-                Ok(r) => r,
-                Err(e) => {
-                    log_error("CPU", format!("WARNING: Could not parse cpu cores: {}", e));
-                    0
-                },
+        let line = line.unwrap();
+        if line.is_empty() {
+            first_entry = false;
+        }
+
+        if first_entry {
+            if line.starts_with("model name") {
+                cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
-        }
-        if line.starts_with("siblings") {
-            cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
-                Ok(r) => r,
-                Err(e) => {
-                    log_error("CPU", format!("WARNING: Could not parse cpu threads: {}", e));
-                    0
-                },
+            if line.starts_with("cpu cores") {
+                cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
+                    Ok(r) => r,
+                    Err(e) => {
+                        log_error("CPU", format!("WARNING: Could not parse cpu cores: {}", e));
+                        0
+                    },
+                }
+            }
+            if line.starts_with("siblings") {
+                cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
+                    Ok(r) => r,
+                    Err(e) => {
+                        log_error("CPU", format!("WARNING: Could not parse cpu threads: {}", e));
+                        0
+                    },
+                }
             }
         }
         if line.starts_with("cpu MHz") {

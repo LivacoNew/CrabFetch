@@ -138,24 +138,6 @@ pub fn get_displays() -> Vec<DisplayInfo> {
         display.width = resolution_w as u64;
         display.height = resolution_h as u64;
 
-        // Refresh rate now, this is grabbed from the Pixel Clock
-        // Credit for the formula: https://electronics.stackexchange.com/a/492180
-        // let mut pixel_clock: u64 = (u64::from(edid_bytes[54]) | u64::from(edid_bytes[55]) << 8) * 10000;
-        // let blanking_w: u32 = u32::from(edid_bytes[57]) | (u32::from(edid_bytes[58]) & 0b00001111) << 8;
-        // let blanking_h: u32 = u32::from(edid_bytes[60]) | (u32::from(edid_bytes[61]) & 0b00001111) << 8;
-
-        // Starts at byte 128
-        // Let's try the display range limits now which should give us the absolute maximum rate
-        // let is_descriptor: u16 = (u16::from(edid_bytes[128]) << 8) & u16::from(edid_bytes[128+1]);
-        // if is_descriptor == 0 {
-        //     let range_limits_only: u8 = (edid_bytes[128+10]);
-        //     pixel_clock = (u64::from(edid_bytes[81])) * 10000000;
-        // }
-
-        // let total_pixels: u64 = (resolution_w as u64 + blanking_w as u64) * (resolution_h as u64 + blanking_h as u64);
-        // let refresh_rate: u32 = (pixel_clock / total_pixels) as u32;
-        // display.refresh_rate = refresh_rate;
-
         displays.push(display);
     }
 

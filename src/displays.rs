@@ -33,7 +33,7 @@ impl Module for DisplayInfo {
 
     fn style(&self) -> String {
         let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if &CONFIG.displays.title_color.is_some() {
+        if (&CONFIG.displays.title_color).is_some() {
             title_color = &CONFIG.displays.title_color.as_ref().unwrap();
         }
 

@@ -12,7 +12,7 @@ What makes CrabFetch different is that _it aims to be as performant as possible_
 Below is a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.<br>
 All benchmarks were done via the [hyperfine](https://archlinux.org/packages/extra/x86_64/hyperfine/) utility, on the same machine. Configs were created to match up as closely as possible.
 
-**Please note you may not get the same times**, depending on what modules you have enabled and depending on your system. From testing, NeoFetch is dead in the dust but FastFetch and CrabFetch are typically either neck and neck or FastFetch wins. I'm already looking into more ways to improve CrabFetch's times, but it depends on your environment/needs which one is actually a better fit. For all of my personal systems however, CrabFetch wins.
+**Please note you may not get the same times**, depending on what modules you have enabled and depending on your system. From testing, NeoFetch is dead in the dust but FastFetch and CrabFetch are typically either neck and neck or one wins over the other. I'm already looking into more ways to improve CrabFetch's times, but it depends on your environment/needs which one is actually a better fit. For all of my personal systems however, CrabFetch wins.
 
 ![Benchmark Results](https://i.imgur.com/6INKbtk.png)
 

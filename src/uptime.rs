@@ -1,5 +1,6 @@
-use std::{fs::File, io::Read, time::Duration};
+use std::{fs::File, io::Read, time::{Duration, Instant}};
 
+use humantime::format_duration;
 use serde::Deserialize;
 
 use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
@@ -47,14 +48,7 @@ impl Module for UptimeInfo {
     }
 
     fn replace_placeholders(&self) -> String {
-        // https://www.reddit.com/r/rust/comments/gju305/comment/fqo9zbb/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-        let seconds = self.uptime.as_secs() % 60;
-        let minutes = (self.uptime.as_secs() / 60) % 60;
-        let hours = (self.uptime.as_secs() / 60) / 60;
-
-        CONFIG.uptime.format.replace("{seconds}", &seconds.to_string())
-            .replace("{minutes}", &minutes.to_string())
-            .replace("{hours}", &hours.to_string())
+        CONFIG.uptime.format.replace("{time}", &format_duration(self.uptime).to_string())
     }
 }
 

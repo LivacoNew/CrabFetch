@@ -220,12 +220,6 @@ show_default_shell = false
 
 [uptime]
 title = "Uptime"
-# Placeholders;
-# {hours} -> The hours
-# {minutes} -> The minutes
-# {seconds} -> The seconds
-# NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
-format = "{hours}h {minutes}m {seconds}s"
 
 
 [battery]

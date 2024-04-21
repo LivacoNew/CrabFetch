@@ -260,7 +260,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("shell.show_default_shell", "false").unwrap();
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
-    builder = builder.set_default("uptime.format", "{hours}h {minutes}m {seconds}s").unwrap();
+    builder = builder.set_default("uptime.format", "{time}").unwrap();
 
     builder = builder.set_default("battery.title", "Battery").unwrap();
     builder = builder.set_default("battery.format", "{percentage}%").unwrap();
@@ -605,12 +605,6 @@ show_default_shell = false
 
 [uptime]
 title = "Uptime"
-# Placeholders;
-# {hours} -> The hours
-# {minutes} -> The minutes
-# {seconds} -> The seconds
-# NOTE: These are expected to be used in order. E.g Using only {seconds} will not give you the proper system uptime
-format = "{hours}h {minutes}m {seconds}s"
 
 
 [battery]

@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, time::{Duration, Instant}};
+use std::{fs::File, io::Read, time::Duration};
 
 use humantime::format_duration;
 use serde::Deserialize;

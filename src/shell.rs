@@ -31,11 +31,11 @@ impl Module for ShellInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.shell.title_bold).is_some() {
+        if CONFIG.shell.title_bold.is_some() {
             title_bold = CONFIG.shell.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.shell.title_italic).is_some() {
+        if CONFIG.shell.title_italic.is_some() {
             title_italic = CONFIG.shell.title_italic.unwrap();
         }
 

@@ -37,11 +37,11 @@ impl Module for MemoryInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.memory.title_bold).is_some() {
+        if CONFIG.memory.title_bold.is_some() {
             title_bold = CONFIG.memory.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.memory.title_italic).is_some() {
+        if CONFIG.memory.title_italic.is_some() {
             title_italic = CONFIG.memory.title_italic.unwrap();
         }
 

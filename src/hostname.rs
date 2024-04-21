@@ -32,11 +32,11 @@ impl Module for HostnameInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.hostname.title_bold).is_some() {
+        if CONFIG.hostname.title_bold.is_some() {
             title_bold = CONFIG.hostname.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.hostname.title_italic).is_some() {
+        if CONFIG.hostname.title_italic.is_some() {
             title_italic = CONFIG.hostname.title_italic.unwrap();
         }
 

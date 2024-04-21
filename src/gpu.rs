@@ -52,11 +52,11 @@ impl Module for GPUInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.gpu.title_bold).is_some() {
+        if CONFIG.gpu.title_bold.is_some() {
             title_bold = CONFIG.gpu.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.gpu.title_italic).is_some() {
+        if CONFIG.gpu.title_italic.is_some() {
             title_italic = CONFIG.gpu.title_italic.unwrap();
         }
 

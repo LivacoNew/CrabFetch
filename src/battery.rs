@@ -32,11 +32,11 @@ impl Module for BatteryInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.battery.title_bold).is_some() {
+        if CONFIG.battery.title_bold.is_some() {
             title_bold = CONFIG.battery.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.battery.title_italic).is_some() {
+        if CONFIG.battery.title_italic.is_some() {
             title_italic = CONFIG.battery.title_italic.unwrap();
         }
 

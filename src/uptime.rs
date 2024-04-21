@@ -30,11 +30,11 @@ impl Module for UptimeInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.uptime.title_bold).is_some() {
+        if CONFIG.uptime.title_bold.is_some() {
             title_bold = CONFIG.uptime.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.uptime.title_italic).is_some() {
+        if CONFIG.uptime.title_italic.is_some() {
             title_italic = CONFIG.uptime.title_italic.unwrap();
         }
 

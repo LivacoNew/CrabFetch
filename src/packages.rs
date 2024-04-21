@@ -32,11 +32,11 @@ impl Module for PackagesInfo {
         }
 
         let mut title_bold: bool = CONFIG.title_bold;
-        if (CONFIG.packages.title_bold).is_some() {
+        if CONFIG.packages.title_bold.is_some() {
             title_bold = CONFIG.packages.title_bold.unwrap();
         }
         let mut title_italic: bool = CONFIG.title_italic;
-        if (CONFIG.packages.title_italic).is_some() {
+        if CONFIG.packages.title_italic.is_some() {
             title_italic = CONFIG.packages.title_italic.unwrap();
         }
 

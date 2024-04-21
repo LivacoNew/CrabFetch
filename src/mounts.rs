@@ -113,7 +113,7 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
             .map(|x| x.trim())
             .collect();
         let mount_point: &str = entries[1];
-        if mount_point == "none" {
+        if mount_point == "none" || mount_point == "swap" {
             continue
         }
 
@@ -160,7 +160,7 @@ fn call_statfs(path: &str, mount: &mut MountInfo) {
         // wtf does this "*const _" do
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
-            log_error("Mount", "'statfs' syscall failed for mount point {path} - Returned code {x}".to_string());
+            log_error("Mount", format!("'statfs' syscall failed for mount point {path} - Returned code {x}"));
             return
         }
 

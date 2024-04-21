@@ -242,7 +242,7 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("host.title", "Host").unwrap();
 
     builder = builder.set_default("displays.title", "Display {name}").unwrap();
-    builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz").unwrap();
+    builder = builder.set_default("displays.format", "{width}x{height}").unwrap();
 
     builder = builder.set_default("os.title", "Operating System").unwrap();
     builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
@@ -560,8 +560,7 @@ title = "Display {name}"
 # {name} -> The monitor name, e.g eDP-2
 # {width} -> The monitor's width
 # {height} -> The monitor's height
-# {refresh_rate} -> The monitor's refresh rate
-format = "{width}x{height} @ {refresh_rate}Hz"
+format = "{width}x{height}"
 
 
 [os]

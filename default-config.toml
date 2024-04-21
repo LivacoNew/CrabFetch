@@ -176,8 +176,7 @@ title = "Display {name}"
 # {name} -> The monitor name, e.g eDP-2
 # {width} -> The monitor's width
 # {height} -> The monitor's height
-# {refresh_rate} -> The monitor's refresh rate
-format = "{width}x{height} @ {refresh_rate}Hz"
+format = "{width}x{height}"
 
 
 [os]

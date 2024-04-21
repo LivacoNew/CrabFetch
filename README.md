@@ -1,28 +1,44 @@
 # CrabFetch
 CrabFetch is a highly performant and customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
-What makes CrabFetch different is that _it aims to be as performant as possible_, unlike most other popular fetch programs. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
+What makes CrabFetch different is that _it aims to be as performant as possible_ while still remaining easy to use. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
 
-![A preview image of CrabFetch.](https://i.imgur.com/2gyTObl.png)
+![Showcase 1](https://i.imgur.com/MTAULWp.png)
+![Showcase 2](https://i.imgur.com/c6S2q9n.png)
+![Showcase 3](https://i.imgur.com/jz2ioEH.png)
+![Showcase 4](https://i.imgur.com/kJ7l93H.png)
 
 
 ## Performance
-As it's CrabFetch's main selling point, here's a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.<br>
-All benchmarks were done via the zsh implemented `time` keyword, with as similar configs as possible.
+Below is a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.<br>
+All benchmarks were done via the [hyperfine](https://archlinux.org/packages/extra/x86_64/hyperfine/) utility, on the same machine. Configs were created to match up as closely as possible.
 
-| **Fetcher**     | **Time Ran**                                                                              |
-| --------------- | ----------------------------------------------------------------------------------------  |
-| ***CrabFetch*** | [crabfetch  0.01s user 0.00s system 92% cpu 0.006 total](https://i.imgur.com/2n5ozXH.png) |
-| FastFetch       | [fastfetch  0.05s user 0.01s system 97% cpu 0.056 total](https://i.imgur.com/yPrCsEi.png) |
-| NeoFetch        | [neofetch  0.07s user 0.07s system 80% cpu 0.172 total](https://i.imgur.com/5J2KE9m.png)  |
+**Please note you may not get the same times**, depending on what modules you have enabled and depending on your system. From testing, NeoFetch is dead in the dust but FastFetch and CrabFetch are typically either neck and neck or FastFetch wins. I'm already looking into more ways to improve CrabFetch's times, but it depends on your environment/needs which one is actually a better fit. For all of my personal systems however, CrabFetch wins.
 
-<sub>NOTE: This is with the "pcisysfile" GPU method without caching. For more details see the FAQ under "Does CrabFetch cheat with it's performance?"</sub>
+![Benchmark Results](https://i.imgur.com/6INKbtk.png)
+
+## System Support
+Currently, support for different softwares on CrabFetch is limited from me not having the time to go out and implement everything required. I've tried to implement all the most common ones but ultimately I will miss some.
+A full list of what is supported can be found on the [Wiki](https://github.com/LivacoNew/CrabFetch/wiki/Compatability-List).
+If CrabFetch doesn't support what you use, **make a issue** and I'll go about it!
 
 
 ## Installation
 > [!IMPORTANT]
 > Only Linux based OS's are supported. Any other operating system will not work.
 >
-Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for how to install CrabFetch.
+Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for detailed instructions on how to install CrabFetch, as well as manually building.
+
+### Arch Linux
+You can use either;
+- [crab-fetch](https://aur.archlinux.org/packages/crab-fetch) (AUR)
+- [crab-fetch-git](https://aur.archlinux.org/packages/crab-fetch-git) (AUR)
+
+### Other
+Go to the [latest release](https://github.com/LivacoNew/CrabFetch/releases/latest) and download the file for your CPU's architecture. From there, just run;
+```sh
+cp crabfetch-x86-64 /usr/local/bin/crabfetch
+```
+**Be aware that this means your package manager will not be aware of CrabFetch.**
 
 ## Configuration
 To generate the default configuration file, run `crabfetch -g`.<br>
@@ -34,14 +50,9 @@ Make a issue and I'll see if I can add it in. I'm aware support is kind of spars
 
 
 ## Credits
-- [NeoFetch](https://github.com/dylanaraps/neofetch) for being a occasional source on where to find some info in Linux.
-- [FastFetch](https://github.com/fastfetch-cli/fastfetch) Also a source for system info.
+- [NeoFetch](https://github.com/dylanaraps/neofetch) for being an occasional source on where to find some info in Linux.
+- [FastFetch](https://github.com/fastfetch-cli/fastfetch) Also a source for system info, as well as the the author informing me of numerous issues I was unaware of.
 
-## Showcase
-A peek at what you can do with CrabFetch.<br>
-![Showcase 1](https://i.imgur.com/c6S2q9n.png)
-![Showcase 2](https://i.imgur.com/jz2ioEH.png)
-![Showcase 3](https://i.imgur.com/kJ7l93H.png)
 
 ## FAQ
 ### Does CrabFetch cheat with it's performance?

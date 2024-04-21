@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Read;
+use std::io::{BufRead, BufReader};
 
 use serde::Deserialize;
 
@@ -73,31 +73,22 @@ pub fn get_memory() -> MemoryInfo {
     let mut memory: MemoryInfo = MemoryInfo::new();
 
     // Fetches from /proc/meminfo
-    let mut file: File = match File::open("/proc/meminfo") {
+    let file: File = match File::open("/proc/meminfo") {
         Ok(r) => r,
         Err(e) => {
             log_error("Memory", format!("Can't read from /proc/meminfo - {}", e));
             return memory
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("Memory", format!("Can't read from /proc/meminfo - {}", e));
-            return memory
-        },
-    }
 
-
-    let entry: &str = contents.split("\n\n").collect::<Vec<&str>>()[0];
-    let lines: Vec<&str> = entry.split("\n").collect();
-
-    // MemUsed = Memtotal + Shmem - MemFree - Buffers - Cached - SReclaimable
-    // From https://github.com/dylanaraps/neofetch/blob/master/neofetch#L2676
     let mut mem_available: u32 = 0;
+    let buffer: BufReader<File> = BufReader::new(file);
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue;
+        }
+        let line: String = line.unwrap();
 
-    for line in lines {
         if line.starts_with("MemTotal") {
             let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
             var = &var[..var.len() - 4].trim();
@@ -119,6 +110,9 @@ pub fn get_memory() -> MemoryInfo {
                     0
                 }
             }
+        }
+        if memory.max_kib != 0 && mem_available != 0 {
+            break;
         }
     }
 

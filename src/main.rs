@@ -22,7 +22,7 @@ mod mounts;
 mod swap;
 mod gpu;
 // mod terminal;
-// mod host;
+mod host;
 // mod packages;
 mod displays;
 // mod battery;
@@ -75,7 +75,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "memory" => res = max(res, config.memory.title.len() as u64),
             "swap" => res = max(res, config.swap.title.len() as u64),
             "mounts" => res = max(res, config.mounts.title.len() as u64),
-            // "host" => res = max(res, config.host.title.len() as u64),
+            "host" => res = max(res, config.host.title.len() as u64),
             "displays" => res = max(res, config.displays.title.len() as u64),
             "os" => res = max(res, config.os.title.len() as u64),
             // "packages" => res = max(res, config.packages.title.len() as u64),
@@ -325,7 +325,18 @@ fn main() {
                         },
                     }
                 },
-                // "host" => print!("{}", host::get_host().style()),
+                "host" => {
+                    match host::get_host() {
+                        Ok(host) => {
+                            print!("{}", host.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "swap" => {
                     match swap::get_swap() {
                         Ok(swap) => {

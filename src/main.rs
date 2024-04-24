@@ -16,7 +16,7 @@ mod ascii;
 mod hostname;
 mod os;
 // mod uptime;
-// mod desktop;
+mod desktop;
 mod mounts;
 // mod shell;
 mod swap;
@@ -25,7 +25,7 @@ mod gpu;
 mod host;
 mod packages;
 mod displays;
-// mod battery;
+mod battery;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -79,10 +79,10 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "displays" => res = max(res, config.displays.title.len() as u64),
             "os" => res = max(res, config.os.title.len() as u64),
             "packages" => res = max(res, config.packages.title.len() as u64),
-            // "desktop" => res = max(res, config.desktop.title.len() as u64),
+            "desktop" => res = max(res, config.desktop.title.len() as u64),
             // "terminal" => res = max(res, config.terminal.title.len() as u64),
             // "shell" => res = max(res, config.shell.title.len() as u64),
-            // "battery" => res = max(res, config.battery.title.len() as u64),
+            "battery" => res = max(res, config.battery.title.len() as u64),
             // "uptime" => res = max(res, config.uptime.title.len() as u64),
             _ => {}
         }
@@ -382,7 +382,18 @@ fn main() {
                     }
                 },
                 "packages" => print!("{}", packages::get_packages().style(&config, max_title_length)),
-                // "desktop" => print!("{}", desktop::get_desktop().style()),
+                "desktop" => {
+                    match desktop::get_desktop() {
+                        Ok(desktop) => {
+                            print!("{}", desktop.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 // "terminal" => print!("{}", terminal::get_terminal().style()),
                 // "shell" => print!("{}", shell::get_shell().style()),
                 // "uptime" => print!("{}", uptime::get_uptime().style()),
@@ -398,7 +409,18 @@ fn main() {
                         }
                     }
                 }
-                // "battery" => print!("{}", battery::get_battery().style()),
+                "battery" => {
+                    match battery::get_battery(&config.battery.path) {
+                        Ok(battery) => {
+                            print!("{}", battery.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "colors" => {
                     let str = "   ";
                     print!("{}", str.on_black());

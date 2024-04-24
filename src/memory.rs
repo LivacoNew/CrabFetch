@@ -3,8 +3,8 @@ use std::io::{BufRead, BufReader};
 
 use serde::Deserialize;
 
-use crate::config_manager::CrabFetchColor;
-use crate::{log_error, Module, CONFIG};
+use crate::config_manager::{Configuration, CrabFetchColor};
+use crate::{Module, ModuleError};
 
 pub struct MemoryInfo {
     used_kib: u32,
@@ -30,36 +30,36 @@ impl Module for MemoryInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.memory.title_color).is_some() {
-            title_color = &CONFIG.memory.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.memory.title_color).is_some() {
+            title_color = &config.memory.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.memory.title_bold.is_some() {
-            title_bold = CONFIG.memory.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.memory.title_bold.is_some() {
+            title_bold = config.memory.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.memory.title_italic.is_some() {
-            title_italic = CONFIG.memory.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.memory.seperator.is_some() {
-            seperator = CONFIG.memory.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.memory.title_italic.is_some() {
+            title_italic = config.memory.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.memory.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.memory.seperator.is_some() {
+            seperator = config.memory.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.memory.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        let mut dec_places: u32 = CONFIG.decimal_places;
-        if CONFIG.memory.decimal_places.is_some() {
-            dec_places = CONFIG.memory.decimal_places.unwrap();
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut dec_places: u32 = config.decimal_places;
+        if config.memory.decimal_places.is_some() {
+            dec_places = config.memory.decimal_places.unwrap();
         }
 
-        CONFIG.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
+        config.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
             .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, dec_places).to_string())
             .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 1.049e+5, dec_places).to_string())
             .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, dec_places).to_string())
@@ -69,15 +69,14 @@ impl Module for MemoryInfo {
     }
 }
 
-pub fn get_memory() -> MemoryInfo {
+pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
     let mut memory: MemoryInfo = MemoryInfo::new();
 
     // Fetches from /proc/meminfo
     let file: File = match File::open("/proc/meminfo") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Memory", format!("Can't read from /proc/meminfo - {}", e));
-            return memory
+            return Err(ModuleError::new("Memory", format!("Can't read from /proc/meminfo - {}", e)));
         },
     };
 
@@ -95,8 +94,7 @@ pub fn get_memory() -> MemoryInfo {
             memory.max_kib = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    log_error("Memory", format!("Could not parse total memory: {}", e));
-                    0
+                    return Err(ModuleError::new("Memory", format!("Could not parse total memory: {}", e)));
                 }
             }
         }
@@ -106,8 +104,7 @@ pub fn get_memory() -> MemoryInfo {
             mem_available = match var.to_string().parse::<u32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    log_error("Memory", format!("Could not parse memfree memory: {}", e));
-                    0
+                    return Err(ModuleError::new("Memory", format!("Could not parse memfree memory: {}", e)));
                 }
             }
         }
@@ -119,5 +116,5 @@ pub fn get_memory() -> MemoryInfo {
     memory.used_kib = memory.max_kib - mem_available;
     memory.percentage = (memory.used_kib as f32 / memory.max_kib as f32) * 100.0;
 
-    memory
+    Ok(memory)
 }

@@ -10,7 +10,7 @@ use os::OSInfo;
 use crate::{config_manager::{color_string, Configuration}, gpu::GPUMethod};
 
 mod cpu;
-// mod memory;
+mod memory;
 mod config_manager;
 mod ascii;
 mod hostname;
@@ -313,7 +313,18 @@ fn main() {
                         },
                     }
                 },
-                // "memory" => print!("{}", memory::get_memory().style()),
+                "memory" => {
+                    match memory::get_memory() {
+                        Ok(memory) => {
+                            print!("{}", memory.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 // "host" => print!("{}", host::get_host().style()),
                 // "swap" => print!("{}", swap::get_swap().style()),
                 "mounts" => {

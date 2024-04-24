@@ -203,13 +203,14 @@ fn main() {
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
-    let mut mounts: Result<Vec<MountInfo>, ModuleError> = mounts::get_mounted_drives();
-    if mounts.is_ok() {
-        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
-        module_count += mounts.as_ref().unwrap().len() - 1;
-    }
+    let mut mounts: Option<Result<Vec<MountInfo>, ModuleError>> = None;
     let mut mount_index: u32 = 0;
     if modules.contains(&"mounts".to_string()) {
+        mounts = Some(mounts::get_mounted_drives());
+        if mounts.as_ref().unwrap().is_ok() {
+            mounts.as_mut().unwrap().as_mut().unwrap().retain(|x| !x.is_ignored(&config));
+            module_count += mounts.as_ref().unwrap().as_ref().unwrap().len() - 1;
+        }
     }
 
     // AND displays
@@ -350,21 +351,24 @@ fn main() {
                     }
                 },
                 "mounts" => {
-                    match mounts {
-                        Ok(ref mounts) => {
-                            if mounts.len() > mount_index as usize {
-                                let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                                print!("{}", mount.style(&config, max_title_length));
-                                mount_index += 1;
-                                // sketchy - this is what makes it go through them all
+                    if mounts.as_ref().is_some() {
+                        let mounts = mounts.as_ref().unwrap();
+                        match mounts {
+                            Ok(ref mounts) => {
                                 if mounts.len() > mount_index as usize {
-                                    modules.insert(line_number as usize, "mounts".to_string());
+                                    let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
+                                    print!("{}", mount.style(&config, max_title_length));
+                                    mount_index += 1;
+                                    // sketchy - this is what makes it go through them all
+                                    if mounts.len() > mount_index as usize {
+                                        modules.insert(line_number as usize, "mounts".to_string());
+                                    }
                                 }
-                            }
-                        },
-                        Err(ref e) => {
-                            if log_errors {
-                                print!("{}", e);
+                            },
+                            Err(ref e) => {
+                                if log_errors {
+                                    print!("{}", e);
+                                }
                             }
                         }
                     }

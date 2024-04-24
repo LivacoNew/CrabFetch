@@ -19,7 +19,7 @@ mod os;
 // mod desktop;
 mod mounts;
 // mod shell;
-// mod swap;
+mod swap;
 mod gpu;
 // mod terminal;
 // mod host;
@@ -72,8 +72,8 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "hostname" => res = max(res, config.hostname.title.len() as u64),
             "cpu" => res = max(res, config.cpu.title.len() as u64),
             "gpu" => res = max(res, config.gpu.title.len() as u64),
-            // "memory" => res = max(res, config.memory.title.len() as u64),
-            // "swap" => res = max(res, config.swap.title.len() as u64),
+            "memory" => res = max(res, config.memory.title.len() as u64),
+            "swap" => res = max(res, config.swap.title.len() as u64),
             "mounts" => res = max(res, config.mounts.title.len() as u64),
             // "host" => res = max(res, config.host.title.len() as u64),
             "displays" => res = max(res, config.displays.title.len() as u64),
@@ -326,7 +326,18 @@ fn main() {
                     }
                 },
                 // "host" => print!("{}", host::get_host().style()),
-                // "swap" => print!("{}", swap::get_swap().style()),
+                "swap" => {
+                    match swap::get_swap() {
+                        Ok(swap) => {
+                            print!("{}", swap.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "mounts" => {
                     match mounts {
                         Ok(ref mounts) => {

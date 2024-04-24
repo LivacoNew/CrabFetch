@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct OSInfo {
     distro: String,
@@ -57,7 +57,7 @@ impl Module for OSInfo {
     }
 }
 
-pub fn get_os() -> OSInfo {
+pub fn get_os() -> Result<OSInfo, ModuleError> {
     let mut os: OSInfo = OSInfo::new();
 
     // Grabs the distro name from /etc/os-release
@@ -68,15 +68,14 @@ pub fn get_os() -> OSInfo {
         Ok(r) => r,
         Err(e) => {
             // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
-            return os
+            return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e)))
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
-            return os
+            return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e)));
         },
     }
     for line in contents.trim().to_string().split("\n").collect::<Vec<&str>>() {
@@ -94,19 +93,17 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
         Ok(r) => r,
         Err(e) => {
-            // log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
-            return os
+            return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e)));
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            // log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
-            return os
+            return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e)));
         },
     }
     os.kernel = contents.trim().to_string();
 
-    os
+    Ok(os)
 }

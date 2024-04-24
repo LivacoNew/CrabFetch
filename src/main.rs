@@ -160,13 +160,6 @@ impl Debug for ModuleError {
     }
 }
 
-// fn log_error(module: &str, message: String) {
-//     if CONFIG.suppress_errors && ARGS.suppress_errors {
-//         return
-//     }
-//
-//     println!("Module {}: {}", module, message);
-// }
 
 fn main() {
     // Are we defo in Linux?
@@ -187,13 +180,13 @@ fn main() {
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
-    let os: OSInfo = os::get_os();
+    let os: Result<OSInfo, ModuleError> = os::get_os();
     let mut ascii: (String, u16) = (String::new(), 0);
-    if config.ascii.display {
+    if config.ascii.display && os.is_ok() {
         if args.distro_override.is_some() {
             ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
         } else {
-            ascii = ascii::get_ascii(&os.distro_id);
+            ascii = ascii::get_ascii(&os.as_ref().unwrap().distro_id);
         }
     }
 
@@ -305,7 +298,18 @@ fn main() {
                         }
                     }
                 }
-                "os" => print!("{}", os.style(&config, max_title_length)),
+                "os" => {
+                    match os {
+                        Ok(ref os) => {
+                            print!("{}", os.style(&config, max_title_length))
+                        },
+                        Err(ref e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 // "packages" => print!("{}", packages::get_packages().style()),
                 // "desktop" => print!("{}", desktop::get_desktop().style()),
                 // "terminal" => print!("{}", terminal::get_terminal().style()),

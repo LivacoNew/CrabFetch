@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, log_error, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, displays::DisplayConfiguration, mounts::MountConfiguration, os::OSConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -93,7 +93,7 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
             Err(_) => {
-                log_error("Color Placeholders", format!("Unable to parse color {}", color_str));
+                // log_error("Color Placeholders", format!("Unable to parse color {}", color_str));
                 continue;
             },
         };
@@ -118,21 +118,21 @@ pub struct Configuration {
 
     pub ascii: AsciiConfiguration,
 
-    pub hostname: HostnameConfiguration,
-    pub cpu: CPUConfiguration,
-    pub gpu: GPUConfiguration,
-    pub memory: MemoryConfiguration,
-    pub swap: SwapConfiguration,
+    // pub hostname: HostnameConfiguration,
+    // pub cpu: CPUConfiguration,
+    // pub gpu: GPUConfiguration,
+    // pub memory: MemoryConfiguration,
+    // pub swap: SwapConfiguration,
     pub mounts: MountConfiguration,
-    pub host: HostConfiguration,
+    // pub host: HostConfiguration,
     pub displays: DisplayConfiguration,
     pub os: OSConfiguration,
-    pub packages: PackagesConfiguration,
-    pub desktop: DesktopConfiguration,
-    pub terminal: TerminalConfiguration,
-    pub shell: ShellConfiguration,
-    pub uptime: UptimeConfiguration,
-    pub battery: BatteryConfiguration
+    // pub packages: PackagesConfiguration,
+    // pub desktop: DesktopConfiguration,
+    // pub terminal: TerminalConfiguration,
+    // pub shell: ShellConfiguration,
+    // pub uptime: UptimeConfiguration,
+    // pub battery: BatteryConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {

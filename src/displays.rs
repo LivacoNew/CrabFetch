@@ -3,7 +3,7 @@ use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Spl
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -31,34 +31,34 @@ impl Module for DisplayInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.displays.title_color).is_some() {
-            title_color = &CONFIG.displays.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.displays.title_color).is_some() {
+            title_color = config.displays.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.displays.title_bold.is_some() {
-            title_bold = CONFIG.displays.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.displays.title_bold.is_some() {
+            title_bold = config.displays.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.displays.title_italic.is_some() {
-            title_italic = CONFIG.displays.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.displays.seperator.is_some() {
-            seperator = CONFIG.displays.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.displays.title_italic.is_some() {
+            title_italic = config.displays.title_italic.unwrap();
         }
 
-        let mut title: String = CONFIG.displays.title.clone();
+        let mut seperator: &str = config.seperator.as_str();
+        if config.displays.seperator.is_some() {
+            seperator = config.displays.seperator.as_ref().unwrap();
+        }
+
+        let mut title: String = config.displays.title.clone();
         title = title.replace("{name}", &self.name);
 
-        self.default_style(&title, title_color, title_bold, title_italic, &seperator)
+        self.default_style(config, 0, &title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.displays.format.replace("{name}", &self.name)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.displays.format.replace("{name}", &self.name)
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
             .replace("{refresh_rate}", &self.refresh_rate.to_string())

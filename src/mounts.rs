@@ -4,7 +4,7 @@ use std::mem;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -34,35 +34,35 @@ impl Module for MountInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.mounts.title_color).is_some() {
-            title_color = &CONFIG.mounts.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.mounts.title_color).is_some() {
+            title_color = config.mounts.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.mounts.title_bold.is_some() {
-            title_bold = CONFIG.mounts.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.mounts.title_bold.is_some() {
+            title_bold = config.mounts.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.mounts.title_italic.is_some() {
-            title_italic = CONFIG.mounts.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.mounts.seperator.is_some() {
-            seperator = CONFIG.mounts.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.mounts.title_italic.is_some() {
+            title_italic = config.mounts.title_italic.unwrap();
         }
 
-        let mut title: String = CONFIG.mounts.title.clone();
+        let mut seperator: &str = config.seperator.as_str();
+        if config.mounts.seperator.is_some() {
+            seperator = config.mounts.seperator.as_ref().unwrap();
+        }
+
+        let mut title: String = config.mounts.title.clone();
         title = title.replace("{device}", &self.device)
             .replace("{mount}", &self.mount);
 
-        self.default_style(&title, title_color, title_bold, title_italic, &seperator)
+        self.default_style(config, 0, &title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.mounts.format.replace("{device}", &self.device)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.mounts.format.replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{space_used_mb}", &(self.space_total_mb - self.space_avail_mb).to_string())
             .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
@@ -74,8 +74,8 @@ impl Module for MountInfo {
     }
 }
 impl MountInfo {
-    pub fn is_ignored(&self) -> bool {
-        for x in CONFIG.mounts.ignore.to_vec() {
+    pub fn is_ignored(&self, config: &Configuration) -> bool {
+        for x in config.mounts.ignore.to_vec() {
             if self.mount.starts_with(&x) {
                 return true
             }
@@ -94,7 +94,7 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            log_error("Mounts", format!("Can't read from /etc/stab - {}", e));
+            // log_error("Mounts", format!("Can't read from /etc/stab - {}", e));
             return mounts;
         },
     };
@@ -160,7 +160,7 @@ fn call_statfs(path: &str, mount: &mut MountInfo) {
         // wtf does this "*const _" do
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
-            log_error("Mount", format!("'statfs' syscall failed for mount point {path} - Returned code {x}"));
+            // log_error("Mount", format!("'statfs' syscall failed for mount point {path} - Returned code {x}"));
             return
         }
 

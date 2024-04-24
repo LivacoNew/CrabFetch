@@ -1,29 +1,31 @@
 use std::{cmp::max, env, process::exit};
 
 use config_manager::CrabFetchColor;
-use lazy_static::lazy_static;
+use displays::DisplayInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
+use mounts::MountInfo;
+use os::OSInfo;
 
-use crate::{config_manager::{color_string, Configuration}, displays::DisplayInfo, mounts::MountInfo, os::OSInfo};
+use crate::config_manager::{color_string, Configuration};
 
-mod cpu;
-mod memory;
+// mod cpu;
+// mod memory;
 mod config_manager;
 mod ascii;
-mod hostname;
+// mod hostname;
 mod os;
-mod uptime;
-mod desktop;
+// mod uptime;
+// mod desktop;
 mod mounts;
-mod shell;
-mod swap;
-mod gpu;
-mod terminal;
-mod host;
-mod packages;
+// mod shell;
+// mod swap;
+// mod gpu;
+// mod terminal;
+// mod host;
+// mod packages;
 mod displays;
-mod battery;
+// mod battery;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -67,44 +69,40 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
     // this kinda sucks
     for module in &config.modules {
         match module.as_str() {
-            "hostname" => res = max(res, config.hostname.title.len() as u64),
-            "cpu" => res = max(res, config.cpu.title.len() as u64),
-            "gpu" => res = max(res, config.gpu.title.len() as u64),
-            "memory" => res = max(res, config.memory.title.len() as u64),
-            "swap" => res = max(res, config.swap.title.len() as u64),
+            // "hostname" => res = max(res, config.hostname.title.len() as u64),
+            // "cpu" => res = max(res, config.cpu.title.len() as u64),
+            // "gpu" => res = max(res, config.gpu.title.len() as u64),
+            // "memory" => res = max(res, config.memory.title.len() as u64),
+            // "swap" => res = max(res, config.swap.title.len() as u64),
             "mounts" => res = max(res, config.mounts.title.len() as u64),
-            "host" => res = max(res, config.host.title.len() as u64),
+            // "host" => res = max(res, config.host.title.len() as u64),
             "displays" => res = max(res, config.displays.title.len() as u64),
             "os" => res = max(res, config.os.title.len() as u64),
-            "packages" => res = max(res, config.packages.title.len() as u64),
-            "desktop" => res = max(res, config.desktop.title.len() as u64),
-            "terminal" => res = max(res, config.terminal.title.len() as u64),
-            "shell" => res = max(res, config.shell.title.len() as u64),
-            "battery" => res = max(res, config.battery.title.len() as u64),
-            "uptime" => res = max(res, config.uptime.title.len() as u64),
+            // "packages" => res = max(res, config.packages.title.len() as u64),
+            // "desktop" => res = max(res, config.desktop.title.len() as u64),
+            // "terminal" => res = max(res, config.terminal.title.len() as u64),
+            // "shell" => res = max(res, config.shell.title.len() as u64),
+            // "battery" => res = max(res, config.battery.title.len() as u64),
+            // "uptime" => res = max(res, config.uptime.title.len() as u64),
             _ => {}
         }
     }
 
     res
 }
-lazy_static! {
-    pub static ref ARGS: Args = Args::parse();
-    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.module_override, &ARGS.ignore_config_file);
-    pub static ref MAX_TITLE_LENGTH: u64 = calc_max_title_length(&CONFIG);
-}
 
 trait Module {
     fn new() -> Self;
-    fn style(&self) -> String;
-    fn replace_placeholders(&self) -> String;
+    fn style(&self, config: &Configuration) -> String;
+    fn replace_placeholders(&self, config: &Configuration) -> String;
 
     // This helps the format function lol
     fn round(number: f32, places: u32) -> f32 {
         let power: f32 = 10_u32.pow(places) as f32;
         (number * power).round() / power
     }
-    fn default_style(&self, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
+    // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
+    fn default_style(&self, config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
         let mut str: String = String::new();
 
         // Title
@@ -119,15 +117,15 @@ trait Module {
 
             str.push_str(&title.to_string());
             // Inline value stuff
-            if CONFIG.inline_values {
-                for _ in 0..(*MAX_TITLE_LENGTH - (title.len() as u64)) {
+            if config.inline_values {
+                for _ in 0..(max_title_len - (title.len() as u64)) {
                     str.push_str(" ");
                 }
             }
             str.push_str(seperator);
         }
 
-        let mut value: String = self.replace_placeholders();
+        let mut value: String = self.replace_placeholders(config);
         value = self.replace_color_placeholders(&value);
         str.push_str(&value.to_string());
 
@@ -138,13 +136,13 @@ trait Module {
     }
 }
 
-fn log_error(module: &str, message: String) {
-    if CONFIG.suppress_errors && ARGS.suppress_errors {
-        return
-    }
-
-    println!("Module {}: {}", module, message);
-}
+// fn log_error(module: &str, message: String) {
+//     if CONFIG.suppress_errors && ARGS.suppress_errors {
+//         return
+//     }
+//
+//     println!("Module {}: {}", module, message);
+// }
 
 
 fn main() {
@@ -191,7 +189,7 @@ fn main() {
     let mut mount_index: u32 = 0;
     if modules.contains(&"mounts".to_string()) {
         mounts = Some(mounts::get_mounted_drives());
-        mounts.as_mut().unwrap().retain(|x| !x.is_ignored());
+        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
         module_count += mounts.as_ref().unwrap().len() - 1
     }
 
@@ -250,17 +248,17 @@ fn main() {
                     print!("{}", str);
                 }
 
-                "hostname" => print!("{}", hostname::get_hostname().style()),
-                "cpu" => print!("{}", cpu::get_cpu().style()),
-                "gpu" => print!("{}", gpu::get_gpu().style()),
-                "memory" => print!("{}", memory::get_memory().style()),
-                "host" => print!("{}", host::get_host().style()),
-                "swap" => print!("{}", swap::get_swap().style()),
+                // "hostname" => print!("{}", hostname::get_hostname().style()),
+                // "cpu" => print!("{}", cpu::get_cpu().style()),
+                // "gpu" => print!("{}", gpu::get_gpu().style()),
+                // "memory" => print!("{}", memory::get_memory().style()),
+                // "host" => print!("{}", host::get_host().style()),
+                // "swap" => print!("{}", swap::get_swap().style()),
                 "mounts" => {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        print!("{}", mount.style());
+                        print!("{}", mount.style(&config));
                         mount_index += 1;
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {
@@ -268,17 +266,17 @@ fn main() {
                         }
                     }
                 }
-                "os" => print!("{}", os.style()),
-                "packages" => print!("{}", packages::get_packages().style()),
-                "desktop" => print!("{}", desktop::get_desktop().style()),
-                "terminal" => print!("{}", terminal::get_terminal().style()),
-                "shell" => print!("{}", shell::get_shell().style()),
-                "uptime" => print!("{}", uptime::get_uptime().style()),
+                "os" => print!("{}", os.style(&config)),
+                // "packages" => print!("{}", packages::get_packages().style()),
+                // "desktop" => print!("{}", desktop::get_desktop().style()),
+                // "terminal" => print!("{}", terminal::get_terminal().style()),
+                // "shell" => print!("{}", shell::get_shell().style()),
+                // "uptime" => print!("{}", uptime::get_uptime().style()),
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
                         let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        print!("{}", display.style());
+                        print!("{}", display.style(&config));
                         display_index += 1;
                         // once again, sketchy
                         if displays.len() > display_index as usize {
@@ -286,7 +284,7 @@ fn main() {
                         }
                     }
                 }
-                "battery" => print!("{}", battery::get_battery().style()),
+                // "battery" => print!("{}", battery::get_battery().style()),
                 "colors" => {
                     let str = "   ";
                     print!("{}", str.on_black());

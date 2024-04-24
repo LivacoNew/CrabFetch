@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
 
 pub struct OSInfo {
     distro: String,
@@ -28,31 +28,31 @@ impl Module for OSInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.os.title_color).is_some() {
-            title_color = &CONFIG.os.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.os.title_color).is_some() {
+            title_color = config.os.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.os.title_bold.is_some() {
-            title_bold = CONFIG.os.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.os.title_bold.is_some() {
+            title_bold = config.os.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.os.title_italic.is_some() {
-            title_italic = CONFIG.os.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.os.seperator.is_some() {
-            seperator = CONFIG.os.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.os.title_italic.is_some() {
+            title_italic = config.os.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.os.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.os.seperator.is_some() {
+            seperator = config.os.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, 0, &config.os.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.os.format.replace("{distro}", &self.distro)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.os.format.replace("{distro}", &self.distro)
             .replace("{kernel}", &self.kernel)
     }
 }
@@ -67,7 +67,7 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/etc/os-release") {
         Ok(r) => r,
         Err(e) => {
-            log_error("OS", format!("Can't read from /etc/os-release - {}", e));
+            // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
             return os
         },
     };
@@ -75,7 +75,7 @@ pub fn get_os() -> OSInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            log_error("OS", format!("Can't read from /etc/os-release - {}", e));
+            // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
             return os
         },
     }
@@ -94,7 +94,7 @@ pub fn get_os() -> OSInfo {
     let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
         Ok(r) => r,
         Err(e) => {
-            log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
+            // log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
             return os
         },
     };
@@ -102,7 +102,7 @@ pub fn get_os() -> OSInfo {
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
+            // log_error("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e));
             return os
         },
     }

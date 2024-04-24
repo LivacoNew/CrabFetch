@@ -13,7 +13,7 @@ mod cpu;
 // mod memory;
 mod config_manager;
 mod ascii;
-// mod hostname;
+mod hostname;
 mod os;
 // mod uptime;
 // mod desktop;
@@ -267,7 +267,18 @@ fn main() {
                     print!("{}", str);
                 }
 
-                // "hostname" => print!("{}", hostname::get_hostname().style()),
+                "hostname" => {
+                    match hostname::get_hostname() {
+                        Ok(hostname) => {
+                            print!("{}", hostname.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "cpu" => {
                     match cpu::get_cpu() {
                         Ok(cpu) => {

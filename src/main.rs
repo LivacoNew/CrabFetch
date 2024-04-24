@@ -23,7 +23,7 @@ mod swap;
 mod gpu;
 // mod terminal;
 mod host;
-// mod packages;
+mod packages;
 mod displays;
 // mod battery;
 
@@ -78,7 +78,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "host" => res = max(res, config.host.title.len() as u64),
             "displays" => res = max(res, config.displays.title.len() as u64),
             "os" => res = max(res, config.os.title.len() as u64),
-            // "packages" => res = max(res, config.packages.title.len() as u64),
+            "packages" => res = max(res, config.packages.title.len() as u64),
             // "desktop" => res = max(res, config.desktop.title.len() as u64),
             // "terminal" => res = max(res, config.terminal.title.len() as u64),
             // "shell" => res = max(res, config.shell.title.len() as u64),
@@ -381,7 +381,7 @@ fn main() {
                         },
                     }
                 },
-                // "packages" => print!("{}", packages::get_packages().style()),
+                "packages" => print!("{}", packages::get_packages().style(&config, max_title_length)),
                 // "desktop" => print!("{}", desktop::get_desktop().style()),
                 // "terminal" => print!("{}", terminal::get_terminal().style()),
                 // "shell" => print!("{}", shell::get_shell().style()),

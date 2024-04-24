@@ -148,8 +148,7 @@ pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
         mounts.push(mount);
     }
 
-            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point ")));
-    // Ok(mounts)
+    Ok(mounts)
 }
 
 // Credit to sysinfo crate for letting me see how to impl this in Rust (and no it's not just copy

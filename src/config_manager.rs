@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr, time::Instant};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
 
 use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};

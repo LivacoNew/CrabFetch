@@ -214,8 +214,8 @@ fn main() {
         // Figure out the color first
         let percentage: f32 = (ascii_line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573
-        let index: u8 = (((CONFIG.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
-        let colored: ColoredString = color_string(line, CONFIG.ascii.colors.get(index as usize).unwrap());
+        let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+        let colored: ColoredString = color_string(line, config.ascii.colors.get(index as usize).unwrap());
 
         // Print the actual ASCII
         print!("{}", colored);
@@ -237,7 +237,7 @@ fn main() {
                 "underline" => {
                     let underline_length: u16 = module_split[1].parse().unwrap();
                     for _ in 0..underline_length {
-                        print!("{}", CONFIG.underline_character);
+                        print!("{}", config.underline_character);
                     }
                 }
 
@@ -245,7 +245,7 @@ fn main() {
                 // This is very crudely done for now but I'll expand it at a later date
                 "segment" => {
                     let segment_name: &str = module_split[1];
-                    let mut str: String = CONFIG.segment_top.replace("{name}", segment_name);
+                    let mut str: String = config.segment_top.replace("{name}", segment_name);
                     str = config_manager::replace_color_placeholders(&str);
                     print!("{}", str);
                 }

@@ -3,7 +3,7 @@ use std::{fs::File, io::{BufRead, BufReader, Read}, path::Path};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -34,36 +34,36 @@ impl Module for CPUInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.cpu.title_color).is_some() {
-            title_color = &CONFIG.cpu.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.cpu.title_color).is_some() {
+            title_color = config.cpu.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.cpu.title_bold.is_some() {
-            title_bold = CONFIG.cpu.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.cpu.title_bold.is_some() {
+            title_bold = config.cpu.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.cpu.title_italic.is_some() {
-            title_italic = CONFIG.cpu.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.cpu.seperator.is_some() {
-            seperator = CONFIG.cpu.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.cpu.title_italic.is_some() {
+            title_italic = config.cpu.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.cpu.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.cpu.seperator.is_some() {
+            seperator = config.cpu.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        let mut dec_places: u32 = CONFIG.decimal_places;
-        if CONFIG.cpu.decimal_places.is_some() {
-            dec_places = CONFIG.cpu.decimal_places.unwrap();
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut dec_places: u32 = config.decimal_places;
+        if config.cpu.decimal_places.is_some() {
+            dec_places = config.cpu.decimal_places.unwrap();
         }
 
-        CONFIG.cpu.format.replace("{name}", &self.name)
+        config.cpu.format.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
             .replace("{current_clock_mhz}", &CPUInfo::round(self.current_clock_mhz, dec_places).to_string())
@@ -73,16 +73,22 @@ impl Module for CPUInfo {
     }
 }
 
-pub fn get_cpu() -> CPUInfo {
+pub fn get_cpu() -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
     // This ones split into 2 as theres a lot to parse
-    get_basic_info(&mut cpu);
-    get_max_clock(&mut cpu);
+    match get_basic_info(&mut cpu) {
+        Ok(_) => {},
+        Err(e) => return Err(e)
+    };
+    match get_max_clock(&mut cpu) {
+        Ok(_) => {},
+        Err(e) => return Err(e)
+    };
 
-    cpu
+    Ok(cpu)
 }
 
-fn get_basic_info(cpu: &mut CPUInfo) {
+fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
@@ -90,8 +96,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            log_error("CPU", format!("Can't read from /proc/cpuinfo - {}", e));
-            return
+            return Err(ModuleError::new("CPU", format!("Can't read from /proc/cpuinfo - {}", e)));
         },
     };
 
@@ -115,8 +120,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => {
-                        log_error("CPU", format!("WARNING: Could not parse cpu cores: {}", e));
-                        0
+                        return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e)));
                     },
                 }
             }
@@ -124,8 +128,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => {
-                        log_error("CPU", format!("WARNING: Could not parse cpu threads: {}", e));
-                        0
+                        return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e)));
                     },
                 }
             }
@@ -134,8 +137,7 @@ fn get_basic_info(cpu: &mut CPUInfo) {
             cpu.current_clock_mhz = match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => {
-                    log_error("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e));
-                    0.0
+                    return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e)));
                 },
             };
             cpu_mhz_count += 1;
@@ -143,8 +145,9 @@ fn get_basic_info(cpu: &mut CPUInfo) {
     }
 
     cpu.current_clock_mhz = cpu.current_clock_mhz / cpu_mhz_count as f32;
+    Ok(())
 }
-fn get_max_clock(cpu: &mut CPUInfo) {
+fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     // All of this is relative to /sys/devices/system/cpu/cpu0/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS
@@ -170,27 +173,26 @@ fn get_max_clock(cpu: &mut CPUInfo) {
         // paths and seems to keep a steady CPU frequency in here instead
         // Not the most elegant thing but I can't seem to find anything else to do
         cpu.max_clock_mhz = cpu.current_clock_mhz;
-        return
+        return Ok(())
     }
 
     let mut file: File = match File::open(freq_path.unwrap()) {
         Ok(r) => r,
         Err(e) => {
-            log_error("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e));
-            return
+            return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e)));
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            log_error("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e));
-            return
+            return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e)));
         },
     }
 
     match contents.trim().parse::<f32>() {
         Ok(r) => cpu.max_clock_mhz = r / 1000.0,
-        Err(_) => {}
+        Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {}", freq_path.unwrap(), e)))
     };
+    Ok(())
 }

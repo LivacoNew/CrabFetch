@@ -9,7 +9,7 @@ use os::OSInfo;
 
 use crate::config_manager::{color_string, Configuration};
 
-// mod cpu;
+mod cpu;
 // mod memory;
 mod config_manager;
 mod ascii;
@@ -268,7 +268,18 @@ fn main() {
                 }
 
                 // "hostname" => print!("{}", hostname::get_hostname().style()),
-                // "cpu" => print!("{}", cpu::get_cpu().style()),
+                "cpu" => {
+                    match cpu::get_cpu() {
+                        Ok(cpu) => {
+                            print!("{}", cpu.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 // "gpu" => print!("{}", gpu::get_gpu().style()),
                 // "memory" => print!("{}", memory::get_memory().style()),
                 // "host" => print!("{}", host::get_host().style()),

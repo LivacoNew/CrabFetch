@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{self, File, ReadDir}, io::{Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
+use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
 
 use serde::Deserialize;
 
@@ -280,21 +280,14 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
         return ("".to_string(), "".to_string())
     }
 
-    let mut file: File = match File::open(ids_path.unwrap()) {
+    let file: File = match File::open(ids_path.unwrap()) {
         Ok(r) => r,
         Err(e) => {
             log_error("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e));
             return ("".to_string(), "".to_string())
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            log_error("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e));
-            return ("".to_string(), "".to_string())
-        },
-    }
+    let buffer: BufReader<File> = BufReader::new(file);
 
     // parsing this file is weird
     let mut vendor_result: String = String::new();
@@ -303,13 +296,22 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
     let vendor_term: String = String::from(vendor);
     let dev_term: String = String::from('\t') + device;
     let mut in_vendor: bool = false;
-    for line in contents.split("\n") {
+    for line in buffer.lines() { // NOTE: Looping here alone takes 1.7ms - This needs to be reduced
+        if line.is_err() {
+            continue;
+        }
+        let line: String = line.unwrap();
+
         if line.trim().starts_with("#") {
-            // Comment
             continue
         }
+
         if in_vendor && line.chars().next().is_some() {
             in_vendor = line.chars().next().unwrap().is_whitespace();
+            if !in_vendor {
+                // Assume we missed it
+                break
+            }
         }
 
         if line.starts_with(&vendor_term) && vendor_result.is_empty() {
@@ -319,6 +321,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
         } else if line.starts_with(&dev_term) && in_vendor {
             // And here's the device name
             device_result = line[dev_term.len()..].trim().to_string();
+            break
         }
     }
 

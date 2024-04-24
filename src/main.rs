@@ -1,4 +1,4 @@
-use std::{cmp::max, env, process::exit};
+use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
 
 use config_manager::CrabFetchColor;
 use displays::DisplayInfo;
@@ -54,7 +54,7 @@ pub struct Args {
     /// Overrides the distro ASCII to another distro.
     distro_override: Option<String>,
 
-    #[arg(short, long, require_equals(true), default_missing_value("true"), default_value("true"), action=ArgAction::Set)]
+    #[arg(short, long, require_equals(true), default_missing_value("false"), default_value("false"), action=ArgAction::Set)]
     /// Whether to suppress any errors or not.
     suppress_errors: bool,
 
@@ -136,6 +136,30 @@ trait Module {
     }
 }
 
+// A generic module error
+struct ModuleError {
+    module_name: String,
+    message: String
+}
+impl ModuleError {
+    pub fn new(module: &str, message: String) -> ModuleError {
+        ModuleError {
+            module_name: module.to_string(),
+            message
+        }
+    }
+}
+impl Display for ModuleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Module {} failed: {}", self.module_name, self.message)
+    }
+}
+impl Debug for ModuleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Module {} failed: {}", self.module_name, self.message)
+    }
+}
+
 // fn log_error(module: &str, message: String) {
 //     if CONFIG.suppress_errors && ARGS.suppress_errors {
 //         return
@@ -143,7 +167,6 @@ trait Module {
 //
 //     println!("Module {}: {}", module, message);
 // }
-
 
 fn main() {
     // Are we defo in Linux?
@@ -159,6 +182,7 @@ fn main() {
         exit(0);
     }
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    let log_errors = !config.suppress_errors && !args.suppress_errors;
     let max_title_length: u64 = calc_max_title_length(&config);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
@@ -188,10 +212,18 @@ fn main() {
     // called.
     let mut mounts: Option<Vec<MountInfo>> = None;
     let mut mount_index: u32 = 0;
+    let mut mount_error: Option<ModuleError> = None;
     if modules.contains(&"mounts".to_string()) {
-        mounts = Some(mounts::get_mounted_drives());
-        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
-        module_count += mounts.as_ref().unwrap().len() - 1
+        match mounts::get_mounted_drives() {
+            Ok(r) => {
+                mounts = Some(r);
+                mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
+                module_count += mounts.as_ref().unwrap().len() - 1
+            },
+            Err(e) => {
+                mount_error = Some(e);
+            },
+        };
     }
 
     // AND displays
@@ -256,14 +288,20 @@ fn main() {
                 // "host" => print!("{}", host::get_host().style()),
                 // "swap" => print!("{}", swap::get_swap().style()),
                 "mounts" => {
-                    let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
-                    if mounts.len() > mount_index as usize {
-                        let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        print!("{}", mount.style(&config, max_title_length));
-                        mount_index += 1;
-                        // sketchy - this is what makes it go through them all
+                    if mounts.is_some() {
+                        let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                         if mounts.len() > mount_index as usize {
-                            modules.insert(line_number as usize, "mounts".to_string());
+                            let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
+                            print!("{}", mount.style(&config, max_title_length));
+                            mount_index += 1;
+                            // sketchy - this is what makes it go through them all
+                            if mounts.len() > mount_index as usize {
+                                modules.insert(line_number as usize, "mounts".to_string());
+                            }
+                        }
+                    } else {
+                        if log_errors {
+                            print!("{}", mount_error.as_ref().unwrap());
                         }
                     }
                 }

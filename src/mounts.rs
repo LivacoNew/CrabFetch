@@ -4,7 +4,7 @@ use std::mem;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -85,7 +85,7 @@ impl MountInfo {
     }
 }
 
-pub fn get_mounted_drives() -> Vec<MountInfo> {
+pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
     // Read from /etc/fstab to get all currently mounted disks
@@ -94,8 +94,7 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            // log_error("Mounts", format!("Can't read from /etc/stab - {}", e));
-            return mounts;
+            return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/fstab: {}", e)));
         },
     };
     let buffer: BufReader<File> = BufReader::new(file);
@@ -141,18 +140,22 @@ pub fn get_mounted_drives() -> Vec<MountInfo> {
         }
 
         // statfs to get space data
-        call_statfs(mount_point, &mut mount);
+        let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
+        if statfs.is_err() {
+            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
+        }
 
         mounts.push(mount);
     }
 
-    mounts
+            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point ")));
+    // Ok(mounts)
 }
 
 // Credit to sysinfo crate for letting me see how to impl this in Rust (and no it's not just copy
 // pasted i swear)
 // https://github.com/GuillaumeGomez/sysinfo/blob/master/src/unix/linux/disk.rs#L96
-fn call_statfs(path: &str, mount: &mut MountInfo) {
+fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
     let mut bytes: Vec<u8> = path.as_bytes().to_vec();
     bytes.push(0);
     unsafe { // spooky
@@ -161,11 +164,12 @@ fn call_statfs(path: &str, mount: &mut MountInfo) {
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
             // log_error("Mount", format!("'statfs' syscall failed for mount point {path} - Returned code {x}"));
-            return
+            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, x)))
         }
 
         mount.space_total_mb = ((buffer.f_blocks as i64) * buffer.f_bsize) / 1024 / 1024;
         mount.space_avail_mb = ((buffer.f_bavail as i64) * buffer.f_bsize) / 1024 / 1024;
         mount.percent = ((((mount.space_total_mb - mount.space_avail_mb) as f64) / mount.space_total_mb as f64) * 100.0) as u8;
     }
+    Ok(())
 }

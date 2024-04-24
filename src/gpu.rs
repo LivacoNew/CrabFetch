@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, ARGS, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct GPUInfo {
     vendor: String,
@@ -20,7 +20,7 @@ impl ToString for GPUMethod {
         match &self {
             GPUMethod::GLXInfo => "glxinfo".to_string(),
             GPUMethod::PCISysFile => "pcisysfile".to_string()
-        }
+       }
     }
 }
 #[derive(Deserialize)]
@@ -45,54 +45,45 @@ impl Module for GPUInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.gpu.title_color).is_some() {
-            title_color = &CONFIG.gpu.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.gpu.title_color).is_some() {
+            title_color = config.gpu.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.gpu.title_bold.is_some() {
-            title_bold = CONFIG.gpu.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.gpu.title_bold.is_some() {
+            title_bold = config.gpu.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.gpu.title_italic.is_some() {
-            title_italic = CONFIG.gpu.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.gpu.seperator.is_some() {
-            seperator = CONFIG.gpu.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.gpu.title_italic.is_some() {
+            title_italic = config.gpu.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.gpu.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.gpu.seperator.is_some() {
+            seperator = config.gpu.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.gpu.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.gpu.format.replace("{vendor}", &self.vendor)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.gpu.format.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
             .replace("{vram_mb}", &self.vram_mb.to_string())
             .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
     }
 }
 
-pub fn get_gpu() -> GPUInfo {
+pub fn get_gpu(method: GPUMethod, use_cache: bool) -> Result<GPUInfo, ModuleError> {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
     let mut gpu: GPUInfo = GPUInfo::new();
 
     // Get the GPU info via the selected method
-    let mut method: GPUMethod = CONFIG.gpu.method.clone();
-    if ARGS.gpu_method.is_some() {
-        method = match ARGS.gpu_method.clone().unwrap().as_str() {
-            "pcisysfile" => GPUMethod::PCISysFile,
-            "glxinfo" => GPUMethod::GLXInfo,
-            _ => GPUMethod::PCISysFile
-        }
-    }
-
-    if !ARGS.ignore_cache && CONFIG.gpu.cache {
+    if use_cache {
         let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
         if cache_path.exists() {
             let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
@@ -110,10 +101,10 @@ pub fn get_gpu() -> GPUInfo {
                             gpu.vendor = split[1].to_string();
                             gpu.model = split[2].to_string();
                             gpu.vram_mb = split[3].parse::<u32>().unwrap();
-                            return gpu;
+                            return Ok(gpu);
                         }
                     },
-                    Err(e) => log_error("GPU", format!("GPU Cache exists, but cannot read from it - {}", e)),
+                    Err(e) => return Err(ModuleError::new("GPU", format!("GPU Cache exists, but cannot read from it - {}", e))),
                 }
             }
             // We've not returned yet so we can only assume it's fucked
@@ -124,33 +115,32 @@ pub fn get_gpu() -> GPUInfo {
     }
 
 
-    match method {
+    let filled: Result<(), ModuleError> = match method {
         GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
         GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
+    };
+    match filled {
+        Ok(_) => {},
+        Err(e) => return Err(e)
     }
 
     // Cache
-    if !ARGS.ignore_cache && CONFIG.gpu.cache {
+    if use_cache {
         let mut file: File = match File::create("/tmp/crabfetch-gpu") {
             Ok(r) => r,
-            Err(e) => {
-                log_error("GPU", format!("Unable to cache GPU info: {}", e));
-                return gpu;
-            }
+            Err(e) => return Err(ModuleError::new("GPU", format!("Unable to cache GPU info: {}", e)))
         };
         let write: String = format!("{}\n{}\n{}\n{}", method.to_string(), gpu.vendor, gpu.model, gpu.vram_mb);
         match file.write(write.as_bytes()) {
             Ok(_) => {},
-            Err(e) => {
-                log_error("GPU", format!("Error writing to GPU cache: {}", e));
-            }
+            Err(e) => return Err(ModuleError::new("GPU", format!("Error writing to GPU cache: {}", e)))
         }
     }
 
-    gpu
+    Ok(gpu)
 }
 
-fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
+fn fill_from_pcisysfile(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
     // This scans /sys/bus/pci/devices/ and checks the class to find the first display adapter it
     // can
     // This needs expanded at a later date
@@ -167,10 +157,7 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
 
     let dir: ReadDir = match fs::read_dir("/sys/bus/pci/devices") {
         Ok(r) => r,
-        Err(e) => {
-            log_error("GPU", format!("Can't read from /sys/bus/pci/devices: {}", e));
-            return
-        },
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from /sys/bus/pci/devices: {}", e))),
     };
     for dev_dir in dir {
         // This does the following;
@@ -180,27 +167,18 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         // needs
         let d = match dev_dir {
             Ok(r) => r,
-            Err(e) => {
-                log_error("GPU", format!("Failed to open directory: {}", e));
-                continue
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {}", e))),
         };
         // println!("{}", d.path().to_str().unwrap());
 
         let mut class_file: File = match File::open(d.path().join("class")) {
             Ok(r) => r,
-            Err(e) => {
-                log_error("GPU", format!("Failed to open file {}: {}", d.path().join("class").to_str().unwrap(), e));
-                continue;
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("class").to_str().unwrap(), e))),
         };
         let mut contents: String = String::new();
         match class_file.read_to_string(&mut contents) {
             Ok(_) => {},
-            Err(e) => {
-                log_error("GPU", format!("Can't read from file: {}", e));
-                return
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
         }
 
         if !contents.starts_with("0x03") {
@@ -212,38 +190,29 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         // Vendor/Device
         let mut vendor_file: File = match File::open(d.path().join("vendor")) {
             Ok(r) => r,
-            Err(e) => {
-                log_error("GPU", format!("Failed to open file {}: {}", d.path().join("vendor").to_str().unwrap(), e));
-                continue;
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("vendor").to_str().unwrap(), e))),
         };
         let mut vendor_str: String = String::new();
         match vendor_file.read_to_string(&mut vendor_str) {
             Ok(_) => {},
-            Err(e) => {
-                log_error("GPU", format!("Can't read from file: {}", e));
-                return
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
         }
         let vendor: &str = vendor_str[2..].trim();
 
         let mut device_file: File = match File::open(d.path().join("device")) {
             Ok(r) => r,
-            Err(e) => {
-                log_error("GPU", format!("Failed to open file {}: {}", d.path().join("device").to_str().unwrap(), e));
-                continue;
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("device").to_str().unwrap(), e))),
         };
         let mut device_str: String = String::new();
         match device_file.read_to_string(&mut device_str) {
             Ok(_) => {},
-            Err(e) => {
-                log_error("GPU", format!("Can't read from file: {}", e));
-                return
-            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
         }
         let device: &str = device_str[2..].trim();
-        let dev_data: (String, String) = search_pci_ids(vendor, device);
+        let dev_data: (String, String) = match search_pci_ids(vendor, device) {
+            Ok(r) => r,
+            Err(e) => return Err(e)
+        };
 
         gpu.vendor = dev_data.0;
         gpu.model = dev_data.1;
@@ -251,21 +220,22 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) {
         // Finally, Vram
         let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
             Ok(r) => r,
-            Err(_) => return, // dw about it, this can happen on VM's for some reason
+            Err(_) => return Ok(()), // dw about it, this can happen on VM's for some reason
         };
         let mut vram_str: String = String::new();
         match vram_file.read_to_string(&mut vram_str) {
             Ok(_) => {},
             Err(e) => {
-                log_error("GPU", format!("Can't read from file: {}", e));
-                return
+                return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
             },
         }
         gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
-        return
+        return Ok(());
     }
+
+    Err(ModuleError::new("GPU", format!("Unable to find suitable GPU target.")))
 }
-fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
+fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), ModuleError> {
     // Search all known locations
     // /usr/share/hwdata/pci.ids
     let mut ids_path: Option<&str> = None;
@@ -276,15 +246,13 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
     }
 
     if ids_path.is_none() {
-        log_error("GPU", format!("Could not find an appropriate path for getting PCI ID info."));
-        return ("".to_string(), "".to_string())
+        return Err(ModuleError::new("GPU", format!("Could not find an appropriate path for getting PCI ID info.")));
     }
 
     let file: File = match File::open(ids_path.unwrap()) {
         Ok(r) => r,
         Err(e) => {
-            log_error("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e));
-            return ("".to_string(), "".to_string())
+            return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e)));
         },
     };
     let buffer: BufReader<File> = BufReader::new(file);
@@ -329,31 +297,26 @@ fn search_pci_ids(vendor: &str, device: &str) -> (String, String) {
         device_result += device;
     }
 
-    (vendor_result.to_string(), device_result.to_string())
+    Ok((vendor_result.to_string(), device_result.to_string()))
 }
 
-fn fill_from_glxinfo(gpu: &mut GPUInfo) {
+fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
     let output: Vec<u8> = match Command::new("glxinfo")
         .args(["-B"])
         .output() {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    log_error("GPU", format!("GPU requires the 'glxinfo' command, which is not present!"));
+                    return Err(ModuleError::new("GPU", format!("GPU requires the 'glxinfo' command, which is not present!")));
                 } else {
-                    log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
+                    return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e)));
                 }
-
-                return
             },
         };
 
     let contents: String = match String::from_utf8(output) {
         Ok(r) => r,
-        Err(e) => {
-            log_error("GPU", format!("Unknown error while fetching GPU: {}", e));
-            return
-        },
+        Err(e) => return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e))),
     };
 
     // Vendor is got from whatever line starts with "OpenGL vendor string"
@@ -376,11 +339,10 @@ fn fill_from_glxinfo(gpu: &mut GPUInfo) {
             // E.g Dedicated video memory: 16384 MB
             gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
                 Ok(r) => r,
-                Err(e) => {
-                    log_error("GPU", format!("Unable to parse GPU memory: {}", e));
-                    0
-                },
+                Err(e) => return Err(ModuleError::new("GPU", format!("Unable to parse GPU memory: {}", e))),
             };
         }
     }
+
+    Ok(())
 }

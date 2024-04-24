@@ -3,7 +3,7 @@ use std::{env, fs::File, io::Read, process::Command};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct HostnameInfo {
     username: String,
@@ -25,36 +25,36 @@ impl Module for HostnameInfo {
             hostname: "".to_string(),
         }
     }
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.hostname.title_color).is_some() {
-            title_color = &CONFIG.hostname.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.hostname.title_color).is_some() {
+            title_color = config.hostname.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.hostname.title_bold.is_some() {
-            title_bold = CONFIG.hostname.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.hostname.title_bold.is_some() {
+            title_bold = config.hostname.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.hostname.title_italic.is_some() {
-            title_italic = CONFIG.hostname.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.hostname.seperator.is_some() {
-            seperator = CONFIG.hostname.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.hostname.title_italic.is_some() {
+            title_italic = config.hostname.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.hostname.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.hostname.seperator.is_some() {
+            seperator = config.hostname.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.hostname.title, title_color, title_bold, title_italic, &seperator)
     }
-    fn replace_placeholders(&self) -> String {
-        CONFIG.hostname.format.replace("{username}", &self.username)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.hostname.format.replace("{username}", &self.username)
             .replace("{hostname}", &self.hostname)
             .to_string()
     }
 }
 
-pub fn get_hostname() -> HostnameInfo {
+pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
 
     // Gets the username from $USER
@@ -62,8 +62,7 @@ pub fn get_hostname() -> HostnameInfo {
     hostname.username = match env::var("USER") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e));
-            "user".to_string()
+           return Err(ModuleError::new("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e)));
         }
     };
 
@@ -71,28 +70,34 @@ pub fn get_hostname() -> HostnameInfo {
     let mut file: File = match File::open("/etc/hostname") {
         Ok(r) => r,
         Err(_) => {
-            backup_to_hostname_command(&mut hostname);
-            return hostname;
+            match backup_to_hostname_command(&mut hostname) {
+                Ok(_) => return Ok(hostname),
+                Err(e) => return Err(e),
+            }
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(_) => {
-            backup_to_hostname_command(&mut hostname);
-            return hostname
+            match backup_to_hostname_command(&mut hostname) {
+                Ok(_) => return Ok(hostname),
+                Err(e) => return Err(e),
+            }
         },
     }
     if contents.trim().is_empty() {
-        backup_to_hostname_command(&mut hostname);
-    } else {
-        hostname.hostname = contents.trim().to_string();
+        match backup_to_hostname_command(&mut hostname) {
+            Ok(_) => return Ok(hostname),
+            Err(e) => return Err(e),
+        }
     }
 
-    hostname
+    hostname.hostname = contents.trim().to_string();
+    Ok(hostname)
 }
 
-fn backup_to_hostname_command(hostname: &mut HostnameInfo) {
+fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
     // If /etc/hostname is fucked, it'll come here
     // This method is requried e.g in a default fedora install, where they don't bother filling out
     // the /etc/hostname file
@@ -101,16 +106,16 @@ fn backup_to_hostname_command(hostname: &mut HostnameInfo) {
             Ok(r) => r.stdout,
             Err(_) => {
                 // fuck it
-                log_error("Hostname", format!("Can't find hostname source."));
-                return
+                return Err(ModuleError::new("Hostname", format!("Can't find hostname source.")));
             },
         };
 
     hostname.hostname = match String::from_utf8(output) {
         Ok(r) => r.trim().to_string(),
         Err(_) => {
-            log_error("Hostname", format!("Can't find hostname source."));
-            return
+            return Err(ModuleError::new("Hostname", format!("Can't find hostname source.")));
         },
     };
+
+    Ok(())
 }

@@ -4,7 +4,7 @@ use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::{self, CrabFetchColor}, Module, CONFIG, MAX_TITLE_LENGTH};
+use crate::{config_manager::{self, Configuration, CrabFetchColor}, Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -25,24 +25,24 @@ impl Module for PackagesInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.packages.title_color).is_some() {
-            title_color = &CONFIG.packages.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.packages.title_color).is_some() {
+            title_color = &config.packages.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.packages.title_bold.is_some() {
-            title_bold = CONFIG.packages.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.packages.title_bold.is_some() {
+            title_bold = config.packages.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.packages.title_italic.is_some() {
-            title_italic = CONFIG.packages.title_italic.unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.packages.title_italic.is_some() {
+            title_italic = config.packages.title_italic.unwrap();
         }
 
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.packages.seperator.is_some() {
-            seperator = CONFIG.packages.seperator.as_ref().unwrap();
+        let mut seperator: &str = config.seperator.as_str();
+        if config.packages.seperator.is_some() {
+            seperator = config.packages.seperator.as_ref().unwrap();
         }
 
 
@@ -50,8 +50,8 @@ impl Module for PackagesInfo {
         let mut str: String = String::new();
 
         // Title
-        if !CONFIG.packages.title.trim().is_empty() {
-            let mut title: ColoredString = config_manager::color_string(&CONFIG.packages.title, title_color);
+        if !config.packages.title.trim().is_empty() {
+            let mut title: ColoredString = config_manager::color_string(&config.packages.title, title_color);
             if title_bold {
                 title = title.bold();
             }
@@ -61,8 +61,8 @@ impl Module for PackagesInfo {
 
             str.push_str(&title.to_string());
             // Inline value stuff
-            if CONFIG.inline_values {
-                for _ in 0..(*MAX_TITLE_LENGTH - (title.len() as u64)) {
+            if config.inline_values {
+                for _ in 0..(max_title_length - (title.len() as u64)) {
                     str.push_str(" ");
                 }
             }
@@ -75,7 +75,7 @@ impl Module for PackagesInfo {
                 value.push_str(", ");
             }
             // :(
-            value.push_str(&CONFIG.packages.format.replace("{manager}", &manager.manager_name)
+            value.push_str(&config.packages.format.replace("{manager}", &manager.manager_name)
                 .replace("{count}", &manager.package_count.to_string()));
         }
         value = self.replace_color_placeholders(&value);
@@ -84,7 +84,7 @@ impl Module for PackagesInfo {
         str
     }
 
-    fn replace_placeholders(&self) -> String {
+    fn replace_placeholders(&self, _: &Configuration) -> String {
         unimplemented!()
     }
 }

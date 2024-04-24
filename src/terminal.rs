@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, shell, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, shell, Module, ModuleError};
 
 pub struct TerminalInfo {
     terminal_name: String
@@ -23,40 +23,40 @@ impl Module for TerminalInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.terminal.title_color).is_some() {
-            title_color = &CONFIG.terminal.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.terminal.title_color).is_some() {
+            title_color = &config.terminal.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.terminal.title_bold.is_some() {
-            title_bold = CONFIG.terminal.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.terminal.title_bold.is_some() {
+            title_bold = config.terminal.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.terminal.title_italic.is_some() {
-            title_italic = CONFIG.terminal.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.terminal.seperator.is_some() {
-            seperator = CONFIG.terminal.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.terminal.title_italic.is_some() {
+            title_italic = config.terminal.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.terminal.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.terminal.seperator.is_some() {
+            seperator = config.terminal.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.terminal.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
+    fn replace_placeholders(&self, config: &Configuration) -> String {
         let mut format: String = "{terminal_name}".to_string();
-        if CONFIG.host.format.is_some() {
-            format = CONFIG.host.format.clone().unwrap();
+        if config.host.format.is_some() {
+            format = config.host.format.clone().unwrap();
         }
 
         format.replace("{terminal_name}", &self.terminal_name)
     }
 }
 
-pub fn get_terminal() -> TerminalInfo {
+pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
 
     // This is just the rust-ified solution from https://askubuntu.com/a/508047
@@ -68,7 +68,10 @@ pub fn get_terminal() -> TerminalInfo {
     // gets the name of it from ps
 
     // println!("Starting terminal:");
-    let default_shell: String = shell::get_default_shell().shell_name;
+    let default_shell: String = match shell::get_default_shell(){
+        Ok(r) => r.shell_name,
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Unable to get default shell, to find upper bound of PID tree: {}", e)))
+    };
     let mut terminal_pid: Option<u32> = None;
 
     let mut found_terminal_pid: bool = false;
@@ -81,7 +84,7 @@ pub fn get_terminal() -> TerminalInfo {
         // -> back to your default shell
         // but I don't really care once your at that point
         if loops > 10 {
-            panic!("Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.");
+            return Err(ModuleError::new("Terminal", "Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.".to_string()));
         }
         loops += 1;
 
@@ -90,18 +93,12 @@ pub fn get_terminal() -> TerminalInfo {
 
         let mut parent_stat: File = match File::open(path.to_string()) {
             Ok(r) => r,
-            Err(e) => {
-                log_error("Terminal", format!("Can't open from {} - {}", path, e));
-                return terminal
-            },
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         };
         let mut contents: String = String::new();
         match parent_stat.read_to_string(&mut contents) {
             Ok(_) => {},
-            Err(e) => {
-                log_error("Terminal", format!("Can't open from {} - {}", path, e));
-                return terminal
-            },
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         }
         // println!("Got contents: {}", contents);
 
@@ -113,19 +110,13 @@ pub fn get_terminal() -> TerminalInfo {
             found_terminal_pid = true;
             terminal_pid = Some(match content_split[3].parse() {
                 Ok(r) => r,
-                Err(e) => {
-                    log_error("Terminal", format!("Can't parse terminal pid: {}", e));
-                    return terminal
-                },
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse terminal pid: {}", e))),
             });
         } else {
             // go up a level
             parent_pid = match content_split[3].parse() {
                 Ok(r) => r,
-                Err(e) => {
-                    log_error("Terminal", format!("Can't parse parent pid: {}", e));
-                    return terminal
-                },
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse parent pid: {}", e))),
             };
         }
     }
@@ -134,8 +125,7 @@ pub fn get_terminal() -> TerminalInfo {
     // sysinfo were too slow
     // println!("{}", terminal_pid);
     if terminal_pid.is_none() {
-        log_error("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid));
-        return terminal
+        return Err(ModuleError::new("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid)));
     }
 
     let terminal_pid: u32 = terminal_pid.unwrap();
@@ -143,18 +133,12 @@ pub fn get_terminal() -> TerminalInfo {
 
     let mut terminal_cmdline: File = match File::open(path.to_string()) {
         Ok(r) => r,
-        Err(e) => {
-            log_error("Terminal", format!("Can't open from {} - {}", path, e));
-            return terminal
-        },
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
     };
     let mut contents: String = String::new();
     match terminal_cmdline.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            log_error("Terminal", format!("Can't open from {} - {}", path, e));
-            return terminal
-        },
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
     }
     // println!("Got full cmdline as {}", contents);
     contents = contents.split(" ").collect::<Vec<&str>>()[0].to_string();
@@ -165,5 +149,5 @@ pub fn get_terminal() -> TerminalInfo {
     // println!("Filter 2: {}", contents);
     terminal.terminal_name = contents;
 
-    terminal
+    Ok(terminal)
 }

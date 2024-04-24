@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct SwapInfo {
     used_kib: u32,
@@ -26,36 +26,36 @@ impl Module for SwapInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.swap.title_color).is_some() {
-            title_color = &CONFIG.swap.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.swap.title_color).is_some() {
+            title_color = &config.swap.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.swap.title_bold.is_some() {
-            title_bold = CONFIG.swap.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.swap.title_bold.is_some() {
+            title_bold = config.swap.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.swap.title_italic.is_some() {
-            title_italic = CONFIG.swap.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.swap.seperator.is_some() {
-            seperator = CONFIG.swap.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.swap.title_italic.is_some() {
+            title_italic = config.swap.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.swap.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.swap.seperator.is_some() {
+            seperator = config.swap.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.swap.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
+    fn replace_placeholders(&self, config: &Configuration) -> String {
         let swap_percent: String = if self.total_kib != 0 {
             SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2).to_string()
         } else {
             "0".to_string()
         };
-        CONFIG.swap.format.replace("{used_kib}", &self.used_kib.to_string())
+        config.swap.format.replace("{used_kib}", &self.used_kib.to_string())
             .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
             .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
             .replace("{total_kib}", &self.total_kib.to_string())
@@ -65,23 +65,21 @@ impl Module for SwapInfo {
     }
 }
 
-pub fn get_swap() -> SwapInfo {
+pub fn get_swap() -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
 
     // Uses /proc/swaps
     let mut file: File = match File::open("/proc/swaps") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Swap", format!("Can't read from /proc/swaps - {}", e));
-            return swap
+            return Err(ModuleError::new("Swap", format!("Can't read from /proc/swaps - {}", e)));
         },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
         Err(e) => {
-            log_error("Swap", format!("Can't read from /proc/swaps - {}", e));
-            return swap
+            return Err(ModuleError::new("Swap", format!("Can't read from /proc/swaps - {}", e)));
         },
     }
     let mut lines: Vec<&str> = contents.split("\n").collect();
@@ -97,5 +95,5 @@ pub fn get_swap() -> SwapInfo {
         swap.total_kib += values[2].parse::<u32>().unwrap();
     }
 
-    swap
+    Ok(swap)
 }

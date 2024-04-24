@@ -2,7 +2,7 @@ use std::{env, fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct ShellInfo {
     pub shell_name: String, // pub so terminal can get at it
@@ -24,38 +24,38 @@ impl Module for ShellInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.shell.title_color).is_some() {
-            title_color = &CONFIG.shell.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.shell.title_color).is_some() {
+            title_color = &config.shell.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.shell.title_bold.is_some() {
-            title_bold = CONFIG.shell.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.shell.title_bold.is_some() {
+            title_bold = config.shell.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.shell.title_italic.is_some() {
-            title_italic = CONFIG.shell.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.shell.seperator.is_some() {
-            seperator = CONFIG.shell.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.shell.title_italic.is_some() {
+            title_italic = config.shell.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.shell.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.shell.seperator.is_some() {
+            seperator = config.shell.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.shell.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.shell.format.replace("{shell}", &self.shell_name)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.shell.format.replace("{shell}", &self.shell_name)
     }
 }
 
-pub fn get_shell() -> ShellInfo {
+pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
-    if CONFIG.shell.show_default_shell {
+    if show_default_shell {
         return get_default_shell();
     }
 
@@ -65,26 +65,20 @@ pub fn get_shell() -> ShellInfo {
 
     let mut parent_stat: File = match File::open(path.to_string()) {
         Ok(r) => r,
-        Err(e) => {
-            log_error("Shell", format!("Can't open from {} - {}", path, e));
-            return shell
-        },
+        Err(e) => return Err(ModuleError::new("Shell", format!("Can't open from {} - {}", path, e))),
     };
     let mut contents: String = String::new();
     match parent_stat.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            log_error("Shell", format!("Can't open from {} - {}", path, e));
-            return shell
-        },
+        Err(e) => return Err(ModuleError::new("Shell", format!("Can't open from {} - {}", path, e))),
     }
 
     shell.shell_name = contents.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
-    shell
+    Ok(shell)
 }
 
-pub fn get_default_shell() -> ShellInfo {
+pub fn get_default_shell() -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead
@@ -92,11 +86,8 @@ pub fn get_default_shell() -> ShellInfo {
     // This definitely isn't the old $SHELL grabbing code, no sir.
     shell.shell_name = match env::var("SHELL") {
         Ok(r) => r,
-        Err(e) => {
-            log_error("Shell", format!("Could not parse $SHELL env variable: {}", e));
-            "".to_string()
-        }
+        Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
     }.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
-    shell
+    Ok(shell)
 }

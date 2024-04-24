@@ -1,11 +1,13 @@
-use std::{cmp::max, env, process::exit};
+use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
 
 use config_manager::CrabFetchColor;
-use lazy_static::lazy_static;
+use displays::DisplayInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
+use mounts::MountInfo;
+use os::OSInfo;
 
-use crate::{config_manager::{color_string, Configuration}, displays::DisplayInfo, mounts::MountInfo, os::OSInfo};
+use crate::{config_manager::{color_string, Configuration}, gpu::GPUMethod};
 
 mod cpu;
 mod memory;
@@ -52,7 +54,7 @@ pub struct Args {
     /// Overrides the distro ASCII to another distro.
     distro_override: Option<String>,
 
-    #[arg(short, long, require_equals(true), default_missing_value("true"), default_value("true"), action=ArgAction::Set)]
+    #[arg(short, long, require_equals(true), default_missing_value("false"), default_value("false"), action=ArgAction::Set)]
     /// Whether to suppress any errors or not.
     suppress_errors: bool,
 
@@ -62,49 +64,45 @@ pub struct Args {
     module_override: Option<String>
 }
 
-fn calc_max_title_length() -> u64 {
+fn calc_max_title_length(config: &Configuration) -> u64 {
     let mut res: u64 = 0;
     // this kinda sucks
-    for module in &CONFIG.modules {
+    for module in &config.modules {
         match module.as_str() {
-            "hostname" => res = max(res, CONFIG.hostname.title.len() as u64),
-            "cpu" => res = max(res, CONFIG.cpu.title.len() as u64),
-            "gpu" => res = max(res, CONFIG.gpu.title.len() as u64),
-            "memory" => res = max(res, CONFIG.memory.title.len() as u64),
-            "swap" => res = max(res, CONFIG.swap.title.len() as u64),
-            "mounts" => res = max(res, CONFIG.mounts.title.len() as u64),
-            "host" => res = max(res, CONFIG.host.title.len() as u64),
-            "displays" => res = max(res, CONFIG.displays.title.len() as u64),
-            "os" => res = max(res, CONFIG.os.title.len() as u64),
-            "packages" => res = max(res, CONFIG.packages.title.len() as u64),
-            "desktop" => res = max(res, CONFIG.desktop.title.len() as u64),
-            "terminal" => res = max(res, CONFIG.terminal.title.len() as u64),
-            "shell" => res = max(res, CONFIG.shell.title.len() as u64),
-            "battery" => res = max(res, CONFIG.battery.title.len() as u64),
-            "uptime" => res = max(res, CONFIG.uptime.title.len() as u64),
+            "hostname" => res = max(res, config.hostname.title.len() as u64),
+            "cpu" => res = max(res, config.cpu.title.len() as u64),
+            "gpu" => res = max(res, config.gpu.title.len() as u64),
+            "memory" => res = max(res, config.memory.title.len() as u64),
+            "swap" => res = max(res, config.swap.title.len() as u64),
+            "mounts" => res = max(res, config.mounts.title.len() as u64),
+            "host" => res = max(res, config.host.title.len() as u64),
+            "displays" => res = max(res, config.displays.title.len() as u64),
+            "os" => res = max(res, config.os.title.len() as u64),
+            "packages" => res = max(res, config.packages.title.len() as u64),
+            "desktop" => res = max(res, config.desktop.title.len() as u64),
+            "terminal" => res = max(res, config.terminal.title.len() as u64),
+            "shell" => res = max(res, config.shell.title.len() as u64),
+            "battery" => res = max(res, config.battery.title.len() as u64),
+            "uptime" => res = max(res, config.uptime.title.len() as u64),
             _ => {}
         }
     }
 
     res
 }
-lazy_static! {
-    pub static ref ARGS: Args = Args::parse();
-    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.ignore_config_file);
-    pub static ref MAX_TITLE_LENGTH: u64 = calc_max_title_length();
-}
 
 trait Module {
     fn new() -> Self;
-    fn style(&self) -> String;
-    fn replace_placeholders(&self) -> String;
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String;
+    fn replace_placeholders(&self, config: &Configuration) -> String;
 
     // This helps the format function lol
     fn round(number: f32, places: u32) -> f32 {
         let power: f32 = 10_u32.pow(places) as f32;
         (number * power).round() / power
     }
-    fn default_style(&self, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
+    // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
+    fn default_style(&self, config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
         let mut str: String = String::new();
 
         // Title
@@ -119,15 +117,15 @@ trait Module {
 
             str.push_str(&title.to_string());
             // Inline value stuff
-            if CONFIG.inline_values {
-                for _ in 0..(*MAX_TITLE_LENGTH - (title.len() as u64)) {
+            if config.inline_values {
+                for _ in 0..(max_title_len - (title.len() as u64)) {
                     str.push_str(" ");
                 }
             }
             str.push_str(seperator);
         }
 
-        let mut value: String = self.replace_placeholders();
+        let mut value: String = self.replace_placeholders(config);
         value = self.replace_color_placeholders(&value);
         str.push_str(&value.to_string());
 
@@ -138,12 +136,28 @@ trait Module {
     }
 }
 
-fn log_error(module: &str, message: String) {
-    if CONFIG.suppress_errors && ARGS.suppress_errors {
-        return
+// A generic module error
+struct ModuleError {
+    module_name: String,
+    message: String
+}
+impl ModuleError {
+    pub fn new(module: &str, message: String) -> ModuleError {
+        ModuleError {
+            module_name: module.to_string(),
+            message
+        }
     }
-
-    println!("Module {}: {}", module, message);
+}
+impl Display for ModuleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Module {} failed: {}", self.module_name, self.message)
+    }
+}
+impl Debug for ModuleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Module {} failed: {}", self.module_name, self.message)
+    }
 }
 
 
@@ -154,42 +168,48 @@ fn main() {
         exit(-1);
     }
 
-    if ARGS.generate_config_file {
-        config_manager::generate_config_file(ARGS.config.clone());
+    // Get the args/config stuff out of the way
+    let args: Args = Args::parse();
+    if args.generate_config_file {
+        config_manager::generate_config_file(args.config.clone());
         exit(0);
     }
+    let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    let log_errors = !config.suppress_errors && !args.suppress_errors;
+    let max_title_length: u64 = calc_max_title_length(&config);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
-    let os: OSInfo = os::get_os();
+    let os: Result<OSInfo, ModuleError> = os::get_os();
     let mut ascii: (String, u16) = (String::new(), 0);
-    if CONFIG.ascii.display {
-        if ARGS.distro_override.is_some() {
-            ascii = ascii::get_ascii(&ARGS.distro_override.clone().unwrap());
+    if config.ascii.display && os.is_ok() {
+        if args.distro_override.is_some() {
+            ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
         } else {
-            ascii = ascii::get_ascii(&os.distro_id);
+            ascii = ascii::get_ascii(&os.as_ref().unwrap().distro_id);
         }
     }
 
     let mut line_number: u8 = 0;
     let mut ascii_line_number: u8 = 0;
-    let target_length: u16 = ascii.1 + CONFIG.ascii.margin;
+    let target_length: u16 = ascii.1 + config.ascii.margin;
 
     let split: Vec<&str> = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
 
     // Figure out how many total lines we have
-    let mut modules = CONFIG.modules.clone();
+    let mut modules = config.modules.clone();
     let mut module_count = modules.len();
 
     // Drives also need to be treated specially since they need to be on a seperate line
     // So we parse them already up here too, and just increase the index each time the module is
     // called.
-    let mut mounts: Option<Vec<MountInfo>> = None;
+    let mut mounts: Result<Vec<MountInfo>, ModuleError> = mounts::get_mounted_drives();
+    if mounts.is_ok() {
+        mounts.as_mut().unwrap().retain(|x| !x.is_ignored(&config));
+        module_count += mounts.as_ref().unwrap().len() - 1;
+    }
     let mut mount_index: u32 = 0;
     if modules.contains(&"mounts".to_string()) {
-        mounts = Some(mounts::get_mounted_drives());
-        mounts.as_mut().unwrap().retain(|x| !x.is_ignored());
-        module_count += mounts.as_ref().unwrap().len() - 1
     }
 
     // AND displays
@@ -211,8 +231,8 @@ fn main() {
         // Figure out the color first
         let percentage: f32 = (ascii_line_number as f32 / split.len() as f32) as f32;
         // https://stackoverflow.com/a/68457573
-        let index: u8 = (((CONFIG.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
-        let colored: ColoredString = color_string(line, CONFIG.ascii.colors.get(index as usize).unwrap());
+        let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+        let colored: ColoredString = color_string(line, config.ascii.colors.get(index as usize).unwrap());
 
         // Print the actual ASCII
         print!("{}", colored);
@@ -234,7 +254,7 @@ fn main() {
                 "underline" => {
                     let underline_length: u16 = module_split[1].parse().unwrap();
                     for _ in 0..underline_length {
-                        print!("{}", CONFIG.underline_character);
+                        print!("{}", config.underline_character);
                     }
                 }
 
@@ -242,40 +262,179 @@ fn main() {
                 // This is very crudely done for now but I'll expand it at a later date
                 "segment" => {
                     let segment_name: &str = module_split[1];
-                    let mut str: String = CONFIG.segment_top.replace("{name}", segment_name);
+                    let mut str: String = config.segment_top.replace("{name}", segment_name);
                     str = config_manager::replace_color_placeholders(&str);
                     print!("{}", str);
                 }
 
-                "hostname" => print!("{}", hostname::get_hostname().style()),
-                "cpu" => print!("{}", cpu::get_cpu().style()),
-                "gpu" => print!("{}", gpu::get_gpu().style()),
-                "memory" => print!("{}", memory::get_memory().style()),
-                "host" => print!("{}", host::get_host().style()),
-                "swap" => print!("{}", swap::get_swap().style()),
+                "hostname" => {
+                    match hostname::get_hostname() {
+                        Ok(hostname) => {
+                            print!("{}", hostname.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "cpu" => {
+                    match cpu::get_cpu() {
+                        Ok(cpu) => {
+                            print!("{}", cpu.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "gpu" => {
+                    let mut method: GPUMethod = config.gpu.method.clone();
+                    if args.gpu_method.is_some() {
+                        method = match args.gpu_method.clone().unwrap().as_str() {
+                            "pcisysfile" => GPUMethod::PCISysFile,
+                            "glxinfo" => GPUMethod::GLXInfo,
+                            _ => GPUMethod::PCISysFile
+                        }
+                    }
+                    let use_cache: bool = !args.ignore_cache && config.gpu.cache;
+
+                    match gpu::get_gpu(method, use_cache) {
+                        Ok(gpu) => {
+                            print!("{}", gpu.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "memory" => {
+                    match memory::get_memory() {
+                        Ok(memory) => {
+                            print!("{}", memory.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "host" => {
+                    match host::get_host() {
+                        Ok(host) => {
+                            print!("{}", host.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "swap" => {
+                    match swap::get_swap() {
+                        Ok(swap) => {
+                            print!("{}", swap.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "mounts" => {
-                    let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
-                    if mounts.len() > mount_index as usize {
-                        let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        print!("{}", mount.style());
-                        mount_index += 1;
-                        // sketchy - this is what makes it go through them all
-                        if mounts.len() > mount_index as usize {
-                            modules.insert(line_number as usize, "mounts".to_string());
+                    match mounts {
+                        Ok(ref mounts) => {
+                            if mounts.len() > mount_index as usize {
+                                let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
+                                print!("{}", mount.style(&config, max_title_length));
+                                mount_index += 1;
+                                // sketchy - this is what makes it go through them all
+                                if mounts.len() > mount_index as usize {
+                                    modules.insert(line_number as usize, "mounts".to_string());
+                                }
+                            }
+                        },
+                        Err(ref e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
                         }
                     }
                 }
-                "os" => print!("{}", os.style()),
-                "packages" => print!("{}", packages::get_packages().style()),
-                "desktop" => print!("{}", desktop::get_desktop().style()),
-                "terminal" => print!("{}", terminal::get_terminal().style()),
-                "shell" => print!("{}", shell::get_shell().style()),
-                "uptime" => print!("{}", uptime::get_uptime().style()),
+                "os" => {
+                    match os {
+                        Ok(ref os) => {
+                            print!("{}", os.style(&config, max_title_length))
+                        },
+                        Err(ref e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "packages" => print!("{}", packages::get_packages().style(&config, max_title_length)),
+                "desktop" => {
+                    match desktop::get_desktop() {
+                        Ok(desktop) => {
+                            print!("{}", desktop.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "terminal" => {
+                    match terminal::get_terminal() {
+                        Ok(terminal) => {
+                            print!("{}", terminal.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "shell" => {
+                    match shell::get_shell(config.shell.show_default_shell) {
+                        Ok(shell) => {
+                            print!("{}", shell.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "uptime" => {
+                    match uptime::get_uptime() {
+                        Ok(uptime) => {
+                            print!("{}", uptime.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
                         let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        print!("{}", display.style());
+                        print!("{}", display.style(&config, max_title_length));
                         display_index += 1;
                         // once again, sketchy
                         if displays.len() > display_index as usize {
@@ -283,7 +442,18 @@ fn main() {
                         }
                     }
                 }
-                "battery" => print!("{}", battery::get_battery().style()),
+                "battery" => {
+                    match battery::get_battery(&config.battery.path) {
+                        Ok(battery) => {
+                            print!("{}", battery.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "colors" => {
                     let str = "   ";
                     print!("{}", str.on_black());

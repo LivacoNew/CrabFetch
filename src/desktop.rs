@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{config_manager::CrabFetchColor, log_error, Module, CONFIG};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct DesktopInfo {
     desktop: String,
@@ -25,53 +25,51 @@ impl Module for DesktopInfo {
         }
     }
 
-    fn style(&self) -> String {
-        let mut title_color: &CrabFetchColor = &CONFIG.title_color;
-        if (&CONFIG.desktop.title_color).is_some() {
-            title_color = &CONFIG.desktop.title_color.as_ref().unwrap();
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (&config.desktop.title_color).is_some() {
+            title_color = &config.desktop.title_color.as_ref().unwrap();
         }
 
-        let mut title_bold: bool = CONFIG.title_bold;
-        if CONFIG.desktop.title_bold.is_some() {
-            title_bold = CONFIG.desktop.title_bold.unwrap();
+        let mut title_bold: bool = config.title_bold;
+        if config.desktop.title_bold.is_some() {
+            title_bold = config.desktop.title_bold.unwrap();
         }
-        let mut title_italic: bool = CONFIG.title_italic;
-        if CONFIG.desktop.title_italic.is_some() {
-            title_italic = CONFIG.desktop.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = CONFIG.seperator.as_str();
-        if CONFIG.desktop.seperator.is_some() {
-            seperator = CONFIG.desktop.seperator.as_ref().unwrap();
+        let mut title_italic: bool = config.title_italic;
+        if config.desktop.title_italic.is_some() {
+            title_italic = config.desktop.title_italic.unwrap();
         }
 
-        self.default_style(&CONFIG.desktop.title, title_color, title_bold, title_italic, &seperator)
+        let mut seperator: &str = config.seperator.as_str();
+        if config.desktop.seperator.is_some() {
+            seperator = config.desktop.seperator.as_ref().unwrap();
+        }
+
+        self.default_style(config, max_title_length, &config.desktop.title, title_color, title_bold, title_italic, &seperator)
     }
 
-    fn replace_placeholders(&self) -> String {
-        CONFIG.desktop.format.replace("{desktop}", &self.desktop)
+    fn replace_placeholders(&self, config: &Configuration) -> String {
+        config.desktop.format.replace("{desktop}", &self.desktop)
             .replace("{display_type}", &self.display_type)
     }
 }
 
-pub fn get_desktop() -> DesktopInfo {
+pub fn get_desktop() -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
 
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e));
-            "Unknown".to_string()
+            return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)));
         }
     };
 
     desktop.display_type = match env::var("XDG_SESSION_TYPE") {
         Ok(r) => r,
         Err(e) => {
-            log_error("Desktop", format!("Could not parse $XDG_SESSION_TYPE env variable: {}", e));
-            "Unknown".to_string()
+            return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_SESSION_TYPE env variable: {}", e)));
         }
     };
 
-    desktop
+    Ok(desktop)
 }

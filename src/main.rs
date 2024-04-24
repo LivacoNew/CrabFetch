@@ -1,4 +1,4 @@
-use std::{cmp::max, env, process::exit, time::Instant};
+use std::{cmp::max, env, process::exit};
 
 use config_manager::CrabFetchColor;
 use lazy_static::lazy_static;

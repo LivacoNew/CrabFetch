@@ -70,7 +70,7 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
     // println!("Starting terminal:");
     let default_shell: String = match shell::get_default_shell(){
         Ok(r) => r.shell_name,
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Unable to get default shell, to find upper bound of PID tree.")))
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Unable to get default shell, to find upper bound of PID tree: {}", e)))
     };
     let mut terminal_pid: Option<u32> = None;
 

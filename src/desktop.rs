@@ -1,6 +1,5 @@
 use std::env;
 
-use config::ConfigError;
 use serde::Deserialize;
 
 use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};

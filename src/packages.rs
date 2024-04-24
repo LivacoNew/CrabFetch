@@ -84,7 +84,7 @@ impl Module for PackagesInfo {
         str
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, _: &Configuration) -> String {
         unimplemented!()
     }
 }

@@ -15,13 +15,13 @@ mod config_manager;
 mod ascii;
 mod hostname;
 mod os;
-// mod uptime;
+mod uptime;
 mod desktop;
 mod mounts;
-// mod shell;
+mod shell;
 mod swap;
 mod gpu;
-// mod terminal;
+mod terminal;
 mod host;
 mod packages;
 mod displays;
@@ -80,10 +80,10 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "os" => res = max(res, config.os.title.len() as u64),
             "packages" => res = max(res, config.packages.title.len() as u64),
             "desktop" => res = max(res, config.desktop.title.len() as u64),
-            // "terminal" => res = max(res, config.terminal.title.len() as u64),
-            // "shell" => res = max(res, config.shell.title.len() as u64),
+            "terminal" => res = max(res, config.terminal.title.len() as u64),
+            "shell" => res = max(res, config.shell.title.len() as u64),
             "battery" => res = max(res, config.battery.title.len() as u64),
-            // "uptime" => res = max(res, config.uptime.title.len() as u64),
+            "uptime" => res = max(res, config.uptime.title.len() as u64),
             _ => {}
         }
     }
@@ -394,9 +394,42 @@ fn main() {
                         },
                     }
                 },
-                // "terminal" => print!("{}", terminal::get_terminal().style()),
-                // "shell" => print!("{}", shell::get_shell().style()),
-                // "uptime" => print!("{}", uptime::get_uptime().style()),
+                "terminal" => {
+                    match terminal::get_terminal() {
+                        Ok(terminal) => {
+                            print!("{}", terminal.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "shell" => {
+                    match shell::get_shell(config.shell.show_default_shell) {
+                        Ok(shell) => {
+                            print!("{}", shell.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "uptime" => {
+                    match uptime::get_uptime() {
+                        Ok(uptime) => {
+                            print!("{}", uptime.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 "displays" => {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {

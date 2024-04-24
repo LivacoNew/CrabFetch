@@ -90,7 +90,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
 }
 lazy_static! {
     pub static ref ARGS: Args = Args::parse();
-    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.ignore_config_file);
+    pub static ref CONFIG: Configuration = config_manager::parse(&ARGS.config, &ARGS.module_override, &ARGS.ignore_config_file);
     pub static ref MAX_TITLE_LENGTH: u64 = calc_max_title_length(&CONFIG);
 }
 
@@ -154,17 +154,13 @@ fn main() {
         exit(-1);
     }
 
-    let t = Instant::now();
-
     // Get the args/config stuff out of the way
     let args: Args = Args::parse();
     if args.generate_config_file {
         config_manager::generate_config_file(args.config.clone());
         exit(0);
     }
-    let config: Configuration = config_manager::parse(&args.config, &args.ignore_config_file);
-    println!("yep{:2?}", t.elapsed());
-    let max_title_length: u64 = calc_max_title_length(&config);
+    let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
@@ -209,7 +205,6 @@ fn main() {
 
     let line_count = max(split.len(), module_count);
 
-    println!("{:2?}", t.elapsed());
     for x in 0..line_count {
         let mut line = "";
         if split.len() > x {

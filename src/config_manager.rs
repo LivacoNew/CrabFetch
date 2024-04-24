@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr, time::Instant};
 
 use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
@@ -135,7 +135,7 @@ pub struct Configuration {
     pub battery: BatteryConfiguration
 }
 
-pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configuration {
+pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
     let config_path_str: String;
     if location_override.is_some() {
         config_path_str = shellexpand::tilde(&location_override.clone().unwrap()).to_string();
@@ -267,8 +267,8 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
     builder = builder.set_default("battery.path", "BAT0").unwrap();
 
     // Check for any module overrides
-    if ARGS.module_override.is_some() {
-        let module_override: String = ARGS.module_override.clone().unwrap();
+    if module_override.is_some() {
+        let module_override: String = module_override.clone().unwrap();
         builder = builder.set_override("modules", module_override.split(',').collect::<Vec<&str>>()).unwrap();
     }
 
@@ -278,12 +278,10 @@ pub fn parse(location_override: &Option<String>, ignore_file: &bool) -> Configur
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
 
-
     let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
         Ok(r) => r,
         Err(e) => panic!("Unable to parse config.toml: {}", e),
     };
-
 
     deserialized
 }

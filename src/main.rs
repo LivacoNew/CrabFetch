@@ -93,7 +93,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
 
 trait Module {
     fn new() -> Self;
-    fn style(&self, config: &Configuration) -> String;
+    fn style(&self, config: &Configuration, max_title_length: u64) -> String;
     fn replace_placeholders(&self, config: &Configuration) -> String;
 
     // This helps the format function lol
@@ -159,6 +159,7 @@ fn main() {
         exit(0);
     }
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    let max_title_length: u64 = calc_max_title_length(&config);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the
     // ascii we want.
@@ -258,7 +259,7 @@ fn main() {
                     let mounts: &Vec<MountInfo> = mounts.as_ref().unwrap();
                     if mounts.len() > mount_index as usize {
                         let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                        print!("{}", mount.style(&config));
+                        print!("{}", mount.style(&config, max_title_length));
                         mount_index += 1;
                         // sketchy - this is what makes it go through them all
                         if mounts.len() > mount_index as usize {
@@ -266,7 +267,7 @@ fn main() {
                         }
                     }
                 }
-                "os" => print!("{}", os.style(&config)),
+                "os" => print!("{}", os.style(&config, max_title_length)),
                 // "packages" => print!("{}", packages::get_packages().style()),
                 // "desktop" => print!("{}", desktop::get_desktop().style()),
                 // "terminal" => print!("{}", terminal::get_terminal().style()),
@@ -276,7 +277,7 @@ fn main() {
                     let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
                     if displays.len() > display_index as usize {
                         let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        print!("{}", display.style(&config));
+                        print!("{}", display.style(&config, max_title_length));
                         display_index += 1;
                         // once again, sketchy
                         if displays.len() > display_index as usize {

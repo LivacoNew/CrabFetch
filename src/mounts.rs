@@ -34,7 +34,7 @@ impl Module for MountInfo {
         }
     }
 
-    fn style(&self, config: &Configuration) -> String {
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
         if (config.mounts.title_color).is_some() {
             title_color = config.mounts.title_color.as_ref().unwrap();
@@ -58,7 +58,7 @@ impl Module for MountInfo {
         title = title.replace("{device}", &self.device)
             .replace("{mount}", &self.mount);
 
-        self.default_style(config, 0, &title, title_color, title_bold, title_italic, &seperator)
+        self.default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator)
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

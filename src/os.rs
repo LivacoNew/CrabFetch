@@ -28,7 +28,7 @@ impl Module for OSInfo {
         }
     }
 
-    fn style(&self, config: &Configuration) -> String {
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
         if (config.os.title_color).is_some() {
             title_color = config.os.title_color.as_ref().unwrap();
@@ -48,7 +48,7 @@ impl Module for OSInfo {
             seperator = config.os.seperator.as_ref().unwrap();
         }
 
-        self.default_style(config, 0, &config.os.title, title_color, title_bold, title_italic, &seperator)
+        self.default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, &seperator)
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

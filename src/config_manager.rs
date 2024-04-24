@@ -136,72 +136,72 @@ pub struct Configuration {
 }
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
-    let config_path_str: String;
-    if location_override.is_some() {
-        config_path_str = shellexpand::tilde(&location_override.clone().unwrap()).to_string();
-        // Config won't be happy unless it ends with .toml
-        if !config_path_str.ends_with(".toml") {
-            // Simply crash, to avoid confusing the user as to why the default config is being used
-            // instead of their custom one.
-            panic!("Config path must end with '.toml'");
-        }
-
-        // Verify it exists
-        let path: &Path = Path::new(&config_path_str);
-        if !path.exists() {
-            // Simply crash, to avoid confusing the user as to why the default config is being used
-            // instead of their custom one.
-            panic!("Unable to find config: {}", config_path_str);
-        }
-    } else {
-        // Find the config path
-        // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-        config_path_str = match env::var("XDG_CONFIG_HOME") {
-            Ok(mut r) => {
-                r.push_str("/CrabFetch/config.toml");
-                r
-            }
-            Err(_) => {
-                // Let's try the home directory
-                let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => r,
-                    Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
-                };
-                home_dir.push_str("/.config/CrabFetch/config.toml");
-                home_dir
-            }
-        };
-    }
-
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     if !ignore_file {
+        let config_path_str: String;
+        if location_override.is_some() {
+            config_path_str = shellexpand::tilde(&location_override.clone().unwrap()).to_string();
+            // Config won't be happy unless it ends with .toml
+            if !config_path_str.ends_with(".toml") {
+                // Simply crash, to avoid confusing the user as to why the default config is being used
+                // instead of their custom one.
+                panic!("Config path must end with '.toml'");
+            }
+
+            // Verify it exists
+            let path: &Path = Path::new(&config_path_str);
+            if !path.exists() {
+                // Simply crash, to avoid confusing the user as to why the default config is being used
+                // instead of their custom one.
+                panic!("Unable to find config: {}", config_path_str);
+            }
+        } else {
+            // Find the config path
+            // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+            config_path_str = match env::var("XDG_CONFIG_HOME") {
+                Ok(mut r) => {
+                    r.push_str("/CrabFetch/config.toml");
+                    r
+                }
+                Err(_) => {
+                    // Let's try the home directory
+                    let mut home_dir: String = match env::var("HOME") {
+                        Ok(r) => r,
+                        Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
+                    };
+                    home_dir.push_str("/.config/CrabFetch/config.toml");
+                    home_dir
+                }
+            };
+        }
+
         builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
     }
     // Set the defaults here
     // General
     builder = builder.set_default("modules", vec![
-        "hostname".to_string(),
-        "underline:16".to_string(),
+                                  "hostname".to_string(),
+                                  "underline:16".to_string(),
 
-        "cpu".to_string(),
-        "gpu".to_string(),
-        "memory".to_string(),
-        "swap".to_string(),
-        "mounts".to_string(),
-        "host".to_string(),
-        "displays".to_string(),
+                                  "cpu".to_string(),
+                                  "gpu".to_string(),
+                                  "memory".to_string(),
+                                  "swap".to_string(),
+                                  "mounts".to_string(),
+                                  "host".to_string(),
+                                  "displays".to_string(),
 
-        "os".to_string(),
-        "packages".to_string(),
-        "desktop".to_string(),
-        "terminal".to_string(),
-        "shell".to_string(),
-        "uptime".to_string(),
+                                  "os".to_string(),
+                                  "packages".to_string(),
+                                  "desktop".to_string(),
+                                  "terminal".to_string(),
+                                  "shell".to_string(),
+                                  "uptime".to_string(),
 
-        "space".to_string(),
-        "colors".to_string(),
-        "bright_colors".to_string(),
-    ]).unwrap();
+                                  "space".to_string(),
+                                  "colors".to_string(),
+                                  "bright_colors".to_string(),
+                                  ]).unwrap();
     builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();

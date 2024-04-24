@@ -7,7 +7,7 @@ use colored::{ColoredString, Colorize};
 use mounts::MountInfo;
 use os::OSInfo;
 
-use crate::config_manager::{color_string, Configuration};
+use crate::{config_manager::{color_string, Configuration}, gpu::GPUMethod};
 
 mod cpu;
 // mod memory;
@@ -20,7 +20,7 @@ mod os;
 mod mounts;
 // mod shell;
 // mod swap;
-// mod gpu;
+mod gpu;
 // mod terminal;
 // mod host;
 // mod packages;
@@ -69,9 +69,9 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
     // this kinda sucks
     for module in &config.modules {
         match module.as_str() {
-            // "hostname" => res = max(res, config.hostname.title.len() as u64),
-            // "cpu" => res = max(res, config.cpu.title.len() as u64),
-            // "gpu" => res = max(res, config.gpu.title.len() as u64),
+            "hostname" => res = max(res, config.hostname.title.len() as u64),
+            "cpu" => res = max(res, config.cpu.title.len() as u64),
+            "gpu" => res = max(res, config.gpu.title.len() as u64),
             // "memory" => res = max(res, config.memory.title.len() as u64),
             // "swap" => res = max(res, config.swap.title.len() as u64),
             "mounts" => res = max(res, config.mounts.title.len() as u64),
@@ -291,7 +291,28 @@ fn main() {
                         },
                     }
                 },
-                // "gpu" => print!("{}", gpu::get_gpu().style()),
+                "gpu" => {
+                    let mut method: GPUMethod = config.gpu.method.clone();
+                    if args.gpu_method.is_some() {
+                        method = match args.gpu_method.clone().unwrap().as_str() {
+                            "pcisysfile" => GPUMethod::PCISysFile,
+                            "glxinfo" => GPUMethod::GLXInfo,
+                            _ => GPUMethod::PCISysFile
+                        }
+                    }
+                    let use_cache: bool = !args.ignore_cache && config.gpu.cache;
+
+                    match gpu::get_gpu(method, use_cache) {
+                        Ok(gpu) => {
+                            print!("{}", gpu.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
                 // "memory" => print!("{}", memory::get_memory().style()),
                 // "host" => print!("{}", host::get_host().style()),
                 // "swap" => print!("{}", swap::get_swap().style()),

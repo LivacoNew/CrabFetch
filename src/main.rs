@@ -175,7 +175,7 @@ fn main() {
         exit(0);
     }
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
-    let log_errors = !config.suppress_errors && !args.suppress_errors;
+    let log_errors = !(config.suppress_errors && args.suppress_errors);
     let max_title_length: u64 = calc_max_title_length(&config);
 
     // Since we parse the os-release file in OS anyway, this is always called to get the

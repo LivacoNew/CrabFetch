@@ -1,4 +1,4 @@
-use std::{env, fs::File, io::Read, os::unix::process};
+use std::{env, fs::{self, File}, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
@@ -60,20 +60,17 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
     }
 
     // Grabs the parent process and uses that
+    // Goes into the /exe file and checks the symlink path, and uses that
+    // Credit goes to FastFetch for this detection method - another tidbit of linux knowledge I was
+    // unaware of
     let parent_pid: u32 = process::parent_id();
-    let path: String = format!("/proc/{}/cmdline", parent_pid);
-
-    let mut parent_stat: File = match File::open(path.to_string()) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Shell", format!("Can't open from {} - {}", path, e))),
+    let path: String = format!("/proc/{}/exe", parent_pid);
+    let shell_path: String = match fs::canonicalize(&path) {
+        Ok(r) => r.display().to_string(),
+        Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
     };
-    let mut contents: String = String::new();
-    match parent_stat.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Shell", format!("Can't open from {} - {}", path, e))),
-    }
 
-    shell.shell_name = contents.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
+    shell.shell_name = shell_path.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
     Ok(shell)
 }

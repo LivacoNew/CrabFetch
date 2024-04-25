@@ -1,8 +1,8 @@
-use std::{fs::File, io::Read, os::unix::process};
+use std::{env, fs::File, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, shell, Module, ModuleError};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct TerminalInfo {
     terminal_name: String
@@ -68,21 +68,18 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
     // gets the name of it from ps
 
     // println!("Starting terminal:");
-    let default_shell: String = match shell::get_default_shell(){
-        Ok(r) => r.shell_name,
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Unable to get default shell, to find upper bound of PID tree: {}", e)))
-    };
     let mut terminal_pid: Option<u32> = None;
 
-    let mut found_terminal_pid: bool = false;
     let mut loops = 0; // always use protection against infinite loops kids
     let mut parent_pid: u32 = process::parent_id();
-    while !found_terminal_pid {
-        // Once we reach the default shell's PID, go up once more and we're at the terminal PID.
-        // This is scrappy but it's the best solution I have for the time being
-        // This also breaks if you enter multiple shells and go default shell -> some other shell
-        // -> back to your default shell
-        // but I don't really care once your at that point
+    let mut shell_level: u8 = match env::var("SHLVL") {
+        Ok(r) => match r.parse::<u8>() {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Could not parse $SHLVL env variable: {}", e)))
+        },
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Could not get $SHLVL env variable: {}", e)))
+    };
+    while shell_level > 0 {
         if loops > 10 {
             return Err(ModuleError::new("Terminal", "Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.".to_string()));
         }
@@ -103,11 +100,8 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
         // println!("Got contents: {}", contents);
 
         let content_split: Vec<&str> = contents.split(" ").collect::<Vec<&str>>();
-        let mut pid_name: String = content_split[1].to_string();
-        pid_name = pid_name[1..pid_name.len() - 1].to_string();
 
-        if pid_name == default_shell {
-            found_terminal_pid = true;
+        if shell_level == 1 {
             terminal_pid = Some(match content_split[3].parse() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse terminal pid: {}", e))),
@@ -119,6 +113,8 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse parent pid: {}", e))),
             };
         }
+
+        shell_level -= 1;
     }
 
     // And credit to https://superuser.com/a/632984 for the file based solution, as ps and

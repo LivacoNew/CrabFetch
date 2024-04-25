@@ -48,8 +48,8 @@ impl Module for TerminalInfo {
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
         let mut format: String = "{terminal_name}".to_string();
-        if config.host.format.is_some() {
-            format = config.host.format.clone().unwrap();
+        if config.terminal.format.is_some() {
+            format = config.terminal.format.clone().unwrap();
         }
 
         format.replace("{terminal_name}", &self.terminal_name)

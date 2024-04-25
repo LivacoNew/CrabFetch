@@ -134,7 +134,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             }
         }
         if line.starts_with("cpu MHz") {
-            cpu.current_clock_mhz = match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
+            cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => {
                     return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e)));

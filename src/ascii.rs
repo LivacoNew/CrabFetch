@@ -8,6 +8,15 @@ pub struct AsciiConfiguration {
     pub colors: Vec<CrabFetchColor>,
     pub margin: u16,
 }
+impl Default for AsciiConfiguration {
+    fn default() -> Self {
+        AsciiConfiguration {
+            display: true,
+            colors: vec![CrabFetchColor::Red],
+            margin: 4
+        }
+    }
+}
 
 // Return type is the ascii & the maximum length of it
 pub fn get_ascii(os: &str) -> (String, u16) {

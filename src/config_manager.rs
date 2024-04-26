@@ -134,8 +134,64 @@ pub struct Configuration {
     pub uptime: UptimeConfiguration,
     pub battery: BatteryConfiguration
 }
+impl Default for Configuration {
+    fn default() -> Self {
+        Configuration {
+            modules: vec![
+                "hostname".to_string(),
+                "underline:16".to_string(),
+
+                "cpu".to_string(),
+                "gpu".to_string(),
+                "memory".to_string(),
+                "swap".to_string(),
+                "mounts".to_string(),
+                "host".to_string(),
+                "displays".to_string(),
+
+                "os".to_string(),
+                "packages".to_string(),
+                "desktop".to_string(),
+                "terminal".to_string(),
+                "shell".to_string(),
+                "uptime".to_string(),
+
+                "space".to_string(),
+                "colors".to_string(),
+                "bright_colors".to_string(),
+            ],
+            seperator: " > ".to_string(),
+            title_color: CrabFetchColor::Blue,
+            title_bold: true,
+            title_italic: true,
+            decimal_places: 2,
+            inline_values: false,
+            underline_character: '_',
+            segment_top: "".to_string(),
+            suppress_errors: false,
+            ascii: AsciiConfiguration::default(),
+            hostname: HostnameConfiguration::default(),
+            cpu: CPUConfiguration::default(),
+            gpu: GPUConfiguration::default(),
+            memory: MemoryConfiguration::default(),
+            swap: SwapConfiguration::default(),
+            mounts: MountConfiguration::default(),
+            host: HostConfiguration::default(),
+            displays: DisplayConfiguration::default(),
+            os: OSConfiguration::default(),
+            packages: PackagesConfiguration::default(),
+            desktop: DesktopConfiguration::default(),
+            terminal: TerminalConfiguration::default(),
+            shell: ShellConfiguration::default(),
+            uptime: UptimeConfiguration::default(),
+            battery: BatteryConfiguration::default()
+        }
+    }
+}
+
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
+    return Configuration::default();
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     if !ignore_file {
         let config_path_str: String;

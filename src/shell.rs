@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 pub struct ShellInfo {
-    pub shell_name: String, // pub so terminal can get at it
+    shell_name: String,
 }
 #[derive(Deserialize)]
 pub struct ShellConfiguration {

@@ -6,6 +6,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 
 pub struct ShellInfo {
     shell_name: String,
+    shell_path: String,
 }
 #[derive(Deserialize)]
 pub struct ShellConfiguration {
@@ -21,6 +22,7 @@ impl Module for ShellInfo {
     fn new() -> ShellInfo {
         ShellInfo {
             shell_name: "".to_string(),
+            shell_path: "".to_string(),
         }
     }
 
@@ -49,6 +51,7 @@ impl Module for ShellInfo {
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.shell.format.replace("{shell}", &self.shell_name)
+            .replace("{path}", &self.shell_path)
     }
 }
 
@@ -70,7 +73,8 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
     };
 
-    shell.shell_name = shell_path.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
+    shell.shell_path = shell_path;
+    shell.shell_name = shell.shell_path.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
     Ok(shell)
 }
@@ -81,10 +85,11 @@ pub fn get_default_shell() -> Result<ShellInfo, ModuleError> {
     // This is mostly here for terminal detection, but there's a config option to use this instead
     // too :)
     // This definitely isn't the old $SHELL grabbing code, no sir.
-    shell.shell_name = match env::var("SHELL") {
+    shell.shell_path = match env::var("SHELL") {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
-    }.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
+    };
+    shell.shell_name = shell.shell_path.split("/").collect::<Vec<&str>>().last().unwrap().to_string();
 
     Ok(shell)
 }

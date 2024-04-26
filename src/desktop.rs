@@ -8,7 +8,7 @@ pub struct DesktopInfo {
     desktop: String,
     display_type: String
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct DesktopConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -17,6 +17,19 @@ pub struct DesktopConfiguration {
     pub seperator: Option<String>,
     pub format: String,
 }
+impl Default for DesktopConfiguration {
+    fn default() -> Self {
+        DesktopConfiguration {
+            title: "Desktop".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{desktop} ({display_type})".to_string()
+        }
+    }
+}
+
 impl Module for DesktopInfo {
     fn new() -> DesktopInfo {
         DesktopInfo {

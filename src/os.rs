@@ -10,7 +10,7 @@ pub struct OSInfo {
     pub distro_id: String,
     kernel: String
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct OSConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -19,6 +19,19 @@ pub struct OSConfiguration {
     pub seperator: Option<String>,
     pub format: String
 }
+impl Default for OSConfiguration {
+    fn default() -> Self {
+        OSConfiguration {
+            title: "OS".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{distro} ({kernel})".to_string()
+        }
+    }
+}
+
 impl Module for OSInfo {
     fn new() -> OSInfo {
         OSInfo {

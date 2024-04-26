@@ -12,7 +12,7 @@ impl Default for AsciiConfiguration {
     fn default() -> Self {
         AsciiConfiguration {
             display: true,
-            colors: vec![CrabFetchColor::Red],
+            colors: vec![CrabFetchColor::BrightMagenta],
             margin: 4
         }
     }

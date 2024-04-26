@@ -9,7 +9,7 @@ pub struct SwapInfo {
     used_kib: u32,
     total_kib: u32,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct SwapConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -18,6 +18,19 @@ pub struct SwapConfiguration {
     pub seperator: Option<String>,
     pub format: String
 }
+impl Default for SwapConfiguration {
+    fn default() -> Self {
+        SwapConfiguration {
+            title: "Swap".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{used_gib} GiB / {total_gib} GiB ({percent}%)".to_string()
+        }
+    }
+}
+
 impl Module for SwapInfo {
     fn new() -> SwapInfo {
         SwapInfo {

@@ -8,7 +8,7 @@ pub struct ShellInfo {
     shell_name: String,
     shell_path: String,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct ShellConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -18,6 +18,20 @@ pub struct ShellConfiguration {
     pub format: String,
     pub show_default_shell: bool
 }
+impl Default for ShellConfiguration {
+    fn default() -> Self {
+        ShellConfiguration {
+            title: "Shell".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{shell}".to_string(),
+            show_default_shell: false
+        }
+    }
+}
+
 impl Module for ShellInfo {
     fn new() -> ShellInfo {
         ShellInfo {

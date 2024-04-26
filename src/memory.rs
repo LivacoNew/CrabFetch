@@ -11,7 +11,7 @@ pub struct MemoryInfo {
     max_kib: u32,
     percentage: f32
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct MemoryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -21,6 +21,20 @@ pub struct MemoryConfiguration {
     pub format: String,
     pub decimal_places: Option<u32>
 }
+impl Default for MemoryConfiguration {
+    fn default() -> Self {
+        MemoryConfiguration {
+            title: "Memory".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)".to_string(),
+            decimal_places: None
+        }
+    }
+}
+
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {

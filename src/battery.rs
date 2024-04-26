@@ -7,7 +7,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 pub struct BatteryInfo {
     percentage: u8,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct BatteryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -18,6 +18,20 @@ pub struct BatteryConfiguration {
 
     pub path: String // Will default to BAT0
 }
+impl Default for BatteryConfiguration {
+    fn default() -> Self {
+        BatteryConfiguration {
+            title: "Battery".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{percentage}%".to_string(),
+            path: "BAT0".to_string()
+        }
+    }
+}
+
 impl Module for BatteryInfo {
     fn new() -> BatteryInfo {
         BatteryInfo {

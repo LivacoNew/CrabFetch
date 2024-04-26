@@ -9,7 +9,7 @@ pub struct HostnameInfo {
     username: String,
     hostname: String,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct HostnameConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -18,6 +18,19 @@ pub struct HostnameConfiguration {
     pub seperator: Option<String>,
     pub format: String
 }
+impl Default for HostnameConfiguration {
+    fn default() -> Self {
+        HostnameConfiguration {
+            title: "".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}".to_string()
+        }
+    }
+}
+
 impl Module for HostnameInfo {
     fn new() -> HostnameInfo {
         HostnameInfo {

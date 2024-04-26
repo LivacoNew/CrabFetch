@@ -12,7 +12,7 @@ pub struct CPUInfo {
     current_clock_mhz: f32,
     max_clock_mhz: f32,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct CPUConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -21,6 +21,19 @@ pub struct CPUConfiguration {
     pub seperator: Option<String>,
     pub format: String,
     pub decimal_places: Option<u32>
+}
+impl Default for CPUConfiguration {
+    fn default() -> Self {
+        CPUConfiguration {
+            title: "CPU".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz".to_string(),
+            decimal_places: None
+        }
+    }
 }
 
 impl Module for CPUInfo {

@@ -8,7 +8,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 pub struct HostInfo {
     host: String,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct HostConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -17,6 +17,19 @@ pub struct HostConfiguration {
     pub seperator: Option<String>,
     pub format: Option<String>
 }
+impl Default for HostConfiguration {
+    fn default() -> Self {
+        HostConfiguration {
+            title: "Host".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: None
+        }
+    }
+}
+
 impl Module for HostInfo {
     fn new() -> HostInfo {
         HostInfo {

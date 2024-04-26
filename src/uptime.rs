@@ -8,7 +8,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 pub struct UptimeInfo {
     uptime: Duration,
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct UptimeConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -17,6 +17,19 @@ pub struct UptimeConfiguration {
     pub seperator: Option<String>,
     pub format: String,
 }
+impl Default for UptimeConfiguration {
+    fn default() -> Self {
+        UptimeConfiguration {
+            title: "Uptime".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{time}".to_string()
+        }
+    }
+}
+
 impl Module for UptimeInfo {
     fn new() -> UptimeInfo {
         UptimeInfo {

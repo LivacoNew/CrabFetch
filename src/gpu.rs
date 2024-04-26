@@ -24,7 +24,7 @@ impl ToString for GPUMethod {
        }
     }
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct GPUConfiguration {
     pub method: GPUMethod,
     pub cache: bool,
@@ -35,6 +35,20 @@ pub struct GPUConfiguration {
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
     pub format: String
+}
+impl Default for GPUConfiguration {
+    fn default() -> Self {
+        GPUConfiguration {
+            method: GPUMethod::default(),
+            cache: false,
+            title: "GPU".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{vendor} {model} ({vram_gb} GB)".to_string()
+        }
+    }
 }
 
 impl Module for GPUInfo {

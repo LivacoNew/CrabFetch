@@ -13,7 +13,7 @@ pub struct MountInfo {
     space_total_mb: i64,
     percent: u8
 }
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct MountConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -23,6 +23,20 @@ pub struct MountConfiguration {
     pub format: String,
     pub ignore: Vec<String>
 }
+impl Default for MountConfiguration {
+    fn default() -> Self {
+        MountConfiguration {
+            title: "Disk {mount}".to_string(),
+            title_color: None,
+            title_bold: None,
+            title_italic: None,
+            seperator: None,
+            format: "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)".to_string(),
+            ignore: vec!["/boot".to_string(), "/snap".to_string()]
+        }
+    }
+}
+
 impl Module for MountInfo {
     fn new() -> MountInfo {
         MountInfo {

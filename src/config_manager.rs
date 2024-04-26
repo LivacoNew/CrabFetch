@@ -1,7 +1,6 @@
 use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
 
 use colored::{ColoredString, Colorize};
-use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
 use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
@@ -191,156 +190,34 @@ impl Default for Configuration {
 
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
-    return Configuration::default();
-    let mut builder: ConfigBuilder<DefaultState> = Config::builder();
-    if !ignore_file {
-        let config_path_str: String;
-        if location_override.is_some() {
-            config_path_str = shellexpand::tilde(&location_override.clone().unwrap()).to_string();
-            // Config won't be happy unless it ends with .toml
-            if !config_path_str.ends_with(".toml") {
-                // Simply crash, to avoid confusing the user as to why the default config is being used
-                // instead of their custom one.
-                panic!("Config path must end with '.toml'");
-            }
-
-            // Verify it exists
-            let path: &Path = Path::new(&config_path_str);
-            if !path.exists() {
-                // Simply crash, to avoid confusing the user as to why the default config is being used
-                // instead of their custom one.
-                panic!("Unable to find config: {}", config_path_str);
-            }
-        } else {
-            // Find the config path
-            // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-            config_path_str = match env::var("XDG_CONFIG_HOME") {
-                Ok(mut r) => {
-                    r.push_str("/CrabFetch/config.toml");
-                    r
-                }
-                Err(_) => {
-                    // Let's try the home directory
-                    let mut home_dir: String = match env::var("HOME") {
-                        Ok(r) => r,
-                        Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
-                    };
-                    home_dir.push_str("/.config/CrabFetch/config.toml");
-                    home_dir
-                }
-            };
+    // Find the config path
+    // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+    let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
+        Ok(mut r) => {
+            r.push_str("/CrabFetch/config.toml");
+            r
         }
-
-        builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
-    }
-    // Set the defaults here
-    // General
-    builder = builder.set_default("modules", vec![
-                                  "hostname".to_string(),
-                                  "underline:16".to_string(),
-
-                                  "cpu".to_string(),
-                                  "gpu".to_string(),
-                                  "memory".to_string(),
-                                  "swap".to_string(),
-                                  "mounts".to_string(),
-                                  "host".to_string(),
-                                  "displays".to_string(),
-
-                                  "os".to_string(),
-                                  "packages".to_string(),
-                                  "desktop".to_string(),
-                                  "terminal".to_string(),
-                                  "shell".to_string(),
-                                  "uptime".to_string(),
-
-                                  "space".to_string(),
-                                  "colors".to_string(),
-                                  "bright_colors".to_string(),
-                                  ]).unwrap();
-    builder = builder.set_default("seperator", " > ").unwrap();
-    builder = builder.set_default("title_color", "bright_magenta").unwrap();
-    builder = builder.set_default("title_bold", true).unwrap();
-    builder = builder.set_default("title_italic", true).unwrap();
-    builder = builder.set_default("decimal_places", 2).unwrap();
-    builder = builder.set_default("inline_values", false).unwrap();
-    builder = builder.set_default("underline_character", "―").unwrap();
-    builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
-    builder = builder.set_default("suppress_errors", false).unwrap();
-
-    // ASCII
-    builder = builder.set_default("ascii.display", true).unwrap();
-    builder = builder.set_default("ascii.colors", vec!["bright_magenta"]).unwrap();
-    builder = builder.set_default("ascii.margin", 4).unwrap();
-
-    // Modules
-    builder = builder.set_default("hostname.title", "").unwrap();
-    builder = builder.set_default("hostname.format", "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}").unwrap();
-
-    builder = builder.set_default("cpu.title", "CPU").unwrap();
-    builder = builder.set_default("cpu.format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
-
-    builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
-    builder = builder.set_default("gpu.cache", false).unwrap();
-    builder = builder.set_default("gpu.title", "GPU").unwrap();
-    builder = builder.set_default("gpu.format", "{vendor} {model} ({vram_gb} GB)").unwrap();
-
-    builder = builder.set_default("memory.title", "Memory").unwrap();
-    builder = builder.set_default("memory.format", "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)").unwrap();
-
-    builder = builder.set_default("swap.title", "Swap").unwrap();
-    builder = builder.set_default("swap.format", "{used_gib} GiB / {total_gib} GiB ({percent}%)").unwrap();
-
-    builder = builder.set_default("mounts.title", "Disk {mount}").unwrap();
-    builder = builder.set_default("mounts.format", "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)").unwrap();
-    builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
-
-    builder = builder.set_default("host.title", "Host").unwrap();
-
-    builder = builder.set_default("displays.title", "Display {name}").unwrap();
-    builder = builder.set_default("displays.format", "{width}x{height}").unwrap();
-
-    builder = builder.set_default("os.title", "Operating System").unwrap();
-    builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
-
-    builder = builder.set_default("packages.title", "Packages").unwrap();
-    builder = builder.set_default("packages.format", "{count} ({manager})").unwrap();
-
-    builder = builder.set_default("desktop.title", "Desktop").unwrap();
-    builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();
-
-    builder = builder.set_default("terminal.title", "Terminal").unwrap();
-    builder = builder.set_default("terminal.chase_ssh_pts", false).unwrap();
-
-    builder = builder.set_default("shell.title", "Shell").unwrap();
-    builder = builder.set_default("shell.format", "{shell}").unwrap();
-    builder = builder.set_default("shell.show_default_shell", "false").unwrap();
-
-    builder = builder.set_default("uptime.title", "Uptime").unwrap();
-    builder = builder.set_default("uptime.format", "{time}").unwrap();
-
-    builder = builder.set_default("battery.title", "Battery").unwrap();
-    builder = builder.set_default("battery.format", "{percentage}%").unwrap();
-    builder = builder.set_default("battery.path", "BAT0").unwrap();
-
-    // Check for any module overrides
-    if module_override.is_some() {
-        let module_override: String = module_override.clone().unwrap();
-        builder = builder.set_override("modules", module_override.split(',').collect::<Vec<&str>>()).unwrap();
-    }
-
-    // Now stop.
-    let config: Config = match builder.build() {
-        Ok(r) => r,
-        Err(e) => panic!("Unable to parse config.toml: {}", e),
+        Err(_) => {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => r,
+                Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
+            };
+            home_dir.push_str("/.config/CrabFetch/config.toml");
+            home_dir
+        }
+    };
+    let contents = match fs::read_to_string(config_path_str) {
+        // If successful return the files text as `contents`.
+        // `c` is a local variable.
+        Ok(c) => c,
+        // Handle the `error` case.
+        Err(_) => {
+            panic!("f")
+        }
     };
 
-    let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
-        Ok(r) => r,
-        Err(e) => panic!("Unable to parse config.toml: {}", e),
-    };
-
-    deserialized
+    toml::from_str(&contents).unwrap()
 }
 
 pub fn check_for_ascii_override() -> Option<String> {

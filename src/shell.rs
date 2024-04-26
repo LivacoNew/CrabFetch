@@ -79,7 +79,7 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
     Ok(shell)
 }
 
-pub fn get_default_shell() -> Result<ShellInfo, ModuleError> {
+fn get_default_shell() -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead

@@ -9,7 +9,7 @@ use crate::{config_manager::{self, Configuration, CrabFetchColor}, Module};
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct PackagesConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

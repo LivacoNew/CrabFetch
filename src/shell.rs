@@ -8,7 +8,7 @@ pub struct ShellInfo {
     shell_name: String,
     shell_path: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct ShellConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

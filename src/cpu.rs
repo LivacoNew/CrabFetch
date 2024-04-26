@@ -12,7 +12,7 @@ pub struct CPUInfo {
     current_clock_mhz: f32,
     max_clock_mhz: f32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct CPUConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

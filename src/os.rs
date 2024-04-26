@@ -10,7 +10,7 @@ pub struct OSInfo {
     pub distro_id: String,
     kernel: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct OSConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

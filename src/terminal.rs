@@ -7,7 +7,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 pub struct TerminalInfo {
     terminal_name: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct TerminalConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

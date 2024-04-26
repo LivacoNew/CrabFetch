@@ -13,7 +13,7 @@ pub struct MountInfo {
     space_total_mb: i64,
     percent: u8
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct MountConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

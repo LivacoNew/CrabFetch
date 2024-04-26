@@ -8,7 +8,7 @@ pub struct DesktopInfo {
     desktop: String,
     display_type: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct DesktopConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

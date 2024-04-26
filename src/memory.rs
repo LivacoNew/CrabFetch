@@ -11,7 +11,7 @@ pub struct MemoryInfo {
     max_kib: u32,
     percentage: f32
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct MemoryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

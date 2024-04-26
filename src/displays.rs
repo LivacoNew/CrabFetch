@@ -12,7 +12,7 @@ pub struct DisplayInfo {
     height: u64,
     refresh_rate: u32
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct DisplayConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

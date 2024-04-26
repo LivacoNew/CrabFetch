@@ -9,7 +9,7 @@ pub struct HostnameInfo {
     username: String,
     hostname: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct HostnameConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

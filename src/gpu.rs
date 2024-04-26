@@ -10,9 +10,10 @@ pub struct GPUInfo {
     model: String,
     vram_mb: u32,
 }
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Default)]
 pub enum GPUMethod {
     GLXInfo,
+    #[default]
     PCISysFile
 }
 impl ToString for GPUMethod {
@@ -23,7 +24,7 @@ impl ToString for GPUMethod {
        }
     }
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct GPUConfiguration {
     pub method: GPUMethod,
     pub cache: bool,

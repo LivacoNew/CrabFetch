@@ -9,7 +9,7 @@ pub struct SwapInfo {
     used_kib: u32,
     total_kib: u32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct SwapConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

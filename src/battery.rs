@@ -7,7 +7,7 @@ use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError
 pub struct BatteryInfo {
     percentage: u8,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct BatteryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

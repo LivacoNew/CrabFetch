@@ -1,4 +1,4 @@
-use std::{env, fs::File, io::Read, os::unix::process};
+use std::{env, fs::{self, File}, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
@@ -14,7 +14,8 @@ pub struct TerminalConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: Option<String>
+    pub format: Option<String>,
+    pub chase_ssh_pts: bool
 }
 impl Module for TerminalInfo {
     fn new() -> TerminalInfo {
@@ -56,7 +57,7 @@ impl Module for TerminalInfo {
     }
 }
 
-pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
+pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
 
     // This is just the rust-ified solution from https://askubuntu.com/a/508047
@@ -79,6 +80,7 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
         },
         Err(e) => return Err(ModuleError::new("Terminal", format!("Could not get $SHLVL env variable: {}", e)))
     };
+    let mut stat_contents: String = String::new();
     while shell_level > 0 {
         if loops > 10 {
             return Err(ModuleError::new("Terminal", "Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.".to_string()));
@@ -92,14 +94,13 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         };
-        let mut contents: String = String::new();
-        match parent_stat.read_to_string(&mut contents) {
+        match parent_stat.read_to_string(&mut stat_contents) {
             Ok(_) => {},
             Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         }
         // println!("Got contents: {}", contents);
 
-        let content_split: Vec<&str> = contents.split(" ").collect::<Vec<&str>>();
+        let content_split: Vec<&str> = stat_contents.split(" ").collect::<Vec<&str>>();
 
         if shell_level == 1 {
             terminal_pid = Some(match content_split[3].parse() {
@@ -144,6 +145,19 @@ pub fn get_terminal() -> Result<TerminalInfo, ModuleError> {
     // Fix for gnome terminal coming out as gnome-terminal-server
     if contents.trim().replace("\0", "") == "gnome-terminal-server" {
         contents = "GNOME Terminal".to_string();
+    }
+    if contents.trim().replace("\0", "") == "sshd:" {
+        if !chase_ssh_tty {
+            contents = "SSH Terminal".to_string();
+        } else {
+            // Find the tty number in the current /stat and just construct it from that
+            // Taken from the comment on https://unix.stackexchange.com/a/77797 by "user723" ...
+            // get a more creative username man
+            contents = match fs::canonicalize("/proc/self/fd/0") {
+                Ok(r) => r.display().to_string(),
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize {} symlink: {}", path, e)))
+            };
+        }
     }
     terminal.terminal_name = contents;
 

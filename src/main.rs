@@ -399,7 +399,7 @@ fn main() {
                     }
                 },
                 "terminal" => {
-                    match terminal::get_terminal() {
+                    match terminal::get_terminal(config.terminal.chase_ssh_pts) {
                         Ok(terminal) => {
                             print!("{}", terminal.style(&config, max_title_length))
                         },

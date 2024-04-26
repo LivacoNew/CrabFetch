@@ -25,7 +25,8 @@ impl Default for TerminalConfiguration {
             title_bold: None,
             title_italic: None,
             seperator: None,
-            format: None
+            format: None,
+            chase_ssh_pts: false
         }
     }
 }

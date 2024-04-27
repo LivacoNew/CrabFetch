@@ -189,7 +189,17 @@ impl Default for Configuration {
 }
 
 
-pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
+pub fn parse(location_override: &Option<String>, module_override: Option<String>, ignore_file: &bool) -> Configuration {
+    if *ignore_file {
+        let mut config: Configuration = Configuration::default();
+        if module_override.is_some() {
+            config.modules = module_override.unwrap()
+                .split(",")
+                .map(|x| x.to_string())
+                .collect();
+        }
+        return config;
+    }
     // Find the config path
     // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
     let config_path_str: String = match env::var("XDG_CONFIG_HOME") {

@@ -174,7 +174,7 @@ fn main() {
         config_manager::generate_config_file(args.config.clone());
         exit(0);
     }
-    let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    let config: Configuration = config_manager::parse(&args.config, args.module_override, &args.ignore_config_file);
     let log_errors = !(config.suppress_errors && args.suppress_errors);
     let max_title_length: u64 = calc_max_title_length(&config);
 

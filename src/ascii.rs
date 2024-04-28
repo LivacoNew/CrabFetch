@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::config_manager::{self, CrabFetchColor};
+use crate::config_manager::{self, CrabFetchColor, ModuleConfiguration, TOMLParseError};
 
 #[derive(Deserialize)]
 pub struct AsciiConfiguration {
@@ -15,6 +15,17 @@ impl Default for AsciiConfiguration {
             colors: vec![CrabFetchColor::BrightMagenta],
             margin: 4
         }
+    }
+}
+impl ModuleConfiguration for AsciiConfiguration {
+    fn apply_toml_line(&mut self, key: &str, value: &str) -> Result<(), crate::config_manager::TOMLParseError> {
+        match key {
+            "display" => self.display = config_manager::toml_parse_bool(value)?,
+            "colors" => self.colors = config_manager::toml_parse_color_array(value)?,
+            "margin" => self.margin = config_manager::toml_parse_u16(value)?,
+            _ => return Err(TOMLParseError::new("Unknown key.".to_string(), Some("ASCII".to_string()), Some(key.to_string()), value.to_string()))
+        }
+        Ok(())
     }
 }
 

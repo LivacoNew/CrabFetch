@@ -1,9 +1,9 @@
 use core::str;
-use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
+use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command, str::FromStr};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
+use crate::{config_manager::{self, Configuration, CrabFetchColor, ModuleConfiguration, TOMLParseError}, Module, ModuleError};
 
 pub struct GPUInfo {
     vendor: String,
@@ -22,6 +22,17 @@ impl ToString for GPUMethod {
             GPUMethod::GLXInfo => "glxinfo".to_string(),
             GPUMethod::PCISysFile => "pcisysfile".to_string()
        }
+    }
+}
+impl FromStr for GPUMethod {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "glxinfo" => Ok(GPUMethod::GLXInfo),
+            "pcisysfile" => Ok(GPUMethod::PCISysFile),
+            _ => Err(())
+        }
     }
 }
 #[derive(Deserialize)]
@@ -50,6 +61,26 @@ impl Default for GPUConfiguration {
         }
     }
 }
+impl ModuleConfiguration for GPUConfiguration {
+    fn apply_toml_line(&mut self, key: &str, value: &str) -> Result<(), crate::config_manager::TOMLParseError> {
+        match key {
+            "method" => self.method = match GPUMethod::from_str(&config_manager::toml_parse_string(value)?) {
+                Ok(r) => r,
+                Err(_) => return Err(TOMLParseError::new("Unknown GPU Method.".to_string(), Some("GPU".to_string()), Some(key.to_string()), value.to_string()))
+            },
+            "cache" => self.cache = config_manager::toml_parse_bool(value)?,
+            "title" => self.title = config_manager::toml_parse_string(value)?,
+            "title_color" => self.title_color = Some(config_manager::toml_parse_string_to_color(value)?),
+            "title_bold" => self.title_bold = Some(config_manager::toml_parse_bool(value)?),
+            "title_italic" => self.title_italic = Some(config_manager::toml_parse_bool(value)?),
+            "seperator" => self.seperator = Some(config_manager::toml_parse_string(value)?),
+            "format" => self.format = config_manager::toml_parse_string(value)?,
+            _ => return Err(TOMLParseError::new("Unknown key.".to_string(), Some("GPU".to_string()), Some(key.to_string()), value.to_string()))
+        }
+        Ok(())
+    }
+}
+
 
 impl Module for GPUInfo {
     fn new() -> GPUInfo {

@@ -199,7 +199,22 @@ impl Configuration {
         if table.is_some() {
             // TODO
             match table.as_ref().unwrap().as_str() {
+                "ascii" => self.ascii.apply_toml_line(key, value)?,
+                "hostname" => self.hostname.apply_toml_line(key, value)?,
                 "cpu" => self.cpu.apply_toml_line(key, value)?,
+                "gpu" => self.gpu.apply_toml_line(key, value)?,
+                "memory" => self.memory.apply_toml_line(key, value)?,
+                "swap" => self.swap.apply_toml_line(key, value)?,
+                "mounts" => self.mounts.apply_toml_line(key, value)?,
+                "host" => self.host.apply_toml_line(key, value)?,
+                "displays" => self.displays.apply_toml_line(key, value)?,
+                "os" => self.os.apply_toml_line(key, value)?,
+                "packages" => self.packages.apply_toml_line(key, value)?,
+                "desktop" => self.desktop.apply_toml_line(key, value)?,
+                "terminal" => self.terminal.apply_toml_line(key, value)?,
+                "shell" => self.shell.apply_toml_line(key, value)?,
+                "uptime" => self.uptime.apply_toml_line(key, value)?,
+                "battery" => self.battery.apply_toml_line(key, value)?,
                 _ => return Err(TOMLParseError::new("Unknown table.".to_string(), table.clone(), Some(key.to_string()), value.to_string()))
             }
         } else {
@@ -222,19 +237,30 @@ impl Configuration {
     }
 }
 
-// Since CrabFetch only needs string arrays, I don't bother otherwise
+
+// All the toml parsing functions
+// Yell at me all you want, this is how I'm doing it.
 pub fn toml_parse_str_array(value: &str) -> Result<Vec<String>, TOMLParseError> {
     if !value.starts_with("[") || !value.ends_with("]") {
         return Err(TOMLParseError::new("Invalid array; does not start/end with [...]".to_string(), None, None, value.to_string()))
     }
     let inner: String = value[1..value.len() - 1].to_string();
     let values: Vec<String> = inner.split(",")
-        .map(|x| x.trim_matches('"').to_string())
+        .map(|x| x.trim().trim_matches('"').to_string())
         .filter(|x| !x.is_empty())
         .collect();
 
     // println!("{:?}", values);
     Ok(values)
+}
+pub fn toml_parse_color_array(value: &str) -> Result<Vec<CrabFetchColor>, TOMLParseError> {
+    let v: Vec<String> = toml_parse_str_array(value)?;
+    Ok(v.iter()
+        .filter_map(|x| match CrabFetchColor::from_str(x) {
+            Ok(r) => Some(r),
+            Err(_) => None
+        })
+        .collect())
 }
 pub fn toml_parse_string(value: &str) -> Result<String, TOMLParseError> {
     if (!value.starts_with('"') || !value.ends_with('"')) && (!value.starts_with("'") || !value.ends_with("'")) {
@@ -256,6 +282,13 @@ pub fn toml_parse_bool(value: &str) -> Result<bool, TOMLParseError> {
         "true" => Ok(true),
         "false" => Ok(false),
         _ => Err(TOMLParseError::new("Invalid boolean: not true or false.".to_string(), None, None, value.to_string())),
+    }
+}
+// TODO: Convert these two to generics
+pub fn toml_parse_u16(value: &str) -> Result<u16, TOMLParseError> {
+    match value.parse::<u16>() {
+        Ok(r) => Ok(r),
+        Err(e) => Err(TOMLParseError::new(format!("Invalid number: {}", e), None, None, value.to_string())),
     }
 }
 pub fn toml_parse_u32(value: &str) -> Result<u32, TOMLParseError> {

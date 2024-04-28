@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path, str::FromStr};
+use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::{BufRead, BufReader, Read, Write}, path::Path, str::FromStr, time::Instant};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -40,14 +40,14 @@ impl FromStr for CrabFetchColor {
             "magenta" => Ok(CrabFetchColor::Magenta),
             "cyan" => Ok(CrabFetchColor::Cyan),
             "white" => Ok(CrabFetchColor::White),
-            "brightblack" => Ok(CrabFetchColor::BrightBlack),
-            "brightred" => Ok(CrabFetchColor::BrightRed),
-            "brightgreen" => Ok(CrabFetchColor::BrightGreen),
-            "brightyellow" => Ok(CrabFetchColor::BrightYellow),
-            "brightblue" => Ok(CrabFetchColor::BrightBlue),
-            "brightmagenta" => Ok(CrabFetchColor::BrightMagenta),
-            "brightcyan" => Ok(CrabFetchColor::BrightCyan),
-            "brightwhite" => Ok(CrabFetchColor::BrightWhite),
+            "bright_black" => Ok(CrabFetchColor::BrightBlack),
+            "bright_red" => Ok(CrabFetchColor::BrightRed),
+            "bright_green" => Ok(CrabFetchColor::BrightGreen),
+            "bright_yellow" => Ok(CrabFetchColor::BrightYellow),
+            "bright_blue" => Ok(CrabFetchColor::BrightBlue),
+            "bright_magenta" => Ok(CrabFetchColor::BrightMagenta),
+            "bright_cyan" => Ok(CrabFetchColor::BrightCyan),
+            "bright_white" => Ok(CrabFetchColor::BrightWhite),
             _ => Err(())
         }
     }
@@ -92,7 +92,7 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
             Err(_) => {
-                // log_error("Color Placeholders", format!("Unable to parse color {}", color_str));
+                // log_erro("Color Placeholders", format!("Unable to parse color {}", color_str));
                 continue;
             },
         };
@@ -187,9 +187,131 @@ impl Default for Configuration {
         }
     }
 }
+impl Configuration {
+    fn apply_toml_line(&mut self, table: &Option<String>, key: &str, value: &str) -> Result<(), TOMLParseError> {
+        // this fuckin SUCKS
+        // println!("Parsing: {:?}.{} -> {}", table, key, value);
+        if table.is_some() {
+            // TODO
+        } else {
+            match key {
+                "modules" => self.modules = toml_parse_str_array(value)?,
+                "seperator" => self.seperator = toml_parse_string(value)?,
+                "title_color" => self.title_color = toml_parse_string_to_color(value)?,
+                "title_bold" => self.title_bold = toml_parse_bool(value)?,
+                "title_italic" => self.title_italic = toml_parse_bool(value)?,
+                "decimal_places" => self.decimal_places = toml_parse_u32(value)?,
+                "inline_values" => self.inline_values = toml_parse_bool(value)?,
+                "underline_character" => self.underline_character = toml_parse_char(value)?,
+                "segment_top" => self.segment_top = toml_parse_string(value)?,
+                "suppress_errors" => self.suppress_errors = toml_parse_bool(value)?,
+                _ => return Err(TOMLParseError::new("Unknown key.".to_string(), table.clone(), Some(key.to_string()), value.to_string()))
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// Since CrabFetch only needs string arrays, I don't bother otherwise
+fn toml_parse_str_array(value: &str) -> Result<Vec<String>, TOMLParseError> {
+    if !value.starts_with("[") || !value.ends_with("]") {
+        return Err(TOMLParseError::new("Invalid array; does not start/end with [...]".to_string(), None, None, value.to_string()))
+    }
+    let inner: String = value[1..value.len() - 1].to_string();
+    let values: Vec<String> = inner.split(",")
+        .map(|x| x.trim_matches('"').to_string())
+        .filter(|x| !x.is_empty())
+        .collect();
+
+    // println!("{:?}", values);
+    Ok(values)
+}
+fn toml_parse_string(value: &str) -> Result<String, TOMLParseError> {
+    if (!value.starts_with('"') || !value.ends_with('"')) && (!value.starts_with("'") || !value.ends_with("'")) {
+        return Err(TOMLParseError::new("Invalid String; does not start/end with single nor double quotes.".to_string(), None, None, value.to_string()))
+    }
+
+    let inner: String = value[1..value.len() - 1].to_string();
+    Ok(inner)
+}
+fn toml_parse_string_to_color(value: &str) -> Result<CrabFetchColor, TOMLParseError> {
+    let str: String = toml_parse_string(value)?;
+    match CrabFetchColor::from_str(&str) {
+        Ok(r) => return Ok(r),
+        Err(_) => return Err(TOMLParseError::new(format!("Unknown color: {}", str), None, None, value.to_string())),
+    };
+}
+fn toml_parse_bool(value: &str) -> Result<bool, TOMLParseError> {
+    match value.to_lowercase().trim() {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(TOMLParseError::new("Invalid boolean: not true or false.".to_string(), None, None, value.to_string())),
+    }
+}
+fn toml_parse_u32(value: &str) -> Result<u32, TOMLParseError> {
+    match value.parse::<u32>() {
+        Ok(r) => Ok(r),
+        Err(e) => Err(TOMLParseError::new(format!("Invalid number: {}", e), None, None, value.to_string())),
+    }
+}
+fn toml_parse_char(value: &str) -> Result<char, TOMLParseError> {
+    let str: String = toml_parse_string(value)?;
+    if str.len() > 1 {
+        return Err(TOMLParseError::new("Invalid char: cannot be more than 1 character long.".to_string(), None, None, value.to_string()))
+    }
+    match str.parse::<char>() {
+        Ok(r) => Ok(r),
+        Err(e) => Err(TOMLParseError::new(format!("Invalid char: {}", e), None, None, value.to_string())),
+    }
+}
 
 
+
+struct TOMLParseError {
+    message: String,
+    table: Option<String>,
+    key: Option<String>,
+    value: String
+}
+impl TOMLParseError {
+    pub fn new(message: String, table: Option<String>, key: Option<String>, value: String) -> TOMLParseError {
+        TOMLParseError {
+            message,
+            table,
+            key,
+            value
+        }
+    }
+}
+impl Display for TOMLParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.key.is_some() {
+            let table: String = match &self.table {
+                Some(r) => format!("{}.", r),
+                None => "".to_string(),
+            };
+            write!(f, "Failed to parse key {}{}: {}", table, self.key.as_ref().unwrap(), self.message)
+        } else {
+            write!(f, "{}", self.message)
+        }
+    }
+}
+impl Debug for TOMLParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.key.is_some() {
+            let table: String = match &self.table {
+                Some(r) => format!("{}.", r),
+                None => "".to_string(),
+            };
+            write!(f, "Failed to parse TOML key {}{}: {} (attempted {})", table, self.key.as_ref().unwrap(), self.message, self.value)
+        } else {
+            write!(f, "{} (attempted {})", self.message, self.value)
+        }
+    }
+}
 pub fn parse(location_override: &Option<String>, module_override: Option<String>, ignore_file: &bool) -> Configuration {
+    let t = Instant::now();
     if *ignore_file {
         let mut config: Configuration = Configuration::default();
         if module_override.is_some() {
@@ -217,17 +339,90 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
             home_dir
         }
     };
-    let contents = match fs::read_to_string(config_path_str) {
-        // If successful return the files text as `contents`.
-        // `c` is a local variable.
-        Ok(c) => c,
-        // Handle the `error` case.
-        Err(_) => {
-            panic!("f")
-        }
-    };
 
-    toml::from_str(&contents).unwrap()
+    // An attempt at my own TOML parser
+    // This tries to follow as close to https://toml.io/en/v1.0.0 as possible
+    // Done because all the rust TOML parsers are too slow lol
+    // Note this is extremely hacky - I have zero confidence in this being quite right yet
+    // Some stuff that isn't quite right yet;
+    //  - Quoted/Dotted keys are not supported, and will break things
+    //  - Duplicate keys are not checked - Whichever one comes last overrides
+    //  - Literal strings aren't really handled right
+    //  - Tons of data types aren't done, because CrabFetch doesn't use them.
+    // Time to beat from toml crate: 120-130us
+    let file: File = match File::open(config_path_str) {
+        Ok(r) => r,
+        Err(_) => return Configuration::default(),
+    };
+    let buffer: BufReader<File> = BufReader::new(file);
+    let mut config: Configuration = Configuration::default();
+    let mut current_table: Option<String> = None;
+    let mut current_array_str: Option<String> = None;
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue
+        }
+        let line: String = line.unwrap();
+        let line = line.trim();
+        if line.starts_with("#") || line.is_empty() {
+            continue
+        }
+
+        if line.starts_with("[") && line.ends_with("]") {
+            // Table
+            current_table = Some(line[1..line.len() - 1].to_string());
+            continue
+        }
+        if current_array_str.is_some() {
+            current_array_str.as_mut().unwrap().push_str(line);
+            if line.contains("]") {
+                let array_str = current_array_str.unwrap();
+                let split: Vec<&str> = array_str.splitn(2, "=")
+                    .map(|x| x.trim())
+                    .collect();
+                let (left, right) = (split[0], split[1]);
+                match config.apply_toml_line(&current_table, left, right) {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("Config error: {}", e);
+                    },
+                };
+                current_array_str = None;
+            }
+            continue
+        }
+        if line.contains("=") {
+            let split: Vec<&str> = line.splitn(2, "=")
+                .map(|x| x.trim())
+                .collect();
+
+            let (left, right) = (split[0], split[1]);
+            if right.starts_with("[") {
+                if !right.contains("]") {
+                    current_array_str = Some(line.to_string());
+                    continue
+                }
+            }
+
+            let mut key: String = String::new();
+            if current_table.is_some() {
+                key.push_str(current_table.as_ref().unwrap());
+                key.push('.');
+            }
+            key.push_str(left);
+            match config.apply_toml_line(&current_table, &key, right) {
+                Ok(_) => {},
+                Err(e) => {
+                    println!("Config error: {}", e);
+                },
+            };
+        }
+        // println!("{}", line);
+    }
+
+    // let x = toml::from_str(&contents).unwrap();
+    println!("Total time: {:2?}", t.elapsed());
+    config
 }
 
 pub fn check_for_ascii_override() -> Option<String> {

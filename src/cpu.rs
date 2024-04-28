@@ -3,7 +3,7 @@ use std::{fs::File, io::{BufRead, BufReader, Read}, path::Path};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
+use crate::{config_manager::{self, Configuration, CrabFetchColor, ModuleConfiguration, TOMLParseError}, Module, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -33,6 +33,21 @@ impl Default for CPUConfiguration {
             format: "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz".to_string(),
             decimal_places: None
         }
+    }
+}
+impl ModuleConfiguration for CPUConfiguration {
+    fn apply_toml_line(&mut self, key: &str, value: &str) -> Result<(), crate::config_manager::TOMLParseError> {
+        match key {
+            "title" => self.title = config_manager::toml_parse_string(value)?,
+            "title_color" => self.title_color = Some(config_manager::toml_parse_string_to_color(value)?),
+            "title_bold" => self.title_bold = Some(config_manager::toml_parse_bool(value)?),
+            "title_italic" => self.title_italic = Some(config_manager::toml_parse_bool(value)?),
+            "seperator" => self.seperator = Some(config_manager::toml_parse_string(value)?),
+            "format" => self.format = config_manager::toml_parse_string(value)?,
+            "decimal_places" => self.decimal_places = Some(config_manager::toml_parse_u32(value)?),
+            _ => return Err(TOMLParseError::new("Unknown key.".to_string(), Some("CPU".to_string()), Some(key.to_string()), value.to_string()))
+        }
+        Ok(())
     }
 }
 

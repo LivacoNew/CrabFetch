@@ -102,6 +102,11 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
     new_string
 }
 
+
+pub trait ModuleConfiguration {
+    fn apply_toml_line(&mut self, key: &str, value: &str) -> Result<(), TOMLParseError>;
+}
+
 #[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
@@ -193,6 +198,10 @@ impl Configuration {
         // println!("Parsing: {:?}.{} -> {}", table, key, value);
         if table.is_some() {
             // TODO
+            match table.as_ref().unwrap().as_str() {
+                "cpu" => self.cpu.apply_toml_line(key, value)?,
+                _ => return Err(TOMLParseError::new("Unknown table.".to_string(), table.clone(), Some(key.to_string()), value.to_string()))
+            }
         } else {
             match key {
                 "modules" => self.modules = toml_parse_str_array(value)?,
@@ -214,7 +223,7 @@ impl Configuration {
 }
 
 // Since CrabFetch only needs string arrays, I don't bother otherwise
-fn toml_parse_str_array(value: &str) -> Result<Vec<String>, TOMLParseError> {
+pub fn toml_parse_str_array(value: &str) -> Result<Vec<String>, TOMLParseError> {
     if !value.starts_with("[") || !value.ends_with("]") {
         return Err(TOMLParseError::new("Invalid array; does not start/end with [...]".to_string(), None, None, value.to_string()))
     }
@@ -227,7 +236,7 @@ fn toml_parse_str_array(value: &str) -> Result<Vec<String>, TOMLParseError> {
     // println!("{:?}", values);
     Ok(values)
 }
-fn toml_parse_string(value: &str) -> Result<String, TOMLParseError> {
+pub fn toml_parse_string(value: &str) -> Result<String, TOMLParseError> {
     if (!value.starts_with('"') || !value.ends_with('"')) && (!value.starts_with("'") || !value.ends_with("'")) {
         return Err(TOMLParseError::new("Invalid String; does not start/end with single nor double quotes.".to_string(), None, None, value.to_string()))
     }
@@ -235,27 +244,27 @@ fn toml_parse_string(value: &str) -> Result<String, TOMLParseError> {
     let inner: String = value[1..value.len() - 1].to_string();
     Ok(inner)
 }
-fn toml_parse_string_to_color(value: &str) -> Result<CrabFetchColor, TOMLParseError> {
+pub fn toml_parse_string_to_color(value: &str) -> Result<CrabFetchColor, TOMLParseError> {
     let str: String = toml_parse_string(value)?;
     match CrabFetchColor::from_str(&str) {
         Ok(r) => return Ok(r),
         Err(_) => return Err(TOMLParseError::new(format!("Unknown color: {}", str), None, None, value.to_string())),
     };
 }
-fn toml_parse_bool(value: &str) -> Result<bool, TOMLParseError> {
+pub fn toml_parse_bool(value: &str) -> Result<bool, TOMLParseError> {
     match value.to_lowercase().trim() {
         "true" => Ok(true),
         "false" => Ok(false),
         _ => Err(TOMLParseError::new("Invalid boolean: not true or false.".to_string(), None, None, value.to_string())),
     }
 }
-fn toml_parse_u32(value: &str) -> Result<u32, TOMLParseError> {
+pub fn toml_parse_u32(value: &str) -> Result<u32, TOMLParseError> {
     match value.parse::<u32>() {
         Ok(r) => Ok(r),
         Err(e) => Err(TOMLParseError::new(format!("Invalid number: {}", e), None, None, value.to_string())),
     }
 }
-fn toml_parse_char(value: &str) -> Result<char, TOMLParseError> {
+pub fn toml_parse_char(value: &str) -> Result<char, TOMLParseError> {
     let str: String = toml_parse_string(value)?;
     if str.len() > 1 {
         return Err(TOMLParseError::new("Invalid char: cannot be more than 1 character long.".to_string(), None, None, value.to_string()))
@@ -268,7 +277,7 @@ fn toml_parse_char(value: &str) -> Result<char, TOMLParseError> {
 
 
 
-struct TOMLParseError {
+pub struct TOMLParseError {
     message: String,
     table: Option<String>,
     key: Option<String>,
@@ -404,13 +413,7 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
                 }
             }
 
-            let mut key: String = String::new();
-            if current_table.is_some() {
-                key.push_str(current_table.as_ref().unwrap());
-                key.push('.');
-            }
-            key.push_str(left);
-            match config.apply_toml_line(&current_table, &key, right) {
+            match config.apply_toml_line(&current_table, left, right) {
                 Ok(_) => {},
                 Err(e) => {
                     println!("Config error: {}", e);

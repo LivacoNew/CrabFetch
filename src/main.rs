@@ -27,6 +27,7 @@ mod packages;
 mod displays;
 mod battery;
 mod editor;
+mod locale;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -85,6 +86,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "shell" => res = max(res, config.shell.title.len() as u64),
             "battery" => res = max(res, config.battery.title.len() as u64),
             "uptime" => res = max(res, config.uptime.title.len() as u64),
+            "locale" => res = max(res, config.locale.title.len() as u64),
             "editor" => res = max(res, config.editor.title.len() as u64),
             _ => {}
         }
@@ -464,6 +466,18 @@ fn main() {
                     match editor::get_editor() {
                         Ok(editor) => {
                             print!("{}", editor.style(&config, max_title_length))
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
+                    }
+                },
+                "locale" => {
+                    match locale::get_locale() {
+                        Ok(locale) => {
+                            print!("{}", locale.style(&config, max_title_length))
                         },
                         Err(e) => {
                             if log_errors {

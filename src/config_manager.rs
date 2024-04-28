@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -133,6 +133,7 @@ pub struct Configuration {
     pub shell: ShellConfiguration,
     pub uptime: UptimeConfiguration,
     pub battery: BatteryConfiguration,
+    pub locale: LocaleConfiguration,
     pub editor: EditorConfiguration
 }
 
@@ -199,6 +200,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                                   "shell".to_string(),
                                   "editor".to_string(),
                                   "uptime".to_string(),
+                                  "locale".to_string(),
 
                                   "space".to_string(),
                                   "colors".to_string(),
@@ -272,6 +274,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("editor.title", "Editor").unwrap();
     builder = builder.set_default("editor.format", "{name}").unwrap();
     builder = builder.set_default("editor.fancy", true).unwrap();
+
+    builder = builder.set_default("locale.title", "Locale").unwrap();
+    builder = builder.set_default("locale.format", "{locale}").unwrap();
 
     // Check for any module overrides
     if module_override.is_some() {
@@ -623,6 +628,10 @@ format = "{name}"
 
 # Whether to turn the name into a "fancy" variant. E.g "nvim" gets turned into "NeoVim"
 fancy = true
+
+
+[locale]
+title = "Locale"
 
 
 [battery]

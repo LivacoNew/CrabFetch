@@ -367,21 +367,26 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
     }
     // Find the config path
     // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-    let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
-        Ok(mut r) => {
-            r.push_str("/CrabFetch/config.toml");
-            r
-        }
-        Err(_) => {
-            // Let's try the home directory
-            let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => r,
-                Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
-            };
-            home_dir.push_str("/.config/CrabFetch/config.toml");
-            home_dir
-        }
-    };
+    let config_path_str: String;
+    if location_override.is_none() {
+        config_path_str = match env::var("XDG_CONFIG_HOME") {
+            Ok(mut r) => {
+                r.push_str("/CrabFetch/config.toml");
+                r
+            }
+            Err(_) => {
+                // Let's try the home directory
+                let mut home_dir: String = match env::var("HOME") {
+                    Ok(r) => r,
+                    Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
+                };
+                home_dir.push_str("/.config/CrabFetch/config.toml");
+                home_dir
+            }
+        };
+    } else {
+        config_path_str = location_override.clone().unwrap();
+    }
 
     // An attempt at my own TOML parser
     // This tries to follow as close to https://toml.io/en/v1.0.0 as possible

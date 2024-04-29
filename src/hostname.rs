@@ -26,7 +26,7 @@ impl Default for HostnameConfiguration {
             title_bold: None,
             title_italic: None,
             seperator: None,
-            format: "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}".to_string()
+            format: "{color-bright_magenta}{username}{color-white}@{color-bright_magenta}{hostname}".to_string()
         }
     }
 }

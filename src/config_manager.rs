@@ -355,8 +355,8 @@ impl Debug for TOMLParseError {
 }
 pub fn parse(location_override: &Option<String>, module_override: Option<String>, ignore_file: &bool) -> Configuration {
     let t = Instant::now();
+    let mut config: Configuration = Configuration::default();
     if *ignore_file {
-        let mut config: Configuration = Configuration::default();
         if module_override.is_some() {
             config.modules = module_override.unwrap()
                 .split(",")
@@ -395,10 +395,17 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
     // Time to beat from toml crate: 120-130us
     let file: File = match File::open(config_path_str) {
         Ok(r) => r,
-        Err(_) => return Configuration::default(),
+        Err(_) => {
+            if module_override.is_some() {
+                config.modules = module_override.unwrap()
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect();
+            }
+            return config
+        },
     };
     let buffer: BufReader<File> = BufReader::new(file);
-    let mut config: Configuration = Configuration::default();
     let mut current_table: Option<String> = None;
     let mut current_array_str: Option<String> = None;
     for line in buffer.lines() {
@@ -454,10 +461,14 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
                 },
             };
         }
-        // println!("{}", line);
+    }
+    if module_override.is_some() {
+        config.modules = module_override.unwrap()
+            .split(",")
+            .map(|x| x.to_string())
+            .collect();
     }
 
-    // let x = toml::from_str(&contents).unwrap();
     println!("Total time: {:2?}", t.elapsed());
     config
 }

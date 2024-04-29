@@ -93,6 +93,7 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
             Ok(r) => r,
             Err(_) => {
                 // log_erro("Color Placeholders", format!("Unable to parse color {}", color_str));
+                new_string.push_str(&s[len + 1..].to_string());
                 continue;
             },
         };

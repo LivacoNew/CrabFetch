@@ -17,7 +17,9 @@ modules = [
     "desktop",
     "terminal",
     "shell",
+    "editor",
     "uptime",
+    "locale",
 
     "space",
     "colors",
@@ -221,6 +223,21 @@ show_default_shell = false
 
 [uptime]
 title = "Uptime"
+
+
+[editor]
+title = "Editor"
+# Placeholders;
+# {name} - The name of the editor
+# {path} - The path the editor is at
+format = "{name}"
+
+# Whether to turn the name into a "fancy" variant. E.g "nvim" gets turned into "NeoVim"
+fancy = true
+
+
+[locale]
+title = "Locale"
 
 
 [battery]

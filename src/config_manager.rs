@@ -3,7 +3,7 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::{BufRead, BufReader,
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -137,7 +137,9 @@ pub struct Configuration {
     pub terminal: TerminalConfiguration,
     pub shell: ShellConfiguration,
     pub uptime: UptimeConfiguration,
-    pub battery: BatteryConfiguration
+    pub battery: BatteryConfiguration,
+    pub locale: LocaleConfiguration,
+    pub editor: EditorConfiguration
 }
 impl Default for Configuration {
     fn default() -> Self {
@@ -591,6 +593,7 @@ modules = [
     "desktop",
     "terminal",
     "shell",
+    "editor",
     "uptime",
 
     "space",
@@ -796,6 +799,21 @@ show_default_shell = false
 
 [uptime]
 title = "Uptime"
+
+
+[editor]
+title = "Editor"
+# Placeholders;
+# {name} - The name of the editor
+# {path} - The path the editor is at
+format = "{name}"
+
+# Whether to turn the name into a "fancy" variant. E.g "nvim" gets turned into "NeoVim"
+fancy = true
+
+
+[locale]
+title = "Locale"
 
 
 [battery]

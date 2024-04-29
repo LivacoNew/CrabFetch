@@ -77,7 +77,7 @@ title = ""
 # Placeholders;
 # {hostname} -> The hostname
 # {username} -> The username of the current user
-format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
+format = "{color-bright_magenta}{username}{color-white}@{color-bright_magenta}{hostname}"
 
 
 [cpu]

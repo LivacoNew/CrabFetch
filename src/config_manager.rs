@@ -161,7 +161,9 @@ impl Default for Configuration {
                 "desktop".to_string(),
                 "terminal".to_string(),
                 "shell".to_string(),
+                "editor".to_string(),
                 "uptime".to_string(),
+                "locale".to_string(),
 
                 "space".to_string(),
                 "colors".to_string(),
@@ -191,6 +193,8 @@ impl Default for Configuration {
             terminal: TerminalConfiguration::default(),
             shell: ShellConfiguration::default(),
             uptime: UptimeConfiguration::default(),
+            editor: EditorConfiguration::default(),
+            locale: LocaleConfiguration::default(),
             battery: BatteryConfiguration::default()
         }
     }
@@ -200,7 +204,6 @@ impl Configuration {
         // this fuckin SUCKS
         // println!("Parsing: {:?}.{} -> {}", table, key, value);
         if table.is_some() {
-            // TODO
             match table.as_ref().unwrap().as_str() {
                 "ascii" => self.ascii.apply_toml_line(key, value)?,
                 "hostname" => self.hostname.apply_toml_line(key, value)?,
@@ -217,6 +220,8 @@ impl Configuration {
                 "terminal" => self.terminal.apply_toml_line(key, value)?,
                 "shell" => self.shell.apply_toml_line(key, value)?,
                 "uptime" => self.uptime.apply_toml_line(key, value)?,
+                "editor" => self.editor.apply_toml_line(key, value)?,
+                "locale" => self.locale.apply_toml_line(key, value)?,
                 "battery" => self.battery.apply_toml_line(key, value)?,
                 _ => return Err(TOMLParseError::new("Unknown table.".to_string(), table.clone(), Some(key.to_string()), value.to_string()))
             }
@@ -595,6 +600,7 @@ modules = [
     "shell",
     "editor",
     "uptime",
+    "locale",
 
     "space",
     "colors",

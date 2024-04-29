@@ -443,6 +443,12 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
                     .map(|x| x.trim())
                     .collect();
                 let (left, right) = (split[0], split[1]);
+
+                if module_override.is_some() && left == "modules" {
+                    current_array_str = None;
+                    continue
+                }
+
                 match config.apply_toml_line(&current_table, left, right) {
                     Ok(_) => {},
                     Err(e) => {

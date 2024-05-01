@@ -307,7 +307,7 @@ pub fn toml_parse_u32(value: &str) -> Result<u32, TOMLParseError> {
 }
 pub fn toml_parse_char(value: &str) -> Result<char, TOMLParseError> {
     let str: String = toml_parse_string(value)?;
-    if str.len() > 1 {
+    if str.chars().collect::<Vec<char>>().len() > 1 {
         return Err(TOMLParseError::new("Invalid char: cannot be more than 1 character long.".to_string(), None, None, value.to_string()))
     }
     match str.parse::<char>() {

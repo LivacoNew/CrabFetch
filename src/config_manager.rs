@@ -1,4 +1,4 @@
-use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::{BufRead, BufReader, Read, Write}, path::Path, str::FromStr, time::Instant};
+use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::{BufRead, BufReader, Read, Write}, path::Path, str::FromStr};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -361,7 +361,6 @@ impl Debug for TOMLParseError {
     }
 }
 pub fn parse(location_override: &Option<String>, module_override: Option<String>, ignore_file: &bool) -> Configuration {
-    let t = Instant::now();
     let mut config: Configuration = Configuration::default();
     if *ignore_file {
         if module_override.is_some() {
@@ -444,7 +443,11 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
                     .collect();
                 let (left, right) = (split[0], split[1]);
 
-                if module_override.is_some() && left == "modules" {
+                if module_override.as_ref().is_some() && left == "modules" {
+                    config.modules = module_override.as_ref().unwrap()
+                        .split(",")
+                        .map(|x| x.to_string())
+                        .collect();
                     current_array_str = None;
                     continue
                 }
@@ -480,14 +483,7 @@ pub fn parse(location_override: &Option<String>, module_override: Option<String>
             };
         }
     }
-    if module_override.is_some() {
-        config.modules = module_override.unwrap()
-            .split(",")
-            .map(|x| x.to_string())
-            .collect();
-    }
 
-    println!("Total time: {:2?}", t.elapsed());
     config
 }
 

@@ -2,7 +2,7 @@ use core::str;
 use std::{collections::HashMap, env};
 
 use serde::Deserialize;
-use wayland_client::{protocol::{wl_output, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle};
+use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
 use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
 use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
@@ -12,8 +12,56 @@ pub struct DisplayInfo {
     name: String,
     width: u16,
     height: u16,
-    refresh_rate: Option<u16>
+    refresh_rate: Option<u16>,
+    // Tempararily holds the transform for wayland while the rest of the data comes in
+    // Should never be accessed otherwise
+    wl_transform: Option<WEnum<Transform>>
 }
+impl DisplayInfo {
+    fn wl_calc_transform(&mut self) {
+        // ONLY FOR WAYLAND!!!!!
+        // Translate it and reset the transform
+        match self.wl_transform.unwrap() {
+            WEnum::Value(transform) => {
+                match transform {
+                    Transform::Normal => {}, // Nothing
+                    Transform::_90 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::_180 => {}, // Nothing
+                    Transform::_270 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::Flipped => {}, // Nothing
+                    Transform::Flipped90 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::Flipped180 => {}, // Nothing
+                    Transform::Flipped270 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    _ => {}, // Clueless mate
+                }
+            },
+            WEnum::Unknown(_) => {}, // ? no idea what to do here
+        }
+        // So if another event comes in it doesn't try to parse again
+        self.wl_transform = None; 
+    }
+}
+
 #[derive(Deserialize)]
 pub struct DisplayConfiguration {
     pub title: String,
@@ -29,7 +77,8 @@ impl Module for DisplayInfo {
             name: "".to_string(),
             width: 0,
             height: 0,
-            refresh_rate: None
+            refresh_rate: None,
+            wl_transform: None
         }
     }
 
@@ -128,6 +177,7 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
             width: monitor.width,
             height: monitor.height,
             refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
+            wl_transform: None
         };
         displays.push(display);
     }
@@ -168,6 +218,16 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Name {name} = &event {
             display.name = name.to_string();
         }
+        if let wl_output::Event::Geometry {transform, ..} = &event {
+            if display.width == 0 && display.height == 0 {
+                // We don't have the res yet, store the transform for now 
+                display.wl_transform = Some(*transform);
+                return; // Confirmed to not be done, unless your compositor's fucked
+            } else {
+                // Will reset wl_transform to None for us
+                display.wl_calc_transform();
+            }
+        }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = match width.to_string().parse::<u16>() {
                 Ok(r) => r,
@@ -183,6 +243,11 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
                 // Clearly your compositor is very very very dumb
                 Err(_) => Some(0)
             };
+
+            if display.wl_transform.is_some() {
+                // Will reset wl_transform to None for us
+                display.wl_calc_transform();
+            }
         }
 
         if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate.is_some() {

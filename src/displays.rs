@@ -169,11 +169,18 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
             display.name = name.to_string();
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
-            display.width = width.to_string().parse::<u16>().unwrap();
-            display.height = height.to_string().parse::<u16>().unwrap();
+            display.width = match width.to_string().parse::<u16>() {
+                Ok(r) => r,
+                Err(_) => 0
+            };
+            display.height = match height.to_string().parse::<u16>() {
+                Ok(r) => r,
+                Err(_) => 0
+            };
             display.refresh_rate = match (*refresh as f32 / 1000.0).round().to_string().parse::<u16>() {
                 Ok(r) => Some(r),
                 // There's no real "error handling" here so just set it to 0 so it's not None and letting us get stuck in an infinite loop
+                // Clearly your compositor is very very very dumb
                 Err(_) => Some(0)
             };
         }

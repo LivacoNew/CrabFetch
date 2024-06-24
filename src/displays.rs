@@ -184,6 +184,7 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
 
     // Not error checked as it's not a huge problem if this fails, moreso just a "would be nice to do" thing
     let _ = conn.destroy_window(win_id);
+    displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)
 }
 
@@ -299,5 +300,7 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
         }
     }
 
-    Ok(data.outputs.into_iter().map(|x| x.1.clone()).collect())
+    let mut displays: Vec<DisplayInfo> = data.outputs.into_iter().map(|x| x.1.clone()).collect();
+    displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    Ok(displays)
 }

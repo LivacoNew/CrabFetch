@@ -246,7 +246,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("host.title", "Host").unwrap();
 
     builder = builder.set_default("displays.title", "Display {name}").unwrap();
-    builder = builder.set_default("displays.format", "{width}x{height}").unwrap();
+    builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate} hz").unwrap();
 
     builder = builder.set_default("os.title", "Operating System").unwrap();
     builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
@@ -568,11 +568,11 @@ title = "Host"
 title = "Display {name}"
 
 # The format each display should be in. Placeholders;
-# {name} -> The monitor name, e.g eDP-2
+# {name} -> The monitor "name", e.g eDP-2 for Wayland and 412 for x11.
 # {width} -> The monitor's width
 # {height} -> The monitor's height
-format = "{width}x{height}"
-
+# {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
+format = "{width}x{height} @ {refresh_rate} hz"
 
 [os]
 title = "Operating System"

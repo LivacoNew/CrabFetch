@@ -1,17 +1,67 @@
 use core::str;
-use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Split};
+use std::{collections::HashMap, env};
 
 use serde::Deserialize;
+use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
+use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
     name: String,
-    width: u64,
-    height: u64,
-    refresh_rate: u32
+    width: u16,
+    height: u16,
+    refresh_rate: Option<u16>,
+    // Tempararily holds the transform for wayland while the rest of the data comes in
+    // Should never be accessed otherwise
+    wl_transform: Option<WEnum<Transform>>
 }
+impl DisplayInfo {
+    fn wl_calc_transform(&mut self) {
+        // ONLY FOR WAYLAND!!!!!
+        // Translate it and reset the transform
+        match self.wl_transform.unwrap() {
+            WEnum::Value(transform) => {
+                match transform {
+                    Transform::Normal => {}, // Nothing
+                    Transform::_90 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::_180 => {}, // Nothing
+                    Transform::_270 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::Flipped => {}, // Nothing
+                    Transform::Flipped90 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    Transform::Flipped180 => {}, // Nothing
+                    Transform::Flipped270 => {
+                        // Swap width/height
+                        let (width, height) = (self.width, self.height);
+                        self.width = height;
+                        self.height = width;
+                    },
+                    _ => {}, // Clueless mate
+                }
+            },
+            WEnum::Unknown(_) => {}, // ? no idea what to do here
+        }
+        // So if another event comes in it doesn't try to parse again
+        self.wl_transform = None; 
+    }
+}
+
 #[derive(Deserialize)]
 pub struct DisplayConfiguration {
     pub title: String,
@@ -27,7 +77,8 @@ impl Module for DisplayInfo {
             name: "".to_string(),
             width: 0,
             height: 0,
-            refresh_rate: 0
+            refresh_rate: None,
+            wl_transform: None
         }
     }
 
@@ -58,88 +109,196 @@ impl Module for DisplayInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let refresh_rate: String = match self.refresh_rate {
+            Some(r) => r.to_string(),
+            None => "N/A".to_string(),
+        };
         config.displays.format.replace("{name}", &self.name)
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
-            .replace("{refresh_rate}", &self.refresh_rate.to_string())
+            .replace("{refresh_rate}", &refresh_rate)
     }
 }
 
-pub fn get_displays() -> Vec<DisplayInfo> {
-    let mut displays: Vec<DisplayInfo> = Vec::new();
+pub fn get_displays() -> Result<Vec<DisplayInfo>, ModuleError> {
+    // Good news, during my college final deadline hell over the past 2 months, I learned how to
+    // use a display server connection!
+    
+    // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
+    // can report any string and break if someone's dumb enough to do that
+    if env::var("WAYLAND_DISPLAY").is_ok() {
+        return fetch_wayland();
+    } else if env::var("DISPLAY").is_ok() {
+        return fetch_xorg();
+    } else {
+        return Err(ModuleError::new("Display", format!("Could not identify desktop session type.")));
+    }
+}
 
-    // (Thanks to FastFetch's SC for hinting the existance of edid to me and https://www.extron.com/article/uedid for a actual explanation for what it is)
-    // And to address the elephant in the room, yes this is a cheap and not technically correct way to do this. Unfortunately I don't have the knowledge, time nor patience to write a display server connection just for some resolution details.
 
-    // Find all /sys/class/drm/ folders and scan for any that read card*-*
-    let dir: ReadDir = match read_dir("/sys/class/drm") {
+fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
+    // This has really opened my eyes as to why more pieces of software haven't swapped over to
+    // Wayland yet, it's so much more convoluted at times compared to X11
+    let (conn, screen_num) = match x11rb::connect(None) {
         Ok(r) => r,
-        Err(_) => return displays,
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't connect to X11 server: {}", e))),
     };
-    for d in dir {
-        let mut display: DisplayInfo = DisplayInfo::new();
 
-        if d.is_err() {
-            continue
-        }
-        let path: PathBuf = d.unwrap().path();
-        let file_name: &str = match path.file_name() {
-            Some(r) => r.to_str().unwrap(),
-            None => "",
+    let screen: &Screen = &x11rb::connection::Connection::setup(&conn).roots[screen_num];
+    let win_id: Window = match x11rb::connection::Connection::generate_id(&conn) {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 identifier: {}", e))),
+    };
+    match conn.create_window(COPY_DEPTH_FROM_PARENT, win_id, screen.root,
+        0, 0,
+        1, 1,
+        0,
+        WindowClass::INPUT_OUTPUT, 0, &CreateWindowAux::new()) 
+    {
+        Ok(_) => {},
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 window: {}", e))),
+    };
+
+    if !conn.extension_information(randr::X11_EXTENSION_NAME).is_ok() {
+        return Err(ModuleError::new("Display", "X11 compositor doesn't have required 'randr' extension.".to_string()));
+    }
+
+    let monitors: Vec<MonitorInfo> = match randr::get_monitors(&conn, win_id, true) {
+        Ok(r) => match r.reply() {
+            Ok(r) => r.monitors,
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+        },
+        Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+    };
+    let mut displays: Vec<DisplayInfo> = Vec::new();
+    for monitor in monitors {
+        let display = DisplayInfo {
+            name: monitor.name.to_string(),
+            width: monitor.width,
+            height: monitor.height,
+            refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
+            wl_transform: None
         };
-        if !file_name.starts_with("card") || !file_name.contains('-') || file_name.contains("Writeback") {
-            continue
-        }
-
-        // We've confirmed it's a valid display, now we check it's enabled
-        let enabled_path: PathBuf = path.join("enabled");
-        if !enabled_path.exists() {
-            continue
-        }
-        let mut enabled_file: File = match File::open(enabled_path) {
-            Ok(f) => f,
-            Err(_) => continue,
-        };
-        let mut contents: String = String::new();
-        match enabled_file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(_) => continue,
-        }
-        if contents.trim() != "enabled" {
-            continue
-        }
-
-        // Display Name
-        let mut file_name_split: Split<'_, &str> = file_name.split("-");
-        file_name_split.next();
-        display.name = file_name_split.collect::<Vec<&str>>().join("-");
-
-        // And now the hard part; edid - If this is wrong let me know and point me in the right
-        // direction, as I've never worked with this before
-        // HUGE thanks to this lovely document https://glenwing.github.io/docs/VESA-EEDID-A2.pdf
-        // The only disadvantage here is that we can't get the *current* resolution, only the max
-        // res but I'm fine with that
-
-        let edid_bytes: Vec<u8> = match fs::read(path.join("edid")) {
-            Ok(r) => r,
-            Err(_) => continue,
-        };
-        if edid_bytes.len() == 0 {
-            // This can happen in VM's, meaning no display output. Cus of this, I just push the
-            // display empty
-            displays.push(display);
-            continue
-        }
-
-        // DTD starts at byte 54
-        // Formula thanks to https://stackoverflow.com/a/10299885 and https://stackoverflow.com/a/4476144
-        let resolution_w: u32 = (u32::from(edid_bytes[58]) >> 4) << 8 | u32::from(edid_bytes[56]);
-        let resolution_h: u32 = (u32::from(edid_bytes[61]) >> 4) << 8 | u32::from(edid_bytes[59]);
-        display.width = resolution_w as u64;
-        display.height = resolution_h as u64;
-
         displays.push(display);
     }
 
-    displays
+    // Not error checked as it's not a huge problem if this fails, moreso just a "would be nice to do" thing
+    let _ = conn.destroy_window(win_id);
+    displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    Ok(displays)
+}
+
+
+
+//
+// The Wayland Zone
+//
+struct WaylandState {
+    complete: bool, // Tells us whether to break out of the event loop or not
+    num_outputs: u8, // How many outputs are waiting to be processed 
+    outputs: HashMap<wl_output::WlOutput, DisplayInfo> // The output data as it stands
+}
+impl Dispatch<wl_registry::WlRegistry, ()> for WaylandState {
+    fn event(state: &mut Self, reg: &wl_registry::WlRegistry, event: wl_registry::Event, _: &(), _: &Connection, qh: &QueueHandle<WaylandState>,) {
+        if let wl_registry::Event::Global {name, interface, version} = event {
+            if interface == "wl_output" {
+                // This is what we're looking for, bind to it
+                reg.bind::<wl_output::WlOutput, _, _>(name, version, &qh, ());
+                state.num_outputs += 1;   
+            }
+        }
+    }
+}
+impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
+    fn event(state: &mut Self, output: &wl_output::WlOutput, event: wl_output::Event, _: &(), _: &Connection, _qh: &QueueHandle<WaylandState>,) {
+        if !state.outputs.contains_key(output) {
+            state.outputs.insert(output.clone(), DisplayInfo::new());
+        }
+
+        let display: &mut DisplayInfo = state.outputs.get_mut(output).unwrap();
+        if let wl_output::Event::Name {name} = &event {
+            display.name = name.to_string();
+        }
+        if let wl_output::Event::Geometry {transform, ..} = &event {
+            display.wl_transform = Some(*transform);
+            if display.width != 0 || display.height != 0 {
+                // Will reset wl_transform to None for us
+                display.wl_calc_transform();
+            } 
+            return; // Confirmed to not be done, unless your compositor's fucked
+        }
+        if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
+            display.width = match width.to_string().parse::<u16>() {
+                Ok(r) => r,
+                Err(_) => 0
+            };
+            display.height = match height.to_string().parse::<u16>() {
+                Ok(r) => r,
+                Err(_) => 0
+            };
+            display.refresh_rate = match (*refresh as f32 / 1000.0).round().to_string().parse::<u16>() {
+                Ok(r) => Some(r),
+                // There's no real "error handling" here so just set it to 0 so it's not None and letting us get stuck in an infinite loop
+                // Clearly your compositor is very very very dumb
+                Err(_) => Some(0)
+            };
+
+            if display.wl_transform.is_some() {
+                // Will reset wl_transform to None for us
+                display.wl_calc_transform();
+            }
+        }
+
+        if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate.is_some() {
+            // We're done, release it 
+            output.release();
+            if state.num_outputs == 0 {
+                state.complete = true;
+                return;
+            }
+            state.num_outputs -= 1;
+        }
+    }
+}
+fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
+    let conn: Connection = match Connection::connect_to_env() {
+        Ok(r) => r,
+        Err(e) => {
+            let msg: &str = match e {
+                ConnectError::NoWaylandLib => "Unable to load the Wayland library.",
+                ConnectError::NoCompositor => "Unable to find a Wayland compositor.",
+                ConnectError::InvalidFd => "Found a Wayland compositor, but the socket contained garbage."
+            };
+            return Err(ModuleError::new("Display", format!("Failed to connect to Wayland compositor: {}", msg)));
+        },
+    };
+    let display = conn.display();
+
+    let mut event_queue = conn.new_event_queue();
+    let qh = event_queue.handle();
+
+    let _registry = display.get_registry(&qh, ());
+    let mut data: WaylandState = WaylandState {
+        complete: false,
+        num_outputs: 0,
+        outputs: HashMap::new()
+    };
+
+    let mut loops: u16 = 0;
+    while !data.complete {
+        match event_queue.roundtrip(&mut data) {
+            Ok(r) => r,
+            Err(e) => {
+                return Err(ModuleError::new("Display", format!("Compositor roundtrip returned error: {}", e)));
+            }
+        };
+        loops += 1;
+        if loops > 1000 {
+            return Err(ModuleError::new("Display", "Wayland compositor took too long to respond; over 1000 event loops have passed.".to_string()));
+        }
+    }
+
+    let mut displays: Vec<DisplayInfo> = data.outputs.into_iter().map(|x| x.1.clone()).collect();
+    displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    Ok(displays)
 }

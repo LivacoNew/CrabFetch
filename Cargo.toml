@@ -18,3 +18,5 @@ serde_json = "1.0.114"
 sqlite = "0.34.0"
 libc = "0.2.153"
 humantime = "2.1.0"
+x11rb = {version = "0.13.1", features=["randr"]}
+wayland-client = "0.31.3"

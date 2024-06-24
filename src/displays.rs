@@ -227,10 +227,5 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
         }
     }
 
-    // TODO: Clean this lol
-    let mut y: Vec<DisplayInfo> = Vec::new();
-    for x in data.outputs {
-        y.push(x.1.clone());
-    }
-    Ok(y)
+    Ok(data.outputs.into_iter().map(|x| x.1.clone()).collect())
 }

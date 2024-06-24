@@ -218,7 +218,7 @@ fn main() {
     }
 
     // AND displays
-    let mut displays: Option<Vec<DisplayInfo>> = None;
+    let mut displays: Option<Result<Vec<DisplayInfo>, ModuleError>> = None;
     let mut display_index: u32 = 0;
     if modules.contains(&"displays".to_string()) {
         displays = Some(displays::get_displays());
@@ -439,15 +439,25 @@ fn main() {
                     }
                 },
                 "displays" => {
-                    let displays: &Vec<DisplayInfo> = displays.as_ref().unwrap();
-                    if displays.len() > display_index as usize {
-                        let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                        print!("{}", display.style(&config, max_title_length));
-                        display_index += 1;
-                        // once again, sketchy
-                        if displays.len() > display_index as usize {
-                            modules.insert(line_number as usize, "displays".to_string());
-                        }
+                    let displays: &Result<Vec<DisplayInfo>, ModuleError> = displays.as_ref().unwrap();
+                    match displays {
+                        Ok(displays) => {
+                            if displays.len() > display_index as usize {
+                                let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
+                                print!("{}", display.style(&config, max_title_length));
+                                display_index += 1;
+                                // once again, sketchy
+                                if displays.len() > display_index as usize {
+                                    modules.insert(line_number as usize, "displays".to_string());
+                                }
+                            }
+
+                        },
+                        Err(e) => {
+                            if log_errors {
+                                print!("{}", e);
+                            }
+                        },
                     }
                 }
                 "battery" => {

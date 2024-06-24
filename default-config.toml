@@ -175,10 +175,11 @@ title = "Host"
 title = "Display {name}"
 
 # The format each display should be in. Placeholders;
-# {name} -> The monitor name, e.g eDP-2
+# {name} -> The monitor "name", e.g eDP-2 for Wayland and 412 for x11.
 # {width} -> The monitor's width
 # {height} -> The monitor's height
-format = "{width}x{height}"
+# {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
+format = "{width}x{height} @ {refresh_rate} hz"
 
 
 [os]

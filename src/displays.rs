@@ -1,16 +1,17 @@
 use core::str;
-use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::PathBuf, str::Split};
+use std::env;
 
 use serde::Deserialize;
+use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
     name: String,
-    width: u64,
-    height: u64,
-    refresh_rate: u32
+    width: u16,
+    height: u16,
+    refresh_rate: Option<u16>
 }
 #[derive(Deserialize)]
 pub struct DisplayConfiguration {
@@ -27,7 +28,7 @@ impl Module for DisplayInfo {
             name: "".to_string(),
             width: 0,
             height: 0,
-            refresh_rate: 0
+            refresh_rate: None
         }
     }
 
@@ -58,88 +59,78 @@ impl Module for DisplayInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let refresh_rate: String = match self.refresh_rate {
+            Some(r) => r.to_string(),
+            None => "N/A".to_string(),
+        };
         config.displays.format.replace("{name}", &self.name)
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
-            .replace("{refresh_rate}", &self.refresh_rate.to_string())
+            .replace("{refresh_rate}", &refresh_rate)
     }
 }
 
-pub fn get_displays() -> Vec<DisplayInfo> {
-    let mut displays: Vec<DisplayInfo> = Vec::new();
+pub fn get_displays() -> Result<Vec<DisplayInfo>, ModuleError> {
+    // Good news, during my college final deadline hell over the past 2 months, I learned how to
+    // use a display server connection!
+    
+    // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
+    // can report any string and break if someone's dumb enough to do that
+    if env::var("WAYLAND_DISPLAY").is_ok() {
+        todo!();
+    } else if env::var("DISPLAY").is_ok() {
+        return fetch_xorg();
+    } else {
+        return Err(ModuleError::new("Display", format!("Could not identify desktop session type.")));
+    }
+}
 
-    // (Thanks to FastFetch's SC for hinting the existance of edid to me and https://www.extron.com/article/uedid for a actual explanation for what it is)
-    // And to address the elephant in the room, yes this is a cheap and not technically correct way to do this. Unfortunately I don't have the knowledge, time nor patience to write a display server connection just for some resolution details.
-
-    // Find all /sys/class/drm/ folders and scan for any that read card*-*
-    let dir: ReadDir = match read_dir("/sys/class/drm") {
+fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
+    // This has really opened my eyes as to why more pieces of software haven't swapped over to
+    // Wayland yet, it's so much more convoluted at times compared to X11
+    let (conn, screen_num) = match x11rb::connect(None) {
         Ok(r) => r,
-        Err(_) => return displays,
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't connect to X11 server: {}", e))),
     };
-    for d in dir {
-        let mut display: DisplayInfo = DisplayInfo::new();
 
-        if d.is_err() {
-            continue
-        }
-        let path: PathBuf = d.unwrap().path();
-        let file_name: &str = match path.file_name() {
-            Some(r) => r.to_str().unwrap(),
-            None => "",
+    let screen: &Screen = &x11rb::connection::Connection::setup(&conn).roots[screen_num];
+    let win_id: Window = match x11rb::connection::Connection::generate_id(&conn) {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 identifier: {}", e))),
+    };
+    match conn.create_window(COPY_DEPTH_FROM_PARENT, win_id, screen.root,
+        0, 0,
+        1, 1,
+        0,
+        WindowClass::INPUT_OUTPUT, 0, &CreateWindowAux::new()) 
+    {
+        Ok(_) => {},
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 window: {}", e))),
+    };
+
+    if !conn.extension_information(randr::X11_EXTENSION_NAME).is_ok() {
+        return Err(ModuleError::new("Display", "X11 compositor doesn't have required 'randr' extension.".to_string()));
+    }
+
+    let monitors: Vec<MonitorInfo> = match randr::get_monitors(&conn, win_id, true) {
+        Ok(r) => match r.reply() {
+            Ok(r) => r.monitors,
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+        },
+        Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+    };
+    let mut displays: Vec<DisplayInfo> = Vec::new();
+    for monitor in monitors {
+        let display = DisplayInfo {
+            name: monitor.name.to_string(),
+            width: monitor.width,
+            height: monitor.height,
+            refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
         };
-        if !file_name.starts_with("card") || !file_name.contains('-') || file_name.contains("Writeback") {
-            continue
-        }
-
-        // We've confirmed it's a valid display, now we check it's enabled
-        let enabled_path: PathBuf = path.join("enabled");
-        if !enabled_path.exists() {
-            continue
-        }
-        let mut enabled_file: File = match File::open(enabled_path) {
-            Ok(f) => f,
-            Err(_) => continue,
-        };
-        let mut contents: String = String::new();
-        match enabled_file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(_) => continue,
-        }
-        if contents.trim() != "enabled" {
-            continue
-        }
-
-        // Display Name
-        let mut file_name_split: Split<'_, &str> = file_name.split("-");
-        file_name_split.next();
-        display.name = file_name_split.collect::<Vec<&str>>().join("-");
-
-        // And now the hard part; edid - If this is wrong let me know and point me in the right
-        // direction, as I've never worked with this before
-        // HUGE thanks to this lovely document https://glenwing.github.io/docs/VESA-EEDID-A2.pdf
-        // The only disadvantage here is that we can't get the *current* resolution, only the max
-        // res but I'm fine with that
-
-        let edid_bytes: Vec<u8> = match fs::read(path.join("edid")) {
-            Ok(r) => r,
-            Err(_) => continue,
-        };
-        if edid_bytes.len() == 0 {
-            // This can happen in VM's, meaning no display output. Cus of this, I just push the
-            // display empty
-            displays.push(display);
-            continue
-        }
-
-        // DTD starts at byte 54
-        // Formula thanks to https://stackoverflow.com/a/10299885 and https://stackoverflow.com/a/4476144
-        let resolution_w: u32 = (u32::from(edid_bytes[58]) >> 4) << 8 | u32::from(edid_bytes[56]);
-        let resolution_h: u32 = (u32::from(edid_bytes[61]) >> 4) << 8 | u32::from(edid_bytes[59]);
-        display.width = resolution_w as u64;
-        display.height = resolution_h as u64;
-
         displays.push(display);
     }
 
-    displays
+    // Not error checked as it's not a huge problem if this fails, moreso just a "would be nice to do" thing
+    let _ = conn.destroy_window(win_id);
+    Ok(displays)
 }

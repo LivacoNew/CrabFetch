@@ -200,7 +200,7 @@ fn main() {
             if args.distro_override.is_some() {
                 ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
             } else {
-                ascii = ascii::get_ascii(&known_outputs.os.unwrap().as_ref().unwrap().distro_id);
+                ascii = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
             }
         }
     }
@@ -248,6 +248,23 @@ fn main() {
                             output.push(e.to_string());
                         } else {
                             output.push(CPUInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "os" => {
+                if known_outputs.os.is_none() {
+                    known_outputs.os = Some(os::get_os());
+                }
+                match known_outputs.os.as_ref().unwrap() {
+                    Ok(os) => {
+                        output.push(os.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(OSInfo::unknown_output(&config, max_title_length));
                         }
                     },
                 }; 

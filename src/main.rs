@@ -6,12 +6,13 @@ use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
 use os::OSInfo;
 
-use crate::config_manager::Configuration;
+use crate::{config_manager::Configuration, hostname::HostnameInfo};
 
 mod cpu;
 mod config_manager;
 mod ascii;
 mod os;
+mod hostname;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -56,7 +57,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
     // this kinda sucks
     for module in &config.modules {
         match module.as_str() {
-            // "hostname" => res = max(res, config.hostname.title.len() as u64),
+            "hostname" => res = max(res, config.hostname.title.len() as u64),
             "cpu" => res = max(res, config.cpu.title.len() as u64),
             // "gpu" => res = max(res, config.gpu.title.len() as u64),
             // "memory" => res = max(res, config.memory.title.len() as u64),
@@ -215,6 +216,20 @@ fn main() {
                 let underline_length: usize = module_split[1].parse().unwrap();
                 output.push(config.underline_character.to_string().repeat(underline_length));
             },
+            "hostname" => {
+                match hostname::get_hostname() {
+                    Ok(hostname) => {
+                        output.push(hostname.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(HostnameInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                };
+            },
             "cpu" => {
                 match cpu::get_cpu() {
                     Ok(cpu) => {
@@ -224,7 +239,6 @@ fn main() {
                         if log_errors {
                             output.push(e.to_string());
                         } else {
-                            println!("'");
                             output.push(CPUInfo::unknown_output(&config, max_title_length));
                         }
                     },

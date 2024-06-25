@@ -87,6 +87,12 @@ impl Module for PackagesInfo {
     fn replace_placeholders(&self, _: &Configuration) -> String {
         unimplemented!()
     }
+
+    fn unknown_output(_config: &Configuration, _max_title_length: u64) -> String {
+        // get_packages can't fail, so this isn't implemented
+        // if it does, your fucked, and panic time ensures
+        panic!("Packages should never fail, something's wrong.");
+    }
 }
 
 pub struct ManagerInfo {

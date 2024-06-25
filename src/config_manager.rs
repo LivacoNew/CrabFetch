@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, hostname::HostnameConfiguration, os::OSConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -120,21 +120,21 @@ pub struct Configuration {
 
     pub hostname: HostnameConfiguration,
     pub cpu: CPUConfiguration,
-    // pub gpu: GPUConfiguration,
-    // pub memory: MemoryConfiguration,
-    // pub swap: SwapConfiguration,
-    // pub mounts: MountConfiguration,
-    // pub host: HostConfiguration,
-    // pub displays: DisplayConfiguration,
+    pub gpu: GPUConfiguration,
+    pub memory: MemoryConfiguration,
+    pub swap: SwapConfiguration,
+    pub mounts: MountConfiguration,
+    pub host: HostConfiguration,
+    pub displays: DisplayConfiguration,
     pub os: OSConfiguration,
-    // pub packages: PackagesConfiguration,
-    // pub desktop: DesktopConfiguration,
-    // pub terminal: TerminalConfiguration,
-    // pub shell: ShellConfiguration,
-    // pub uptime: UptimeConfiguration,
-    // pub battery: BatteryConfiguration,
-    // pub locale: LocaleConfiguration,
-    // pub editor: EditorConfiguration
+    pub packages: PackagesConfiguration,
+    pub desktop: DesktopConfiguration,
+    pub terminal: TerminalConfiguration,
+    pub shell: ShellConfiguration,
+    pub uptime: UptimeConfiguration,
+    pub battery: BatteryConfiguration,
+    pub locale: LocaleConfiguration,
+    pub editor: EditorConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {

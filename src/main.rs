@@ -1,10 +1,24 @@
 use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
 
+use battery::BatteryInfo;
 use config_manager::{color_string, CrabFetchColor};
 use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
+use desktop::DesktopInfo;
+use displays::DisplayInfo;
+use editor::EditorInfo;
+use gpu::{GPUInfo, GPUMethod};
+use host::HostInfo;
+use locale::LocaleInfo;
+use memory::MemoryInfo;
+use mounts::MountInfo;
 use os::OSInfo;
+use packages::PackagesInfo;
+use shell::ShellInfo;
+use swap::SwapInfo;
+use terminal::TerminalInfo;
+use uptime::UptimeInfo;
 
 use crate::{config_manager::Configuration, hostname::HostnameInfo};
 
@@ -13,6 +27,20 @@ mod config_manager;
 mod ascii;
 mod os;
 mod hostname;
+mod gpu;
+mod memory;
+mod swap;
+mod mounts;
+mod host;
+mod displays;
+mod packages;
+mod desktop;
+mod terminal;
+mod shell;
+mod uptime;
+mod editor;
+mod locale;
+mod battery;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -59,21 +87,21 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
         match module.as_str() {
             "hostname" => res = max(res, config.hostname.title.len() as u64),
             "cpu" => res = max(res, config.cpu.title.len() as u64),
-            // "gpu" => res = max(res, config.gpu.title.len() as u64),
-            // "memory" => res = max(res, config.memory.title.len() as u64),
-            // "swap" => res = max(res, config.swap.title.len() as u64),
-            // "mounts" => res = max(res, config.mounts.title.len() as u64),
-            // "host" => res = max(res, config.host.title.len() as u64),
-            // "displays" => res = max(res, config.displays.title.len() as u64),
+            "gpu" => res = max(res, config.gpu.title.len() as u64),
+            "memory" => res = max(res, config.memory.title.len() as u64),
+            "swap" => res = max(res, config.swap.title.len() as u64),
+            "mounts" => res = max(res, config.mounts.title.len() as u64),
+            "host" => res = max(res, config.host.title.len() as u64),
+            "displays" => res = max(res, config.displays.title.len() as u64),
             "os" => res = max(res, config.os.title.len() as u64),
-            // "packages" => res = max(res, config.packages.title.len() as u64),
-            // "desktop" => res = max(res, config.desktop.title.len() as u64),
-            // "terminal" => res = max(res, config.terminal.title.len() as u64),
-            // "shell" => res = max(res, config.shell.title.len() as u64),
-            // "battery" => res = max(res, config.battery.title.len() as u64),
-            // "uptime" => res = max(res, config.uptime.title.len() as u64),
-            // "locale" => res = max(res, config.locale.title.len() as u64),
-            // "editor" => res = max(res, config.editor.title.len() as u64),
+            "packages" => res = max(res, config.packages.title.len() as u64),
+            "desktop" => res = max(res, config.desktop.title.len() as u64),
+            "terminal" => res = max(res, config.terminal.title.len() as u64),
+            "shell" => res = max(res, config.shell.title.len() as u64),
+            "battery" => res = max(res, config.battery.title.len() as u64),
+            "uptime" => res = max(res, config.uptime.title.len() as u64),
+            "locale" => res = max(res, config.locale.title.len() as u64),
+            "editor" => res = max(res, config.editor.title.len() as u64),
             _ => {}
         }
     }
@@ -155,6 +183,20 @@ impl Debug for ModuleError {
 struct ModuleOutputs {
     hostname: Option<Result<HostnameInfo, ModuleError>>,
     cpu: Option<Result<CPUInfo, ModuleError>>,
+    gpu: Option<Result<GPUInfo, ModuleError>>,
+    memory: Option<Result<MemoryInfo, ModuleError>>,
+    swap: Option<Result<SwapInfo, ModuleError>>,
+    mounts: Option<Result<Vec<MountInfo>, ModuleError>>,
+    host: Option<Result<HostInfo, ModuleError>>,
+    displays: Option<Result<Vec<DisplayInfo>, ModuleError>>,
+    packages: Option<PackagesInfo>,
+    desktop: Option<Result<DesktopInfo, ModuleError>>,
+    terminal: Option<Result<TerminalInfo, ModuleError>>,
+    shell: Option<Result<ShellInfo, ModuleError>>,
+    battery: Option<Result<BatteryInfo, ModuleError>>,
+    uptime: Option<Result<UptimeInfo, ModuleError>>,
+    locale: Option<Result<LocaleInfo, ModuleError>>,
+    editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>
 }
 impl ModuleOutputs {
@@ -162,6 +204,20 @@ impl ModuleOutputs {
         Self {
             hostname: None,
             cpu: None,
+            gpu: None,
+            memory: None,
+            swap: None,
+            mounts: None,
+            host: None,
+            displays: None,
+            packages: None,
+            desktop: None,
+            terminal: None,
+            shell: None,
+            battery: None,
+            uptime: None,
+            locale: None,
+            editor: None,
             os: None
         }
     }
@@ -252,6 +308,124 @@ fn main() {
                     },
                 }; 
             },
+            "gpu" => {
+                if known_outputs.gpu.is_none() {
+                    let mut method: GPUMethod = config.gpu.method.clone();
+                    if args.gpu_method.is_some() {
+                        method = match args.gpu_method.clone().unwrap().as_str() {
+                            "pcisysfile" => GPUMethod::PCISysFile,
+                            "glxinfo" => GPUMethod::GLXInfo,
+                            _ => GPUMethod::PCISysFile
+                        }
+                    }
+                    let use_cache: bool = !args.ignore_cache && config.gpu.cache;
+                    known_outputs.gpu = Some(gpu::get_gpu(method, use_cache));
+                }
+                match known_outputs.gpu.as_ref().unwrap() {
+                    Ok(gpu) => {
+                        output.push(gpu.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(GPUInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "memory" => {
+                if known_outputs.memory.is_none() {
+                    known_outputs.memory = Some(memory::get_memory());
+                }
+                match known_outputs.memory.as_ref().unwrap() {
+                    Ok(memory) => {
+                        output.push(memory.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(MemoryInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "swap" => {
+                if known_outputs.swap.is_none() {
+                    known_outputs.swap = Some(swap::get_swap());
+                }
+                match known_outputs.swap.as_ref().unwrap() {
+                    Ok(swap) => {
+                        output.push(swap.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(SwapInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "mounts" => {
+                if known_outputs.mounts.is_none() {
+                    known_outputs.mounts = Some(mounts::get_mounted_drives());
+                }
+                match known_outputs.mounts.as_ref().unwrap() {
+                    Ok(mounts) => {
+                        for mount in mounts {
+                            if mount.is_ignored(&config) {
+                                continue;
+                            }
+                            output.push(mount.style(&config, max_title_length))
+                        }
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(SwapInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "host" => {
+                if known_outputs.host.is_none() {
+                    known_outputs.host = Some(host::get_host());
+                }
+                match known_outputs.host.as_ref().unwrap() {
+                    Ok(host) => {
+                        output.push(host.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(HostInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "displays" => {
+                if known_outputs.displays.is_none() {
+                    known_outputs.displays = Some(displays::get_displays());
+                }
+                match known_outputs.displays.as_ref().unwrap() {
+                    Ok(displays) => {
+                        for display in displays {
+                            output.push(display.style(&config, max_title_length))
+                        }
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(DisplayInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
             "os" => {
                 if known_outputs.os.is_none() {
                     known_outputs.os = Some(os::get_os());
@@ -269,8 +443,159 @@ fn main() {
                     },
                 }; 
             },
+            "packages" => {
+                if known_outputs.packages.is_none() {
+                    known_outputs.packages = Some(packages::get_packages());
+                }
+                output.push(known_outputs.packages.as_ref().unwrap().style(&config, max_title_length));
+            },
+            "desktop" => {
+                if known_outputs.desktop.is_none() {
+                    known_outputs.desktop = Some(desktop::get_desktop());
+                }
+                match known_outputs.desktop.as_ref().unwrap() {
+                    Ok(desktop) => {
+                        output.push(desktop.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(DesktopInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "terminal" => {
+                if known_outputs.terminal.is_none() {
+                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts));
+                }
+                match known_outputs.terminal.as_ref().unwrap() {
+                    Ok(terminal) => {
+                        output.push(terminal.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(TerminalInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "shell" => {
+                if known_outputs.shell.is_none() {
+                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell));
+                }
+                match known_outputs.shell.as_ref().unwrap() {
+                    Ok(shell) => {
+                        output.push(shell.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(ShellInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "battery" => {
+                if known_outputs.battery.is_none() {
+                    known_outputs.battery = Some(battery::get_battery(&config.battery.path));
+                }
+                match known_outputs.battery.as_ref().unwrap() {
+                    Ok(battery) => {
+                        output.push(battery.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(BatteryInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "uptime" => {
+                if known_outputs.uptime.is_none() {
+                    known_outputs.uptime = Some(uptime::get_uptime());
+                }
+                match known_outputs.uptime.as_ref().unwrap() {
+                    Ok(uptime) => {
+                        output.push(uptime.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(UptimeInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "locale" => {
+                if known_outputs.locale.is_none() {
+                    known_outputs.locale = Some(locale::get_locale());
+                }
+                match known_outputs.locale.as_ref().unwrap() {
+                    Ok(locale) => {
+                        output.push(locale.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(LocaleInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "editor" => {
+                if known_outputs.editor.is_none() {
+                    known_outputs.editor = Some(editor::get_editor());
+                }
+                match known_outputs.editor.as_ref().unwrap() {
+                    Ok(editor) => {
+                        output.push(editor.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(EditorInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "colors" => {
+                let gap: &str = "   ";
+                let mut str: String = String::new();
+                str.push_str(&gap.on_black().to_string());
+                str.push_str(&gap.on_red().to_string());
+                str.push_str(&gap.on_green().to_string());
+                str.push_str(&gap.on_yellow().to_string());
+                str.push_str(&gap.on_blue().to_string());
+                str.push_str(&gap.on_magenta().to_string());
+                str.push_str(&gap.on_cyan().to_string());
+                str.push_str(&gap.on_white().to_string());
+                output.push(str);
+            }
+            "bright_colors" => {
+                let gap: &str = "   ";
+                let mut str: String = String::new();
+                str.push_str(&gap.on_bright_black().to_string());
+                str.push_str(&gap.on_bright_red().to_string());
+                str.push_str(&gap.on_bright_green().to_string());
+                str.push_str(&gap.on_bright_yellow().to_string());
+                str.push_str(&gap.on_bright_blue().to_string());
+                str.push_str(&gap.on_bright_magenta().to_string());
+                str.push_str(&gap.on_bright_cyan().to_string());
+                str.push_str(&gap.on_bright_white().to_string());
+                output.push(str);
+            }
             _ => {
-
+                output.push(format!("Unknown module: {}", module_name));
             }
         }
     }
@@ -291,7 +616,6 @@ fn main() {
     let mut current_line: usize = 0;
     for out in output {
         if config.ascii.display {
-            // Figure out the color first
             print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
         }
 
@@ -320,7 +644,10 @@ fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &
     for _ in 0..remainder {
         line.push_str(" ");
     }
-    let colored: ColoredString = color_string(&line, config.ascii.colors.get(index as usize).unwrap());
 
-    return colored.to_string();
+    if current_line < ascii_split.len() {
+        let colored: ColoredString = color_string(&line, config.ascii.colors.get(index as usize).unwrap());
+        return colored.to_string();
+    }
+    line
 }

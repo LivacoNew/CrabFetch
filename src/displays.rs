@@ -105,7 +105,35 @@ impl Module for DisplayInfo {
         let mut title: String = config.displays.title.clone();
         title = title.replace("{name}", &self.name);
 
-        self.default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator)
+        let mut value: String = self.replace_placeholders(config);
+        value = self.replace_color_placeholders(&value);
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, &value)
+    }
+    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.displays.title_color).is_some() {
+            title_color = config.displays.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = config.title_bold;
+        if config.displays.title_bold.is_some() {
+            title_bold = config.displays.title_bold.unwrap();
+        }
+        let mut title_italic: bool = config.title_italic;
+        if config.displays.title_italic.is_some() {
+            title_italic = config.displays.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = config.seperator.as_str();
+        if config.displays.seperator.is_some() {
+            seperator = config.displays.seperator.as_ref().unwrap();
+        }
+
+        let mut title: String = config.displays.title.clone();
+        title = title.replace("{name}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

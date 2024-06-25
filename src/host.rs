@@ -24,7 +24,7 @@ impl Module for HostInfo {
         }
     }
 
-    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
         if (&config.host.title_color).is_some() {
             title_color = &config.host.title_color.as_ref().unwrap();
@@ -44,7 +44,32 @@ impl Module for HostInfo {
             seperator = config.host.seperator.as_ref().unwrap();
         }
 
-        self.default_style(config, max_title_length, &config.host.title, title_color, title_bold, title_italic, &seperator)
+        let mut value: String = self.replace_placeholders(config);
+        value = self.replace_color_placeholders(&value);
+
+        Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, &seperator, &value)
+    }
+    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.host.title_color).is_some() {
+            title_color = config.host.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = config.title_bold;
+        if config.host.title_bold.is_some() {
+            title_bold = config.host.title_bold.unwrap();
+        }
+        let mut title_italic: bool = config.title_italic;
+        if config.host.title_italic.is_some() {
+            title_italic = config.host.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = config.seperator.as_str();
+        if config.host.seperator.is_some() {
+            seperator = config.host.seperator.as_ref().unwrap();
+        }
+
+        Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, &seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

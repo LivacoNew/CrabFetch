@@ -153,12 +153,14 @@ impl Debug for ModuleError {
 // Stores all the module's outputs as we know them
 // This is to prevent us doing additional work when we don't need to, when modules need shared data
 struct ModuleOutputs {
+    hostname: Option<Result<HostnameInfo, ModuleError>>,
     cpu: Option<Result<CPUInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>
 }
 impl ModuleOutputs {
     fn new() -> Self {
         Self {
+            hostname: None,
             cpu: None,
             os: None
         }
@@ -217,7 +219,10 @@ fn main() {
                 output.push(config.underline_character.to_string().repeat(underline_length));
             },
             "hostname" => {
-                match hostname::get_hostname() {
+                if known_outputs.hostname.is_none() {
+                    known_outputs.hostname = Some(hostname::get_hostname());
+                }
+                match known_outputs.hostname.as_ref().unwrap() {
                     Ok(hostname) => {
                         output.push(hostname.style(&config, max_title_length))
                     },
@@ -231,7 +236,10 @@ fn main() {
                 };
             },
             "cpu" => {
-                match cpu::get_cpu() {
+                if known_outputs.cpu.is_none() {
+                    known_outputs.cpu = Some(cpu::get_cpu());
+                }
+                match known_outputs.cpu.as_ref().unwrap() {
                     Ok(cpu) => {
                         output.push(cpu.style(&config, max_title_length))
                     },
@@ -242,7 +250,7 @@ fn main() {
                             output.push(CPUInfo::unknown_output(&config, max_title_length));
                         }
                     },
-                };
+                }; 
             },
             _ => {
 

@@ -55,25 +55,25 @@ impl Module for OSInfo {
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.cpu.title_color).is_some() {
-            title_color = config.cpu.title_color.as_ref().unwrap();
+        if (config.os.title_color).is_some() {
+            title_color = config.os.title_color.as_ref().unwrap();
         }
 
         let mut title_bold: bool = config.title_bold;
-        if config.cpu.title_bold.is_some() {
-            title_bold = config.cpu.title_bold.unwrap();
+        if config.os.title_bold.is_some() {
+            title_bold = config.os.title_bold.unwrap();
         }
         let mut title_italic: bool = config.title_italic;
-        if config.cpu.title_italic.is_some() {
-            title_italic = config.cpu.title_italic.unwrap();
+        if config.os.title_italic.is_some() {
+            title_italic = config.os.title_italic.unwrap();
         }
 
         let mut seperator: &str = config.seperator.as_str();
-        if config.cpu.seperator.is_some() {
-            seperator = config.cpu.seperator.as_ref().unwrap();
+        if config.os.seperator.is_some() {
+            seperator = config.os.seperator.as_ref().unwrap();
         }
 
-        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, &seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

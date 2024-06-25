@@ -202,7 +202,6 @@ fn main() {
         }
     }
 
-
     // 
     //  Detect
     //
@@ -241,20 +240,27 @@ fn main() {
     // 
     //  Display
     //
-    let ascii_split: Vec<&str> = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
-    let ascii_length: usize = ascii_split.len();
-    let ascii_target_length: u16 = ascii.1 + config.ascii.margin;
+    let mut ascii_split: Vec<&str> = Vec::new();
+    let mut ascii_length: usize = 0;
+    let mut ascii_target_length: u16 = 0;
+    if config.ascii.display {
+        ascii_split = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
+        ascii_length = ascii_split.len();
+        ascii_target_length = ascii.1 + config.ascii.margin;
+    }
 
     let mut current_line: usize = 0;
     for out in output {
-        // Figure out the color first
-        print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+        if config.ascii.display {
+            // Figure out the color first
+            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+        }
 
         print!("{}", out);
         current_line += 1;
         println!();
     }
-    if current_line < ascii_length {
+    if current_line < ascii_length && config.ascii.display {
         for _ in current_line..ascii_length {
             print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
             current_line += 1;

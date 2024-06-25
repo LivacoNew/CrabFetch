@@ -1,33 +1,46 @@
 use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
 
-use config_manager::CrabFetchColor;
-use displays::DisplayInfo;
+use battery::BatteryInfo;
+use config_manager::{color_string, CrabFetchColor};
+use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
+use desktop::DesktopInfo;
+use displays::DisplayInfo;
+use editor::EditorInfo;
+use gpu::{GPUInfo, GPUMethod};
+use host::HostInfo;
+use locale::LocaleInfo;
+use memory::MemoryInfo;
 use mounts::MountInfo;
 use os::OSInfo;
+use packages::PackagesInfo;
+use shell::ShellInfo;
+use swap::SwapInfo;
+use terminal::TerminalInfo;
+use uptime::UptimeInfo;
 
-use crate::{config_manager::{color_string, Configuration}, gpu::GPUMethod};
+use crate::{config_manager::Configuration, hostname::HostnameInfo};
 
 mod cpu;
-mod memory;
 mod config_manager;
 mod ascii;
-mod hostname;
 mod os;
-mod uptime;
-mod desktop;
-mod mounts;
-mod shell;
-mod swap;
+mod hostname;
 mod gpu;
-mod terminal;
+mod memory;
+mod swap;
+mod mounts;
 mod host;
-mod packages;
 mod displays;
-mod battery;
+mod packages;
+mod desktop;
+mod terminal;
+mod shell;
+mod uptime;
 mod editor;
 mod locale;
+mod battery;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -66,6 +79,7 @@ pub struct Args {
     module_override: Option<String>
 }
 
+// Figures out the max title length for when we're using inline value display
 fn calc_max_title_length(config: &Configuration) -> u64 {
     let mut res: u64 = 0;
     // this kinda sucks
@@ -98,6 +112,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
 trait Module {
     fn new() -> Self;
     fn style(&self, config: &Configuration, max_title_length: u64) -> String;
+    fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
     fn replace_placeholders(&self, config: &Configuration) -> String;
 
     // This helps the format function lol
@@ -106,7 +121,7 @@ trait Module {
         (number * power).round() / power
     }
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
-    fn default_style(&self, config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str) -> String {
+    fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str, value: &str) -> String {
         let mut str: String = String::new();
 
         // Title
@@ -129,9 +144,7 @@ trait Module {
             str.push_str(seperator);
         }
 
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-        str.push_str(&value.to_string());
+        str.push_str(value);
 
         str
     }
@@ -165,12 +178,61 @@ impl Debug for ModuleError {
 }
 
 
+// Stores all the module's outputs as we know them
+// This is to prevent us doing additional work when we don't need to, when modules need shared data
+struct ModuleOutputs {
+    hostname: Option<Result<HostnameInfo, ModuleError>>,
+    cpu: Option<Result<CPUInfo, ModuleError>>,
+    gpu: Option<Result<GPUInfo, ModuleError>>,
+    memory: Option<Result<MemoryInfo, ModuleError>>,
+    swap: Option<Result<SwapInfo, ModuleError>>,
+    mounts: Option<Result<Vec<MountInfo>, ModuleError>>,
+    host: Option<Result<HostInfo, ModuleError>>,
+    displays: Option<Result<Vec<DisplayInfo>, ModuleError>>,
+    packages: Option<PackagesInfo>,
+    desktop: Option<Result<DesktopInfo, ModuleError>>,
+    terminal: Option<Result<TerminalInfo, ModuleError>>,
+    shell: Option<Result<ShellInfo, ModuleError>>,
+    battery: Option<Result<BatteryInfo, ModuleError>>,
+    uptime: Option<Result<UptimeInfo, ModuleError>>,
+    locale: Option<Result<LocaleInfo, ModuleError>>,
+    editor: Option<Result<EditorInfo, ModuleError>>,
+    os: Option<Result<OSInfo, ModuleError>>
+}
+impl ModuleOutputs {
+    fn new() -> Self {
+        Self {
+            hostname: None,
+            cpu: None,
+            gpu: None,
+            memory: None,
+            swap: None,
+            mounts: None,
+            host: None,
+            displays: None,
+            packages: None,
+            desktop: None,
+            terminal: None,
+            shell: None,
+            battery: None,
+            uptime: None,
+            locale: None,
+            editor: None,
+            os: None
+        }
+    }
+}
+
 fn main() {
     // Are we defo in Linux?
     if env::consts::OS != "linux" {
         println!("CrabFetch only supports Linux! If you want to go through and add support for your own OS, make a pull request :)");
         exit(-1);
     }
+
+    // 
+    //  Parse 
+    //
 
     // Get the args/config stuff out of the way
     let args: Args = Args::parse();
@@ -179,124 +241,75 @@ fn main() {
         exit(0);
     }
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
-    let log_errors = !(config.suppress_errors && args.suppress_errors);
+    let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
     let max_title_length: u64 = calc_max_title_length(&config);
 
-    // Since we parse the os-release file in OS anyway, this is always called to get the
-    // ascii we want.
-    let os: Result<OSInfo, ModuleError> = os::get_os();
+    // Define our module outputs, and figure out which modules need pre-calculated 
+    let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
     let mut ascii: (String, u16) = (String::new(), 0);
-    if config.ascii.display && os.is_ok() {
-        if args.distro_override.is_some() {
-            ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
-        } else {
-            ascii = ascii::get_ascii(&os.as_ref().unwrap().distro_id);
+    if config.ascii.display {
+        // OS needs done 
+        let os: Result<OSInfo, ModuleError> = os::get_os();
+        known_outputs.os = Some(os);
+        if known_outputs.os.as_ref().unwrap().is_ok() {
+            // Calculate the ASCII stuff while we're here
+            if args.distro_override.is_some() {
+                ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
+            } else {
+                ascii = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
+            }
         }
     }
 
-    let mut line_number: u8 = 0;
-    let mut ascii_line_number: u8 = 0;
-    let target_length: u16 = ascii.1 + config.ascii.margin;
-
-    let split: Vec<&str> = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
-
-    // Figure out how many total lines we have
-    let mut modules = config.modules.clone();
-    let mut module_count = modules.len();
-
-    // Drives also need to be treated specially since they need to be on a seperate line
-    // So we parse them already up here too, and just increase the index each time the module is
-    // called.
-    let mut mounts: Option<Result<Vec<MountInfo>, ModuleError>> = None;
-    let mut mount_index: u32 = 0;
-    if modules.contains(&"mounts".to_string()) {
-        mounts = Some(mounts::get_mounted_drives());
-        if mounts.as_ref().unwrap().is_ok() {
-            mounts.as_mut().unwrap().as_mut().unwrap().retain(|x| !x.is_ignored(&config));
-            module_count += mounts.as_ref().unwrap().as_ref().unwrap().len() - 1;
-        }
-    }
-
-    // AND displays
-    let mut displays: Option<Result<Vec<DisplayInfo>, ModuleError>> = None;
-    let mut display_index: u32 = 0;
-    if modules.contains(&"displays".to_string()) {
-        displays = Some(displays::get_displays());
-        module_count += 1;
-    }
-
-    let line_count = max(split.len(), module_count);
-
-    for x in 0..line_count {
-        let mut line = "";
-        if split.len() > x {
-            line = split[x]
-        }
-
-        // Figure out the color first
-        let percentage: f32 = (ascii_line_number as f32 / split.len() as f32) as f32;
-        // https://stackoverflow.com/a/68457573
-        let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
-        let colored: ColoredString = color_string(line, config.ascii.colors.get(index as usize).unwrap());
-
-        // Print the actual ASCII
-        print!("{}", colored);
-        if colored.trim().len() != 0 {
-            // We're still going
-            ascii_line_number = ascii_line_number + 1;
-        }
-        let remainder: u16 = target_length - (line.chars().collect::<Vec<char>>().len() as u16);
-        for _ in 0..remainder {
-            print!(" ");
-        }
-
-        if modules.len() > line_number as usize {
-            let module_split: Vec<&str> = modules[line_number as usize].split(":").collect();
-            let module: String = module_split[0].to_string();
-            // print!("{}", module);
-            match module.as_str() {
-                "space" => print!(""),
-                "underline" => {
-                    let underline_length: u16 = module_split[1].parse().unwrap();
-                    for _ in 0..underline_length {
-                        print!("{}", config.underline_character);
-                    }
+    // 
+    //  Detect
+    //
+    let mut output: Vec<String> = Vec::new();
+    for module in &config.modules {
+        let module_split: Vec<&str> = module.split(":").collect();
+        let module_name: &str = module_split[0];
+        match module_name {
+            "space" => output.push("".to_string()),
+            "underline" => {
+                let underline_length: usize = module_split[1].parse().unwrap();
+                output.push(config.underline_character.to_string().repeat(underline_length));
+            },
+            "hostname" => {
+                if known_outputs.hostname.is_none() {
+                    known_outputs.hostname = Some(hostname::get_hostname());
                 }
-
-                // Segments
-                // This is very crudely done for now but I'll expand it at a later date
-                "segment" => {
-                    let segment_name: &str = module_split[1];
-                    let mut str: String = config.segment_top.replace("{name}", segment_name);
-                    str = config_manager::replace_color_placeholders(&str);
-                    print!("{}", str);
+                match known_outputs.hostname.as_ref().unwrap() {
+                    Ok(hostname) => {
+                        output.push(hostname.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(HostnameInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                };
+            },
+            "cpu" => {
+                if known_outputs.cpu.is_none() {
+                    known_outputs.cpu = Some(cpu::get_cpu());
                 }
-
-                "hostname" => {
-                    match hostname::get_hostname() {
-                        Ok(hostname) => {
-                            print!("{}", hostname.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "cpu" => {
-                    match cpu::get_cpu() {
-                        Ok(cpu) => {
-                            print!("{}", cpu.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "gpu" => {
+                match known_outputs.cpu.as_ref().unwrap() {
+                    Ok(cpu) => {
+                        output.push(cpu.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(CPUInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "gpu" => {
+                if known_outputs.gpu.is_none() {
                     let mut method: GPUMethod = config.gpu.method.clone();
                     if args.gpu_method.is_some() {
                         method = match args.gpu_method.clone().unwrap().as_str() {
@@ -306,225 +319,335 @@ fn main() {
                         }
                     }
                     let use_cache: bool = !args.ignore_cache && config.gpu.cache;
-
-                    match gpu::get_gpu(method, use_cache) {
-                        Ok(gpu) => {
-                            print!("{}", gpu.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "memory" => {
-                    match memory::get_memory() {
-                        Ok(memory) => {
-                            print!("{}", memory.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "host" => {
-                    match host::get_host() {
-                        Ok(host) => {
-                            print!("{}", host.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "swap" => {
-                    match swap::get_swap() {
-                        Ok(swap) => {
-                            print!("{}", swap.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "mounts" => {
-                    if mounts.as_ref().is_some() {
-                        let mounts = mounts.as_ref().unwrap();
-                        match mounts {
-                            Ok(ref mounts) => {
-                                if mounts.len() > mount_index as usize {
-                                    let mount: &MountInfo = mounts.get(mount_index as usize).unwrap();
-                                    print!("{}", mount.style(&config, max_title_length));
-                                    mount_index += 1;
-                                    // sketchy - this is what makes it go through them all
-                                    if mounts.len() > mount_index as usize {
-                                        modules.insert(line_number as usize, "mounts".to_string());
-                                    }
-                                }
-                            },
-                            Err(ref e) => {
-                                if log_errors {
-                                    print!("{}", e);
-                                }
-                            }
+                    known_outputs.gpu = Some(gpu::get_gpu(method, use_cache));
+                }
+                match known_outputs.gpu.as_ref().unwrap() {
+                    Ok(gpu) => {
+                        output.push(gpu.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(GPUInfo::unknown_output(&config, max_title_length));
                         }
-                    }
+                    },
+                }; 
+            },
+            "memory" => {
+                if known_outputs.memory.is_none() {
+                    known_outputs.memory = Some(memory::get_memory());
                 }
-                "os" => {
-                    match os {
-                        Ok(ref os) => {
-                            print!("{}", os.style(&config, max_title_length))
-                        },
-                        Err(ref e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "packages" => print!("{}", packages::get_packages().style(&config, max_title_length)),
-                "desktop" => {
-                    match desktop::get_desktop() {
-                        Ok(desktop) => {
-                            print!("{}", desktop.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "terminal" => {
-                    match terminal::get_terminal(config.terminal.chase_ssh_pts) {
-                        Ok(terminal) => {
-                            print!("{}", terminal.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "shell" => {
-                    match shell::get_shell(config.shell.show_default_shell) {
-                        Ok(shell) => {
-                            print!("{}", shell.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "uptime" => {
-                    match uptime::get_uptime() {
-                        Ok(uptime) => {
-                            print!("{}", uptime.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "displays" => {
-                    let displays: &Result<Vec<DisplayInfo>, ModuleError> = displays.as_ref().unwrap();
-                    match displays {
-                        Ok(displays) => {
-                            if displays.len() > display_index as usize {
-                                let display: &DisplayInfo = displays.get(display_index as usize).unwrap();
-                                print!("{}", display.style(&config, max_title_length));
-                                display_index += 1;
-                                // once again, sketchy
-                                if displays.len() > display_index as usize {
-                                    modules.insert(line_number as usize, "displays".to_string());
-                                }
-                            }
-
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
+                match known_outputs.memory.as_ref().unwrap() {
+                    Ok(memory) => {
+                        output.push(memory.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(MemoryInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "swap" => {
+                if known_outputs.swap.is_none() {
+                    known_outputs.swap = Some(swap::get_swap());
                 }
-                "battery" => {
-                    match battery::get_battery(&config.battery.path) {
-                        Ok(battery) => {
-                            print!("{}", battery.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "editor" => {
-                    match editor::get_editor() {
-                        Ok(editor) => {
-                            print!("{}", editor.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "locale" => {
-                    match locale::get_locale() {
-                        Ok(locale) => {
-                            print!("{}", locale.style(&config, max_title_length))
-                        },
-                        Err(e) => {
-                            if log_errors {
-                                print!("{}", e);
-                            }
-                        },
-                    }
-                },
-                "colors" => {
-                    let str = "   ";
-                    print!("{}", str.on_black());
-                    print!("{}", str.on_red());
-                    print!("{}", str.on_green());
-                    print!("{}", str.on_yellow());
-                    print!("{}", str.on_blue());
-                    print!("{}", str.on_magenta());
-                    print!("{}", str.on_cyan());
-                    print!("{}", str.on_white());
+                match known_outputs.swap.as_ref().unwrap() {
+                    Ok(swap) => {
+                        output.push(swap.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(SwapInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "mounts" => {
+                if known_outputs.mounts.is_none() {
+                    known_outputs.mounts = Some(mounts::get_mounted_drives());
                 }
-                "bright_colors" => {
-                    let str = "   ";
-                    print!("{}", str.on_bright_black());
-                    print!("{}", str.on_bright_red());
-                    print!("{}", str.on_bright_green());
-                    print!("{}", str.on_bright_yellow());
-                    print!("{}", str.on_bright_blue());
-                    print!("{}", str.on_bright_magenta());
-                    print!("{}", str.on_bright_cyan());
-                    print!("{}", str.on_bright_white());
+                match known_outputs.mounts.as_ref().unwrap() {
+                    Ok(mounts) => {
+                        for mount in mounts {
+                            if mount.is_ignored(&config) {
+                                continue;
+                            }
+                            output.push(mount.style(&config, max_title_length))
+                        }
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(SwapInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "host" => {
+                if known_outputs.host.is_none() {
+                    known_outputs.host = Some(host::get_host());
                 }
-                _ => print!("Unknown module: {}", module),
+                match known_outputs.host.as_ref().unwrap() {
+                    Ok(host) => {
+                        output.push(host.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(HostInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "displays" => {
+                if known_outputs.displays.is_none() {
+                    known_outputs.displays = Some(displays::get_displays());
+                }
+                match known_outputs.displays.as_ref().unwrap() {
+                    Ok(displays) => {
+                        for display in displays {
+                            output.push(display.style(&config, max_title_length))
+                        }
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(DisplayInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "os" => {
+                if known_outputs.os.is_none() {
+                    known_outputs.os = Some(os::get_os());
+                }
+                match known_outputs.os.as_ref().unwrap() {
+                    Ok(os) => {
+                        output.push(os.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(OSInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "packages" => {
+                if known_outputs.packages.is_none() {
+                    known_outputs.packages = Some(packages::get_packages());
+                }
+                output.push(known_outputs.packages.as_ref().unwrap().style(&config, max_title_length));
+            },
+            "desktop" => {
+                if known_outputs.desktop.is_none() {
+                    known_outputs.desktop = Some(desktop::get_desktop());
+                }
+                match known_outputs.desktop.as_ref().unwrap() {
+                    Ok(desktop) => {
+                        output.push(desktop.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(DesktopInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "terminal" => {
+                if known_outputs.terminal.is_none() {
+                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts));
+                }
+                match known_outputs.terminal.as_ref().unwrap() {
+                    Ok(terminal) => {
+                        output.push(terminal.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(TerminalInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "shell" => {
+                if known_outputs.shell.is_none() {
+                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell));
+                }
+                match known_outputs.shell.as_ref().unwrap() {
+                    Ok(shell) => {
+                        output.push(shell.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(ShellInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "battery" => {
+                if known_outputs.battery.is_none() {
+                    known_outputs.battery = Some(battery::get_battery(&config.battery.path));
+                }
+                match known_outputs.battery.as_ref().unwrap() {
+                    Ok(battery) => {
+                        output.push(battery.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(BatteryInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "uptime" => {
+                if known_outputs.uptime.is_none() {
+                    known_outputs.uptime = Some(uptime::get_uptime());
+                }
+                match known_outputs.uptime.as_ref().unwrap() {
+                    Ok(uptime) => {
+                        output.push(uptime.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(UptimeInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "locale" => {
+                if known_outputs.locale.is_none() {
+                    known_outputs.locale = Some(locale::get_locale());
+                }
+                match known_outputs.locale.as_ref().unwrap() {
+                    Ok(locale) => {
+                        output.push(locale.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(LocaleInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "editor" => {
+                if known_outputs.editor.is_none() {
+                    known_outputs.editor = Some(editor::get_editor());
+                }
+                match known_outputs.editor.as_ref().unwrap() {
+                    Ok(editor) => {
+                        output.push(editor.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(EditorInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+            },
+            "colors" => {
+                let gap: &str = "   ";
+                let mut str: String = String::new();
+                str.push_str(&gap.on_black().to_string());
+                str.push_str(&gap.on_red().to_string());
+                str.push_str(&gap.on_green().to_string());
+                str.push_str(&gap.on_yellow().to_string());
+                str.push_str(&gap.on_blue().to_string());
+                str.push_str(&gap.on_magenta().to_string());
+                str.push_str(&gap.on_cyan().to_string());
+                str.push_str(&gap.on_white().to_string());
+                output.push(str);
+            }
+            "bright_colors" => {
+                let gap: &str = "   ";
+                let mut str: String = String::new();
+                str.push_str(&gap.on_bright_black().to_string());
+                str.push_str(&gap.on_bright_red().to_string());
+                str.push_str(&gap.on_bright_green().to_string());
+                str.push_str(&gap.on_bright_yellow().to_string());
+                str.push_str(&gap.on_bright_blue().to_string());
+                str.push_str(&gap.on_bright_magenta().to_string());
+                str.push_str(&gap.on_bright_cyan().to_string());
+                str.push_str(&gap.on_bright_white().to_string());
+                output.push(str);
+            }
+            _ => {
+                output.push(format!("Unknown module: {}", module_name));
             }
         }
-        line_number = line_number + 1;
+    }
 
-        if line_number != (line_count + 1) as u8 {
-            print!("\n");
+
+    // 
+    //  Display
+    //
+    let mut ascii_split: Vec<&str> = Vec::new();
+    let mut ascii_length: usize = 0;
+    let mut ascii_target_length: u16 = 0;
+    if config.ascii.display {
+        ascii_split = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
+        ascii_length = ascii_split.len();
+        ascii_target_length = ascii.1 + config.ascii.margin;
+    }
+
+    let mut current_line: usize = 0;
+    for out in output {
+        if config.ascii.display {
+            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+        }
+
+        print!("{}", out);
+        current_line += 1;
+        println!();
+    }
+    if current_line < ascii_length && config.ascii.display {
+        for _ in current_line..ascii_length {
+            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+            current_line += 1;
+            println!();
         }
     }
+}
+
+fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &u16, config: &Configuration) -> String {
+    let percentage: f32 = (current_line as f32 / ascii_split.len() as f32) as f32;
+    let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+
+    let mut line = String::new();
+    if ascii_split.len() > current_line {
+        line = ascii_split[current_line].to_string();
+    }
+    let remainder: u16 = target_length - (line.chars().collect::<Vec<char>>().len() as u16);
+    for _ in 0..remainder {
+        line.push_str(" ");
+    }
+
+    if current_line < ascii_split.len() {
+        let colored: ColoredString = color_string(&line, config.ascii.colors.get(index as usize).unwrap());
+        return colored.to_string();
+    }
+    line
 }

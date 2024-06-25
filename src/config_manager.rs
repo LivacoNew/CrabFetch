@@ -214,7 +214,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("underline_character", "―").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
-    builder = builder.set_default("suppress_errors", false).unwrap();
+    builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
@@ -444,7 +444,7 @@ underline_character = '-'
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
 # Whether to supress any errors that come or not
-suppress_errors = false
+suppress_errors = true
 
 
 [ascii]

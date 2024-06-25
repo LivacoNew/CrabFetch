@@ -24,7 +24,7 @@ impl Module for TerminalInfo {
         }
     }
 
-    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
         if (&config.terminal.title_color).is_some() {
             title_color = &config.terminal.title_color.as_ref().unwrap();
@@ -44,7 +44,32 @@ impl Module for TerminalInfo {
             seperator = config.terminal.seperator.as_ref().unwrap();
         }
 
-        self.default_style(config, max_title_length, &config.terminal.title, title_color, title_bold, title_italic, &seperator)
+        let mut value: String = self.replace_placeholders(config);
+        value = self.replace_color_placeholders(&value);
+
+        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, &seperator, &value)
+    }
+    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.terminal.title_color).is_some() {
+            title_color = config.terminal.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = config.title_bold;
+        if config.terminal.title_bold.is_some() {
+            title_bold = config.terminal.title_bold.unwrap();
+        }
+        let mut title_italic: bool = config.title_italic;
+        if config.terminal.title_italic.is_some() {
+            title_italic = config.terminal.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = config.seperator.as_str();
+        if config.terminal.seperator.is_some() {
+            seperator = config.terminal.seperator.as_ref().unwrap();
+        }
+
+        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, &seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

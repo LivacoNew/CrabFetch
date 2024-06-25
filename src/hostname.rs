@@ -25,7 +25,7 @@ impl Module for HostnameInfo {
             hostname: "".to_string(),
         }
     }
-    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
         let mut title_color: &CrabFetchColor = &config.title_color;
         if (config.hostname.title_color).is_some() {
             title_color = config.hostname.title_color.as_ref().unwrap();
@@ -45,8 +45,34 @@ impl Module for HostnameInfo {
             seperator = config.hostname.seperator.as_ref().unwrap();
         }
 
-        self.default_style(config, max_title_length, &config.hostname.title, title_color, title_bold, title_italic, &seperator)
+        let mut value: String = self.replace_placeholders(config);
+        value = self.replace_color_placeholders(&value);
+
+        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, &seperator, &value)
     }
+    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+        let mut title_color: &CrabFetchColor = &config.title_color;
+        if (config.hostname.title_color).is_some() {
+            title_color = config.hostname.title_color.as_ref().unwrap();
+        }
+
+        let mut title_bold: bool = config.title_bold;
+        if config.hostname.title_bold.is_some() {
+            title_bold = config.hostname.title_bold.unwrap();
+        }
+        let mut title_italic: bool = config.title_italic;
+        if config.hostname.title_italic.is_some() {
+            title_italic = config.hostname.title_italic.unwrap();
+        }
+
+        let mut seperator: &str = config.seperator.as_str();
+        if config.hostname.seperator.is_some() {
+            seperator = config.hostname.seperator.as_ref().unwrap();
+        }
+
+        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+    }
+
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.hostname.format.replace("{username}", &self.username)
             .replace("{hostname}", &self.hostname)

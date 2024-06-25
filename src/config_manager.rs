@@ -4,7 +4,7 @@ use colored::{ColoredString, Colorize};
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, cpu::CPUConfiguration, os::OSConfiguration};
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
@@ -118,23 +118,23 @@ pub struct Configuration {
 
     pub ascii: AsciiConfiguration,
 
-    pub hostname: HostnameConfiguration,
+    // pub hostname: HostnameConfiguration,
     pub cpu: CPUConfiguration,
-    pub gpu: GPUConfiguration,
-    pub memory: MemoryConfiguration,
-    pub swap: SwapConfiguration,
-    pub mounts: MountConfiguration,
-    pub host: HostConfiguration,
-    pub displays: DisplayConfiguration,
+    // pub gpu: GPUConfiguration,
+    // pub memory: MemoryConfiguration,
+    // pub swap: SwapConfiguration,
+    // pub mounts: MountConfiguration,
+    // pub host: HostConfiguration,
+    // pub displays: DisplayConfiguration,
     pub os: OSConfiguration,
-    pub packages: PackagesConfiguration,
-    pub desktop: DesktopConfiguration,
-    pub terminal: TerminalConfiguration,
-    pub shell: ShellConfiguration,
-    pub uptime: UptimeConfiguration,
-    pub battery: BatteryConfiguration,
-    pub locale: LocaleConfiguration,
-    pub editor: EditorConfiguration
+    // pub packages: PackagesConfiguration,
+    // pub desktop: DesktopConfiguration,
+    // pub terminal: TerminalConfiguration,
+    // pub shell: ShellConfiguration,
+    // pub uptime: UptimeConfiguration,
+    // pub battery: BatteryConfiguration,
+    // pub locale: LocaleConfiguration,
+    // pub editor: EditorConfiguration
 }
 
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
@@ -214,7 +214,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("underline_character", "―").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
-    builder = builder.set_default("suppress_errors", false).unwrap();
+    builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
@@ -444,7 +444,7 @@ underline_character = '-'
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
 # Whether to supress any errors that come or not
-suppress_errors = false
+suppress_errors = true
 
 
 [ascii]

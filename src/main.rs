@@ -1,6 +1,6 @@
 use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
 
-use config_manager::CrabFetchColor;
+use config_manager::{color_string, CrabFetchColor};
 use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
@@ -244,33 +244,38 @@ fn main() {
     let ascii_split: Vec<&str> = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
     let ascii_length: usize = ascii_split.len();
     let ascii_target_length: u16 = ascii.1 + config.ascii.margin;
+
     let mut current_line: usize = 0;
     for out in output {
         // Figure out the color first
-
-        let mut line = String::new();
-        if ascii_split.len() > current_line {
-            line = ascii_split[current_line].to_string();
-        }
-        let remainder: u16 = ascii_target_length - (line.chars().collect::<Vec<char>>().len() as u16);
-        for _ in 0..remainder {
-            line.push_str(" ");
-        }
-        print!("{}", line);
+        print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
 
         print!("{}", out);
         current_line += 1;
         println!();
     }
     if current_line < ascii_length {
-        for line in current_line..ascii_length {
-            let mut line: &str = "";
-            if ascii_split.len() > current_line {
-                line = ascii_split[current_line];
-            }
-            print!("{}", line);
+        for _ in current_line..ascii_length {
+            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
             current_line += 1;
             println!();
         }
     }
+}
+
+fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &u16, config: &Configuration) -> String {
+    let percentage: f32 = (current_line as f32 / ascii_split.len() as f32) as f32;
+    let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+
+    let mut line = String::new();
+    if ascii_split.len() > current_line {
+        line = ascii_split[current_line].to_string();
+    }
+    let remainder: u16 = target_length - (line.chars().collect::<Vec<char>>().len() as u16);
+    for _ in 0..remainder {
+        line.push_str(" ");
+    }
+    let colored: ColoredString = color_string(&line, config.ascii.colors.get(index as usize).unwrap());
+
+    return colored.to_string();
 }

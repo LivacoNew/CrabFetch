@@ -246,7 +246,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("host.title", "Host").unwrap();
 
     builder = builder.set_default("displays.title", "Display {name}").unwrap();
-    builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate} hz").unwrap();
+    builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz").unwrap();
 
     builder = builder.set_default("os.title", "Operating System").unwrap();
     builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
@@ -572,7 +572,7 @@ title = "Display {name}"
 # {width} -> The monitor's width
 # {height} -> The monitor's height
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
-format = "{width}x{height} @ {refresh_rate} hz"
+format = "{width}x{height} @ {refresh_rate}Hz"
 
 [os]
 title = "Operating System"

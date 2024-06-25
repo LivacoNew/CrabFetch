@@ -179,7 +179,7 @@ title = "Display {name}"
 # {width} -> The monitor's width
 # {height} -> The monitor's height
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
-format = "{width}x{height} @ {refresh_rate} hz"
+format = "{width}x{height} @ {refresh_rate}Hz"
 
 
 [os]

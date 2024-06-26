@@ -274,6 +274,11 @@ fn main() {
                 let underline_length: usize = module_split[1].parse().unwrap();
                 output.push(config.underline_character.to_string().repeat(underline_length));
             },
+            "segment" => {
+                let segment_name: &str = module_split[1];  
+                let segment_string: String = config.segment_top.replace("{name}", segment_name);
+                output.push(config_manager::replace_color_placeholders(&segment_string));
+            },
             "hostname" => {
                 if known_outputs.hostname.is_none() {
                     known_outputs.hostname = Some(hostname::get_hostname());

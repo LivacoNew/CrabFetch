@@ -253,7 +253,6 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
                 // Will reset wl_transform to None for us
                 display.wl_calc_transform();
             } 
-            return; // Confirmed to not be done, unless your compositor's fucked
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = match width.to_string().parse::<u16>() {

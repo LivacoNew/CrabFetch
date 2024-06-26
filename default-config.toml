@@ -4,6 +4,7 @@ modules = [
     "hostname",
     "underline:16",
 
+    "segment:Hardware",
     "cpu",
     "gpu",
     "memory",
@@ -11,7 +12,11 @@ modules = [
     "mounts",
     "host",
     "displays",
+    "end_segment",
+    
+    "space",
 
+    "segment:Software",
     "os",
     "packages",
     "desktop",
@@ -21,6 +26,7 @@ modules = [
     "uptime",
     "battery",
     "locale",
+    "end_segment",
 
     "space",
     "colors",
@@ -50,6 +56,7 @@ underline_character = '―'
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
+segment_bottom = "{color-white}[======------{name_sized_gap:-}------======]"
 
 # Formatting characters used in progress bars 
 progress_left_border = '['

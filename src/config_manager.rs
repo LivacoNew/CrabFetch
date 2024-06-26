@@ -114,6 +114,7 @@ pub struct Configuration {
     pub inline_values: bool,
     pub underline_character: char,
     pub segment_top: String,
+    pub segment_bottom: String,
     pub progress_left_border: String,
     pub progress_right_border: String,
     pub progress_progress: String,
@@ -219,6 +220,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("underline_character", "―").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
+    builder = builder.set_default("segment_bottom", "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]").unwrap();
     builder = builder.set_default("progress_left_border", "[").unwrap();
     builder = builder.set_default("progress_right_border", "]").unwrap();
     builder = builder.set_default("progress_progress", "=").unwrap();

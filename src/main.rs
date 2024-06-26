@@ -299,6 +299,7 @@ fn main() {
     //
     let detect_bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut output: Vec<String> = Vec::new();
+    let mut cur_segment_length: usize = 0;
     for module in &config.modules {
         let module_parse_bench: Option<Instant> = benchmark_point(args.benchmark); 
         let module_split: Vec<&str> = module.split(":").collect();
@@ -320,7 +321,20 @@ fn main() {
                 let segment_name: &str = module_split[1];  
                 let segment_string: String = config.segment_top.replace("{name}", segment_name);
                 output.push(config_manager::replace_color_placeholders(&segment_string));
-                print_bench_time(args.benchmark, "Segment Module", bench);
+                cur_segment_length = segment_name.len();
+                print_bench_time(args.benchmark, "Segment Start", bench);
+            },
+            "end_segment" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+
+                let index: usize = config.segment_bottom.find("{name_sized_gap:").unwrap();
+                let split: &Vec<char> = &config.segment_bottom[index+16..].chars().collect::<Vec<char>>();
+                let char: &char = split.first().unwrap();
+
+                let target = format!("{{name_sized_gap:{}}}", char);
+                let segment_string: String = config.segment_bottom.replace(&target, &char.to_string().repeat(cur_segment_length + 2));
+                output.push(config_manager::replace_color_placeholders(&segment_string));
+                print_bench_time(args.benchmark, "Segment End", bench);
             },
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

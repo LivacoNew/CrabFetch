@@ -1,4 +1,4 @@
-use std::{cmp::max, env, fmt::{Debug, Display}, process::exit};
+use std::{cmp::max, env, fmt::{Debug, Display}, process::exit, time::Instant};
 
 use battery::BatteryInfo;
 use config_manager::{color_string, CrabFetchColor};
@@ -76,7 +76,12 @@ pub struct Args {
     #[arg(long)]
     /// Overrides the modules set in your config file. This should be a comma seperated list of
     /// modules. E.g cpu,gpu,underline:16,title
-    module_override: Option<String>
+    module_override: Option<String>,
+
+    #[arg(long)]
+    /// Runs CrabFetch in a "benchmark" mode, showing the total times it takes between each stage
+    /// and module detection times.
+    benchmark: bool
 }
 
 // Figures out the max title length for when we're using inline value display
@@ -107,6 +112,22 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
     }
 
     res
+}
+// This is done here simply to make the main function not as indented of a mess, it's abstracted into here
+fn benchmark_point(benchmarking: bool) -> Option<Instant> {
+    if !benchmarking {return None;}
+    return Some(Instant::now());
+}
+fn print_bench_time(benchmarking: bool, name: &str, time: Option<Instant>) {
+    if !benchmarking {
+        return;
+    }
+    if time.is_none() {
+        return;
+    }
+
+    // This is different to module bench times fyi
+    println!("[Benchmark] {}: {:2?}", name, time.unwrap().elapsed());
 }
 
 trait Module {
@@ -230,26 +251,37 @@ fn main() {
         exit(-1);
     }
 
+
     // 
     //  Parse 
     //
 
     // Get the args/config stuff out of the way
+    let args_bench: Option<Instant> = benchmark_point(true); // Just true as it's before we parse it
     let args: Args = Args::parse();
+    print_bench_time(args.benchmark, "Args Parsing", args_bench);
+
     if args.generate_config_file {
+        let bench: Option<Instant> = benchmark_point(args.benchmark); 
         config_manager::generate_config_file(args.config.clone());
+        print_bench_time(args.benchmark, "Generating Config File", bench);
         exit(0);
     }
+    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    print_bench_time(args.benchmark, "Parsing Config", bench);
     let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
     let max_title_length: u64 = calc_max_title_length(&config);
 
     // Define our module outputs, and figure out which modules need pre-calculated 
+    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
     let mut ascii: (String, u16) = (String::new(), 0);
     if config.ascii.display {
         // OS needs done 
+        let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
         let os: Result<OSInfo, ModuleError> = os::get_os();
+        print_bench_time(args.benchmark, "OS Module", os_bench);
         known_outputs.os = Some(os);
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
@@ -260,26 +292,38 @@ fn main() {
             }
         }
     }
+    print_bench_time(args.benchmark, "ASCII (Potentially includes OS parse)", bench);
 
     // 
     //  Detect
     //
+    let detect_bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut output: Vec<String> = Vec::new();
     for module in &config.modules {
+        let module_parse_bench: Option<Instant> = benchmark_point(args.benchmark); 
         let module_split: Vec<&str> = module.split(":").collect();
         let module_name: &str = module_split[0];
         match module_name {
-            "space" => output.push("".to_string()),
+            "space" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                output.push("".to_string());
+                print_bench_time(args.benchmark, "Space Module", bench);
+            },
             "underline" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let underline_length: usize = module_split[1].parse().unwrap();
                 output.push(config.underline_character.to_string().repeat(underline_length));
+                print_bench_time(args.benchmark, "Underline Module", bench);
             },
             "segment" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let segment_name: &str = module_split[1];  
                 let segment_string: String = config.segment_top.replace("{name}", segment_name);
                 output.push(config_manager::replace_color_placeholders(&segment_string));
+                print_bench_time(args.benchmark, "Segment Module", bench);
             },
             "hostname" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.hostname.is_none() {
                     known_outputs.hostname = Some(hostname::get_hostname());
                 }
@@ -295,8 +339,10 @@ fn main() {
                         }
                     },
                 };
+                print_bench_time(args.benchmark, "Hostname Module", bench);
             },
             "cpu" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.cpu.is_none() {
                     known_outputs.cpu = Some(cpu::get_cpu());
                 }
@@ -312,8 +358,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "CPU Module", bench);
             },
             "gpu" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.gpu.is_none() {
                     let mut method: GPUMethod = config.gpu.method.clone();
                     if args.gpu_method.is_some() {
@@ -338,8 +386,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "GPU Module", bench);
             },
             "memory" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.memory.is_none() {
                     known_outputs.memory = Some(memory::get_memory());
                 }
@@ -355,8 +405,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Memory Module", bench);
             },
             "swap" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.swap.is_none() {
                     known_outputs.swap = Some(swap::get_swap());
                 }
@@ -372,8 +424,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Swap Module", bench);
             },
             "mounts" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.mounts.is_none() {
                     known_outputs.mounts = Some(mounts::get_mounted_drives());
                 }
@@ -394,8 +448,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Mounts Module", bench);
             },
             "host" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.host.is_none() {
                     known_outputs.host = Some(host::get_host());
                 }
@@ -411,8 +467,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Host Module", bench);
             },
             "displays" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.displays.is_none() {
                     known_outputs.displays = Some(displays::get_displays());
                 }
@@ -430,8 +488,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Displays Module", bench);
             },
             "os" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.os.is_none() {
                     known_outputs.os = Some(os::get_os());
                 }
@@ -447,14 +507,18 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "OS Module", bench);
             },
             "packages" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.packages.is_none() {
                     known_outputs.packages = Some(packages::get_packages());
                 }
                 output.push(known_outputs.packages.as_ref().unwrap().style(&config, max_title_length));
+                print_bench_time(args.benchmark, "Packages Module", bench);
             },
             "desktop" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.desktop.is_none() {
                     known_outputs.desktop = Some(desktop::get_desktop());
                 }
@@ -470,8 +534,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Desktop Module", bench);
             },
             "terminal" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.terminal.is_none() {
                     known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts));
                 }
@@ -487,8 +553,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Terminal Module", bench);
             },
             "shell" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.shell.is_none() {
                     known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell));
                 }
@@ -504,8 +572,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Shell Module", bench);
             },
             "battery" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.battery.is_none() {
                     known_outputs.battery = Some(battery::get_battery(&config.battery.path));
                 }
@@ -521,8 +591,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Battery Module", bench);
             },
             "uptime" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.uptime.is_none() {
                     known_outputs.uptime = Some(uptime::get_uptime());
                 }
@@ -538,8 +610,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Uptime Module", bench);
             },
             "locale" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.locale.is_none() {
                     known_outputs.locale = Some(locale::get_locale());
                 }
@@ -555,8 +629,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Locale Module", bench);
             },
             "editor" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
                     known_outputs.editor = Some(editor::get_editor());
                 }
@@ -572,8 +648,10 @@ fn main() {
                         }
                     },
                 }; 
+                print_bench_time(args.benchmark, "Editor Module", bench);
             },
             "colors" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let gap: &str = "   ";
                 let mut str: String = String::new();
                 str.push_str(&gap.on_black().to_string());
@@ -585,8 +663,10 @@ fn main() {
                 str.push_str(&gap.on_cyan().to_string());
                 str.push_str(&gap.on_white().to_string());
                 output.push(str);
+                print_bench_time(args.benchmark, "Colors Module", bench);
             }
             "bright_colors" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let gap: &str = "   ";
                 let mut str: String = String::new();
                 str.push_str(&gap.on_bright_black().to_string());
@@ -598,17 +678,21 @@ fn main() {
                 str.push_str(&gap.on_bright_cyan().to_string());
                 str.push_str(&gap.on_bright_white().to_string());
                 output.push(str);
+                print_bench_time(args.benchmark, "Bright Colors Module", bench);
             }
             _ => {
                 output.push(format!("Unknown module: {}", module_name));
             }
         }
+        print_bench_time(args.benchmark, "  Entire Module Parse/Detection", module_parse_bench);
     }
+    print_bench_time(args.benchmark, "Entire detection step", detect_bench);
 
 
     // 
     //  Display
     //
+    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut ascii_split: Vec<&str> = Vec::new();
     let mut ascii_length: usize = 0;
     let mut ascii_target_length: u16 = 0;
@@ -617,7 +701,9 @@ fn main() {
         ascii_length = ascii_split.len();
         ascii_target_length = ascii.1 + config.ascii.margin;
     }
+    print_bench_time(args.benchmark, "Display ASCII Pre-Calc", bench);
 
+    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut current_line: usize = 0;
     for out in output {
         if config.ascii.display {
@@ -628,6 +714,8 @@ fn main() {
         current_line += 1;
         println!();
     }
+    print_bench_time(args.benchmark, "Module + ASCII Output", bench);
+    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     if current_line < ascii_length && config.ascii.display {
         for _ in current_line..ascii_length {
             print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
@@ -635,6 +723,7 @@ fn main() {
             println!();
         }
     }
+    print_bench_time(args.benchmark, "Remaining ASCII Output", bench);
 }
 
 fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &u16, config: &Configuration) -> String {

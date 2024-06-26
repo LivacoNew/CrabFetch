@@ -21,6 +21,11 @@ pub struct MountConfiguration {
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
     pub format: String,
+    pub progress_left_border: Option<String>,
+    pub progress_right_border: Option<String>,
+    pub progress_progress: Option<String>,
+    pub progress_empty: Option<String>,
+    pub progress_target_length: Option<u8>,
     pub ignore: Vec<String>
 }
 impl Module for MountInfo {
@@ -91,6 +96,42 @@ impl Module for MountInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut bar: String = String::new();
+        if config.mounts.format.contains("{bar}") {
+            let mut left_border: &str = config.progress_left_border.as_str();
+            if config.mounts.progress_left_border.is_some() {
+                left_border = config.mounts.progress_left_border.as_ref().unwrap();
+            }
+            let mut right_border: &str = config.progress_right_border.as_str();
+            if config.mounts.progress_right_border.is_some() {
+                right_border = config.mounts.progress_right_border.as_ref().unwrap();
+            }
+            let mut progress: &str = config.progress_progress.as_str();
+            if config.mounts.progress_progress.is_some() {
+                progress = config.mounts.progress_progress.as_ref().unwrap();
+            }
+            let mut empty: &str = config.progress_empty.as_str();
+            if config.mounts.progress_empty.is_some() {
+                empty = config.mounts.progress_empty.as_ref().unwrap();
+            }
+            let mut length: u8 = config.progress_target_length;
+            if config.mounts.progress_target_length.is_some() {
+                length = config.mounts.progress_target_length.unwrap();
+            }
+
+            bar.push_str(left_border);
+
+            let bar_length: u8 = length - 2;
+            for x in 0..(bar_length) {
+                if self.percent > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+                    bar.push_str(progress);
+                } else {
+                    bar.push_str(empty);
+                }
+            }
+            bar.push_str(right_border);
+        }
+
         config.mounts.format.replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{space_used_mb}", &(self.space_total_mb - self.space_avail_mb).to_string())
@@ -99,6 +140,7 @@ impl Module for MountInfo {
             .replace("{space_used_gb}", &((self.space_total_mb - self.space_avail_mb) / 1024).to_string())
             .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
             .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
+            .replace("{bar}", &bar.to_string())
             .replace("{percent}", &self.percent.to_string())
     }
 }

@@ -19,6 +19,11 @@ pub struct MemoryConfiguration {
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
     pub format: String,
+    pub progress_left_border: Option<String>,
+    pub progress_right_border: Option<String>,
+    pub progress_progress: Option<String>,
+    pub progress_empty: Option<String>,
+    pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>
 }
 impl Module for MemoryInfo {
@@ -84,12 +89,49 @@ impl Module for MemoryInfo {
             dec_places = config.memory.decimal_places.unwrap();
         }
 
+        let mut bar: String = String::new();
+        if config.memory.format.contains("{bar}") {
+            let mut left_border: &str = config.progress_left_border.as_str();
+            if config.memory.progress_left_border.is_some() {
+                left_border = config.memory.progress_left_border.as_ref().unwrap();
+            }
+            let mut right_border: &str = config.progress_right_border.as_str();
+            if config.memory.progress_right_border.is_some() {
+                right_border = config.memory.progress_right_border.as_ref().unwrap();
+            }
+            let mut progress: &str = config.progress_progress.as_str();
+            if config.memory.progress_progress.is_some() {
+                progress = config.memory.progress_progress.as_ref().unwrap();
+            }
+            let mut empty: &str = config.progress_empty.as_str();
+            if config.memory.progress_empty.is_some() {
+                empty = config.memory.progress_empty.as_ref().unwrap();
+            }
+            let mut length: u8 = config.progress_target_length;
+            if config.memory.progress_target_length.is_some() {
+                length = config.memory.progress_target_length.unwrap();
+            }
+
+            bar.push_str(left_border);
+
+            let bar_length: u8 = length - 2;
+            for x in 0..(bar_length) {
+                if self.percentage as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+                    bar.push_str(progress);
+                } else {
+                    bar.push_str(empty);
+                }
+            }
+            bar.push_str(right_border);
+        }
+
         config.memory.format.replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
             .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, dec_places).to_string())
             .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 1.049e+5, dec_places).to_string())
             .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, dec_places).to_string())
             .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, dec_places).to_string())
             .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 1.049e+5, dec_places).to_string())
+            .replace("{bar}", &bar.to_string())
             .replace("{percent}", &MemoryInfo::round(self.percentage, dec_places).to_string())
     }
 }

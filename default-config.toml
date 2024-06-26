@@ -50,6 +50,14 @@ underline_character = '―'
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
 
+# Formatting characters used in progress bars 
+progress_left_border = '['
+progress_right_border = ']'
+progress_progress = '='
+progress_empty = ' '
+# The target length of the progress bar
+progress_target_length = 20
+
 # Whether to supress any errors that come or not
 suppress_errors = true
 
@@ -125,6 +133,7 @@ title = "Memory"
 # {phys_max_kib} -> The maximum total memory in KiB.
 # {phys_max_mib} -> The maximum total memory in MiB.
 # {phys_max_gib} -> The maximum total memory in GiB.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
 format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
@@ -138,6 +147,7 @@ title = "Swap"
 # {max_kib} -> The maximum total swap  in KiB.
 # {max_mib} -> The maximum total swap in MiB.
 # {max_gib} -> The maximum total swap in GiB.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
 format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
@@ -157,6 +167,7 @@ title = "Disk {mount}"
 # {space_used_gb} -> The space used in gigabytes.
 # {space_avail_gb} -> The space available in gigabytes.
 # {space_total_gb} -> The total space in gigabytes.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
 format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 

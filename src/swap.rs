@@ -16,6 +16,11 @@ pub struct SwapConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
+    pub progress_left_border: Option<String>,
+    pub progress_right_border: Option<String>,
+    pub progress_progress: Option<String>,
+    pub progress_empty: Option<String>,
+    pub progress_target_length: Option<u8>,
     pub format: String
 }
 impl Module for SwapInfo {
@@ -75,18 +80,56 @@ impl Module for SwapInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let swap_percent: String = if self.total_kib != 0 {
-            SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2).to_string()
+        let swap_percent: u8 = if self.total_kib != 0 {
+            SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2) as u8
         } else {
-            "0".to_string()
+            0
         };
+
+        let mut bar: String = String::new();
+        if config.swap.format.contains("{bar}") {
+            let mut left_border: &str = config.progress_left_border.as_str();
+            if config.swap.progress_left_border.is_some() {
+                left_border = config.swap.progress_left_border.as_ref().unwrap();
+            }
+            let mut right_border: &str = config.progress_right_border.as_str();
+            if config.swap.progress_right_border.is_some() {
+                right_border = config.swap.progress_right_border.as_ref().unwrap();
+            }
+            let mut progress: &str = config.progress_progress.as_str();
+            if config.swap.progress_progress.is_some() {
+                progress = config.swap.progress_progress.as_ref().unwrap();
+            }
+            let mut empty: &str = config.progress_empty.as_str();
+            if config.swap.progress_empty.is_some() {
+                empty = config.swap.progress_empty.as_ref().unwrap();
+            }
+            let mut length: u8 = config.progress_target_length;
+            if config.swap.progress_target_length.is_some() {
+                length = config.swap.progress_target_length.unwrap();
+            }
+
+            bar.push_str(left_border);
+
+            let bar_length: u8 = length - 2;
+            for x in 0..(bar_length) {
+                if swap_percent > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+                    bar.push_str(progress);
+                } else {
+                    bar.push_str(empty);
+                }
+            }
+            bar.push_str(right_border);
+        }
+
         config.swap.format.replace("{used_kib}", &self.used_kib.to_string())
             .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
             .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
             .replace("{total_kib}", &self.total_kib.to_string())
             .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
             .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
-            .replace("{percent}", &swap_percent)
+            .replace("{bar}", &bar)
+            .replace("{percent}", &swap_percent.to_string())
     }
 }
 

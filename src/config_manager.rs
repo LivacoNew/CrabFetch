@@ -114,6 +114,11 @@ pub struct Configuration {
     pub inline_values: bool,
     pub underline_character: char,
     pub segment_top: String,
+    pub progress_left_border: String,
+    pub progress_right_border: String,
+    pub progress_progress: String,
+    pub progress_empty: String,
+    pub progress_target_length: u8,
     pub suppress_errors: bool,
 
     pub ascii: AsciiConfiguration,
@@ -214,6 +219,11 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("underline_character", "―").unwrap();
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
+    builder = builder.set_default("progress_left_border", "[").unwrap();
+    builder = builder.set_default("progress_right_border", "]").unwrap();
+    builder = builder.set_default("progress_progress", "=").unwrap();
+    builder = builder.set_default("progress_empty", " ").unwrap();
+    builder = builder.set_default("progress_target_length", 20).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
@@ -413,6 +423,7 @@ modules = [
     "shell",
     "editor",
     "uptime",
+    "locale",
 
     "space",
     "colors",
@@ -437,11 +448,19 @@ decimal_places = 2
 inline_values = false
 
 # The character to use in the underline module
-underline_character = '-'
+underline_character = '―'
 
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
+
+# Formatting characters used in progress bars 
+progress_left_border = '['
+progress_right_border = ']'
+progress_progress = '='
+progress_empty = ' '
+# The target length of the progress bar
+progress_target_length = 20
 
 # Whether to supress any errors that come or not
 suppress_errors = true
@@ -518,6 +537,7 @@ title = "Memory"
 # {phys_max_kib} -> The maximum total memory in KiB.
 # {phys_max_mib} -> The maximum total memory in MiB.
 # {phys_max_gib} -> The maximum total memory in GiB.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
 format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
 
@@ -531,6 +551,7 @@ title = "Swap"
 # {max_kib} -> The maximum total swap  in KiB.
 # {max_mib} -> The maximum total swap in MiB.
 # {max_gib} -> The maximum total swap in GiB.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
 format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
 
@@ -550,6 +571,7 @@ title = "Disk {mount}"
 # {space_used_gb} -> The space used in gigabytes.
 # {space_avail_gb} -> The space available in gigabytes.
 # {space_total_gb} -> The total space in gigabytes.
+# {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
 format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
 
@@ -573,6 +595,7 @@ title = "Display {name}"
 # {height} -> The monitor's height
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
 format = "{width}x{height} @ {refresh_rate}Hz"
+
 
 [os]
 title = "Operating System"
@@ -608,8 +631,7 @@ chase_ssh_pts = false
 title = "Shell"
 # Placeholders;
 # {shell} -> The name of the shell, e.g zsh
-# {path} -> The path of the shell, e.g /bin/zsh
-format = "{shell} ({path})"
+format = "{shell}"
 
 # Whether to show your default shell, instead of your current shell.
 show_default_shell = false
@@ -642,4 +664,5 @@ format = "{percentage}%"
 
 
 
-# You've reached the end! Congrats, have a muffin :)"#;
+# You've reached the end! Congrats, have a muffin :)
+"#;

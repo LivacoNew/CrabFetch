@@ -660,6 +660,7 @@ title = "Locale"
 title = "Battery"
 # Placeholders;
 # {percentage} -> The battery percentage
+# {bar} -> A progress bar representing the total battery available.
 format = "{percentage}%"
 
 

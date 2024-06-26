@@ -19,6 +19,7 @@ modules = [
     "shell",
     "editor",
     "uptime",
+    "battery",
     "locale",
 
     "space",
@@ -256,7 +257,8 @@ title = "Locale"
 title = "Battery"
 # Placeholders;
 # {percentage} -> The battery percentage
-format = "{percentage}%"
+# {bar} -> A progress bar representing the total battery available.
+format = "{bar} {percentage}%"
 
 
 

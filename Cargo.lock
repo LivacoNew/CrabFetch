@@ -227,7 +227,6 @@ dependencies = [
  "humantime",
  "libc",
  "serde",
- "serde_json",
  "shellexpand",
  "sqlite",
  "wayland-client",

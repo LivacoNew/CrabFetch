@@ -53,27 +53,29 @@ impl FromStr for CrabFetchColor {
         }
     }
 }
-
-pub fn color_string(string: &str, color: &CrabFetchColor) -> ColoredString {
-    match color {
-        CrabFetchColor::Black => string.black(),
-        CrabFetchColor::Red => string.red(),
-        CrabFetchColor::Green => string.green(),
-        CrabFetchColor::Yellow => string.yellow(),
-        CrabFetchColor::Blue => string.blue(),
-        CrabFetchColor::Magenta => string.magenta(),
-        CrabFetchColor::Cyan => string.cyan(),
-        CrabFetchColor::White => string.white(),
-        CrabFetchColor::BrightBlack => string.bright_black(),
-        CrabFetchColor::BrightRed => string.bright_red(),
-        CrabFetchColor::BrightGreen => string.bright_green(),
-        CrabFetchColor::BrightYellow => string.bright_yellow(),
-        CrabFetchColor::BrightBlue => string.bright_blue(),
-        CrabFetchColor::BrightMagenta => string.bright_magenta(),
-        CrabFetchColor::BrightCyan => string.bright_cyan(),
-        CrabFetchColor::BrightWhite => string.bright_white(),
+impl CrabFetchColor {
+    pub fn color_string(&self, string: &str) -> ColoredString {
+        match self {
+            CrabFetchColor::Black => string.black(),
+            CrabFetchColor::Red => string.red(),
+            CrabFetchColor::Green => string.green(),
+            CrabFetchColor::Yellow => string.yellow(),
+            CrabFetchColor::Blue => string.blue(),
+            CrabFetchColor::Magenta => string.magenta(),
+            CrabFetchColor::Cyan => string.cyan(),
+            CrabFetchColor::White => string.white(),
+            CrabFetchColor::BrightBlack => string.bright_black(),
+            CrabFetchColor::BrightRed => string.bright_red(),
+            CrabFetchColor::BrightGreen => string.bright_green(),
+            CrabFetchColor::BrightYellow => string.bright_yellow(),
+            CrabFetchColor::BrightBlue => string.bright_blue(),
+            CrabFetchColor::BrightMagenta => string.bright_magenta(),
+            CrabFetchColor::BrightCyan => string.bright_cyan(),
+            CrabFetchColor::BrightWhite => string.bright_white(),
+        }
     }
 }
+
 pub fn replace_color_placeholders(str: &String) -> String { // out of place here?
     let mut new_string = String::new();
     let split: Vec<&str> = str.split("{color-").collect();
@@ -97,7 +99,7 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
                 continue;
             },
         };
-        new_string.push_str(&color_string(&s[len + 1..], &color).to_string());
+        new_string.push_str(&color.color_string(&s[len + 1..]).to_string());
     }
 
     new_string

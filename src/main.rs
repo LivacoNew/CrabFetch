@@ -1,7 +1,7 @@
 use std::{cmp::max, env, fmt::{Debug, Display}, process::exit, time::Instant};
 
 use battery::BatteryInfo;
-use config_manager::{color_string, CrabFetchColor};
+use config_manager::CrabFetchColor;
 use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
@@ -147,7 +147,7 @@ trait Module {
 
         // Title
         if !title.trim().is_empty() {
-            let mut title: ColoredString = config_manager::color_string(title, title_color);
+            let mut title: ColoredString = title_color.color_string(title);
             if title_bold {
                 title = title.bold();
             }
@@ -754,7 +754,7 @@ fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &
     }
 
     if current_line < ascii_split.len() {
-        let colored: ColoredString = color_string(&line, config.ascii.colors.get(index as usize).unwrap());
+        let colored: ColoredString = config.ascii.colors.get(index as usize).unwrap().color_string(&line);
         return colored.to_string();
     }
     line

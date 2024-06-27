@@ -4,7 +4,7 @@ use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::{self, Configuration, CrabFetchColor}, Module};
+use crate::{config_manager::{Configuration, CrabFetchColor}, Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -51,7 +51,7 @@ impl Module for PackagesInfo {
 
         // Title
         if !config.packages.title.trim().is_empty() {
-            let mut title: ColoredString = config_manager::color_string(&config.packages.title, title_color);
+            let mut title: ColoredString = title_color.color_string(&config.packages.title);
             if title_bold {
                 title = title.bold();
             }

@@ -8,6 +8,7 @@ use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, Modul
 pub struct SwapInfo {
     used_kib: u32,
     total_kib: u32,
+    percent: f32
 }
 #[derive(Deserialize)]
 pub struct SwapConfiguration {
@@ -21,13 +22,15 @@ pub struct SwapConfiguration {
     pub progress_progress: Option<String>,
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
+    pub decimal_places: Option<u32>,
     pub format: String
 }
 impl Module for SwapInfo {
     fn new() -> SwapInfo {
         SwapInfo {
             used_kib: 0,
-            total_kib: 0
+            total_kib: 0,
+            percent: 0.0
         }
     }
 
@@ -80,11 +83,10 @@ impl Module for SwapInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let swap_percent: u8 = if self.total_kib != 0 {
-            SwapInfo::round((self.used_kib as f32 / self.total_kib as f32) * 100.0, 2) as u8
-        } else {
-            0
-        };
+        let mut dec_places: u32 = config.decimal_places;
+        if config.mounts.decimal_places.is_some() {
+            dec_places = config.mounts.decimal_places.unwrap();
+        }
 
         let mut bar: String = String::new();
         if config.swap.format.contains("{bar}") {
@@ -113,7 +115,7 @@ impl Module for SwapInfo {
 
             let bar_length: u8 = length - 2;
             for x in 0..(bar_length) {
-                if swap_percent > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+                if self.percent as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
                     bar.push_str(progress);
                 } else {
                     bar.push_str(empty);
@@ -129,7 +131,7 @@ impl Module for SwapInfo {
             .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
             .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
             .replace("{bar}", &bar)
-            .replace("{percent}", &swap_percent.to_string())
+            .replace("{percent}", &SwapInfo::round(self.percent, dec_places).to_string())
     }
 }
 
@@ -161,6 +163,10 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
 
         swap.used_kib += values[3].parse::<u32>().unwrap();
         swap.total_kib += values[2].parse::<u32>().unwrap();
+    }
+
+    if swap.total_kib != 0 {
+        swap.percent = (swap.used_kib as f32 / swap.total_kib as f32) * 100.0;
     }
 
     Ok(swap)

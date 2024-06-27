@@ -11,7 +11,7 @@ pub struct MountInfo {
     mount: String,      // /hdd
     space_avail_mb: i64,
     space_total_mb: i64,
-    percent: u8
+    percent: f32
 }
 #[derive(Deserialize)]
 pub struct MountConfiguration {
@@ -26,6 +26,7 @@ pub struct MountConfiguration {
     pub progress_progress: Option<String>,
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
+    pub decimal_places: Option<u32>,
     pub ignore: Vec<String>
 }
 impl Module for MountInfo {
@@ -35,7 +36,7 @@ impl Module for MountInfo {
             mount: "".to_string(),
             space_avail_mb: 0,
             space_total_mb: 0,
-            percent: 0
+            percent: 0.0
         }
     }
 
@@ -96,6 +97,11 @@ impl Module for MountInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut dec_places: u32 = config.decimal_places;
+        if config.mounts.decimal_places.is_some() {
+            dec_places = config.mounts.decimal_places.unwrap();
+        }
+
         let mut bar: String = String::new();
         if config.mounts.format.contains("{bar}") {
             let mut left_border: &str = config.progress_left_border.as_str();
@@ -123,7 +129,7 @@ impl Module for MountInfo {
 
             let bar_length: u8 = length - 2;
             for x in 0..(bar_length) {
-                if self.percent > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+                if self.percent as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
                     bar.push_str(progress);
                 } else {
                     bar.push_str(empty);
@@ -141,7 +147,7 @@ impl Module for MountInfo {
             .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
             .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
             .replace("{bar}", &bar.to_string())
-            .replace("{percent}", &self.percent.to_string())
+            .replace("{percent}", &MountInfo::round(self.percent, dec_places).to_string())
     }
 }
 impl MountInfo {
@@ -239,7 +245,7 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
 
         mount.space_total_mb = ((buffer.f_blocks as i64) * buffer.f_bsize) / 1024 / 1024;
         mount.space_avail_mb = ((buffer.f_bavail as i64) * buffer.f_bsize) / 1024 / 1024;
-        mount.percent = ((((mount.space_total_mb - mount.space_avail_mb) as f64) / mount.space_total_mb as f64) * 100.0) as u8;
+        mount.percent = ((((mount.space_total_mb - mount.space_avail_mb) as f64) / mount.space_total_mb as f64) * 100.0) as f32;
     }
     Ok(())
 }

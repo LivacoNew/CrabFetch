@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct BatteryInfo {
-    percentage: u8,
+    percentage: f32,
 }
 #[derive(Deserialize)]
 pub struct BatteryConfiguration {
@@ -20,12 +20,13 @@ pub struct BatteryConfiguration {
     pub progress_progress: Option<String>,
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
+    pub decimal_places: Option<u32>,
     pub path: String // Will default to BAT0
 }
 impl Module for BatteryInfo {
     fn new() -> BatteryInfo {
         BatteryInfo {
-            percentage: 0
+            percentage: 0.0
         }
     }
 
@@ -78,6 +79,11 @@ impl Module for BatteryInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut dec_places: u32 = config.decimal_places;
+        if config.mounts.decimal_places.is_some() {
+            dec_places = config.mounts.decimal_places.unwrap();
+        }
+
         let mut bar: String = String::new();
         if config.battery.format.contains("{bar}") {
             let mut left_border: &str = config.progress_left_border.as_str();
@@ -114,7 +120,7 @@ impl Module for BatteryInfo {
             bar.push_str(right_border);
         }
 
-        config.battery.format.replace("{percentage}", &self.percentage.to_string())
+        config.battery.format.replace("{percentage}", &BatteryInfo::round(self.percentage, dec_places).to_string())
             .replace("{bar}", &bar)
     }
 }

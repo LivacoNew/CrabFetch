@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
+use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct GPUInfo {
     vendor: String,

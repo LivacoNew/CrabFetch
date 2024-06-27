@@ -1,7 +1,7 @@
 use std::{cmp::max, env, fmt::{Debug, Display}, process::exit, time::Instant};
 
 use battery::BatteryInfo;
-use config_manager::CrabFetchColor;
+use colors::CrabFetchColor;
 use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
@@ -41,6 +41,7 @@ mod uptime;
 mod editor;
 mod locale;
 mod battery;
+mod colors;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -170,7 +171,7 @@ trait Module {
         str
     }
     fn replace_color_placeholders(&self, str: &String) -> String {
-        config_manager::replace_color_placeholders(str)
+        colors::replace_color_placeholders(str)
     }
 }
 
@@ -320,7 +321,7 @@ fn main() {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let segment_name: &str = module_split[1];  
                 let segment_string: String = config.segment_top.replace("{name}", segment_name);
-                output.push(config_manager::replace_color_placeholders(&segment_string));
+                output.push(colors::replace_color_placeholders(&segment_string));
                 cur_segment_length = segment_name.len();
                 print_bench_time(args.benchmark, "Segment Start", bench);
             },
@@ -333,7 +334,7 @@ fn main() {
 
                 let target = format!("{{name_sized_gap:{}}}", char);
                 let segment_string: String = config.segment_bottom.replace(&target, &char.to_string().repeat(cur_segment_length + 2));
-                output.push(config_manager::replace_color_placeholders(&segment_string));
+                output.push(colors::replace_color_placeholders(&segment_string));
                 print_bench_time(args.benchmark, "Segment End", bench);
             },
             "hostname" => {

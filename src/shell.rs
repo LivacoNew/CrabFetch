@@ -2,7 +2,7 @@ use std::{env, fs, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
+use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct ShellInfo {
     shell_name: String,

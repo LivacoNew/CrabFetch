@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::config_manager::{self, CrabFetchColor};
+use crate::{colors::CrabFetchColor, config_manager};
 
 #[derive(Deserialize)]
 pub struct AsciiConfiguration {

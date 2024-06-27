@@ -3,7 +3,7 @@ use std::{env, fs::File, io::Read, process::Command};
 
 use serde::Deserialize;
 
-use crate::{config_manager::{Configuration, CrabFetchColor}, Module, ModuleError};
+use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct HostnameInfo {
     username: String,

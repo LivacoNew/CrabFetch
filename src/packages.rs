@@ -4,7 +4,7 @@ use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>

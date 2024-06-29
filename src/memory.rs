@@ -3,8 +3,7 @@ use std::io::{BufRead, BufReader};
 
 use serde::Deserialize;
 
-use crate::colors;
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
 
 pub struct MemoryInfo {
     used_kib: u32,
@@ -125,7 +124,7 @@ impl Module for MemoryInfo {
             bar.push_str(right_border);
         }
 
-        colors::process_percentage_placeholder(&config.memory.format, MemoryInfo::round(self.percentage, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.memory.format, MemoryInfo::round(self.percentage, dec_places), &config)
             .replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
             .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, dec_places).to_string())
             .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 1.049e+5, dec_places).to_string())

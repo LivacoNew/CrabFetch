@@ -3,7 +3,7 @@ use std::{fs::File, io::Read, path::Path};
 
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct HostInfo {
     host: String,

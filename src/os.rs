@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct OSInfo {
     distro: String,

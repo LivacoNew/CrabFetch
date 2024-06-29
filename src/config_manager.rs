@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, fs::{self, File}, io::{Read, Write}, path::
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, colors::CrabFetchColor, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, formatter::CrabFetchColor, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 
 #[derive(Deserialize)]

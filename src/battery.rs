@@ -2,7 +2,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{colors::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
 
 pub struct BatteryInfo {
     percentage: f32,
@@ -120,7 +120,7 @@ impl Module for BatteryInfo {
             bar.push_str(right_border);
         }
 
-        colors::process_percentage_placeholder(&config.swap.format, BatteryInfo::round(self.percentage, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.swap.format, BatteryInfo::round(self.percentage, dec_places), &config)
             .replace("{bar}", &bar)
     }
 }

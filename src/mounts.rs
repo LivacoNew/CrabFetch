@@ -4,7 +4,7 @@ use std::mem;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{colors::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -138,7 +138,7 @@ impl Module for MountInfo {
             bar.push_str(right_border);
         }
 
-        colors::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{space_used_mb}", &(self.space_total_mb - self.space_avail_mb).to_string())

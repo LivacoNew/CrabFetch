@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct DesktopInfo {
     desktop: String,

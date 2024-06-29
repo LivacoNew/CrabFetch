@@ -3,7 +3,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{colors::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
 
 pub struct SwapInfo {
     used_kib: u32,
@@ -124,7 +124,7 @@ impl Module for SwapInfo {
             bar.push_str(right_border);
         }
 
-        colors::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), &config)
             .replace("{used_kib}", &self.used_kib.to_string())
             .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
             .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())

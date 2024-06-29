@@ -2,7 +2,7 @@ use std::{env, fs::{self, File}, io::Read, os::unix::process};
 
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct TerminalInfo {
     terminal_name: String

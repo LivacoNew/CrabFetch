@@ -3,7 +3,7 @@ use std::{fs::File, io::Read, time::Duration};
 use humantime::format_duration;
 use serde::Deserialize;
 
-use crate::{colors::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct UptimeInfo {
     uptime: Duration,

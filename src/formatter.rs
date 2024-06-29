@@ -106,7 +106,6 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
     new_string
 }
 
-// This is placed in color as it's likely going to coloring the percentages
 pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Configuration) -> String {
     if config.percentage_color_thresholds.len() <= 0 {
         return text.replace("{percent}", &percentage.to_string()).to_string();
@@ -130,3 +129,4 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
     percent_str = color.color_string(&percent_str.to_string()).to_string();
     text.replace("{percent}", &percent_str).to_string()
 }
+

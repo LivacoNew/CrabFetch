@@ -4,9 +4,11 @@ use std::str::FromStr;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
+use crate::config_manager::Configuration;
+
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
     Black,
@@ -24,7 +26,8 @@ pub enum CrabFetchColor {
     BrightBlue,
     BrightMagenta,
     BrightCyan,
-    BrightWhite
+    BrightWhite,
+    Clear
 }
 impl FromStr for CrabFetchColor {
     type Err = ();
@@ -47,6 +50,7 @@ impl FromStr for CrabFetchColor {
             "brightmagenta" => Ok(CrabFetchColor::BrightMagenta),
             "brightcyan" => Ok(CrabFetchColor::BrightCyan),
             "brightwhite" => Ok(CrabFetchColor::BrightWhite),
+            "clear" => Ok(CrabFetchColor::Clear),
             _ => Err(())
         }
     }
@@ -70,6 +74,7 @@ impl CrabFetchColor {
             CrabFetchColor::BrightMagenta => string.bright_magenta(),
             CrabFetchColor::BrightCyan => string.bright_cyan(),
             CrabFetchColor::BrightWhite => string.bright_white(),
+            CrabFetchColor::Clear => string.clear(),
         }
     }
 }
@@ -81,7 +86,6 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
         return str.clone();
     }
     for s in split {
-        // println!("Parsing: {}", s);
         let len: usize = match s.find("}") {
             Some(r) => r,
             None => {
@@ -93,7 +97,6 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
             Err(_) => {
-                // log_error("Color Placeholders", format!("Unable to parse color {}", color_str));
                 continue;
             },
         };
@@ -101,4 +104,29 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
     }
 
     new_string
+}
+
+// This is placed in color as it's likely going to coloring the percentages
+pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Configuration) -> String {
+    if config.percentage_color_thresholds.len() <= 0 {
+        return text.replace("{percent}", &percentage.to_string()).to_string();
+    }
+
+    let mut cur_threshold: u8 = *config.percentage_color_thresholds.keys().min().unwrap();
+    for x in &config.percentage_color_thresholds {
+        let threshold: u8 = *x.0;
+        if (percentage as u8) > threshold && threshold > cur_threshold {
+            cur_threshold = threshold;
+        }
+    }
+
+    let color = match CrabFetchColor::from_str(&config.percentage_color_thresholds[&cur_threshold]) {
+        Ok(r) => r,
+        Err(_) => CrabFetchColor::Clear,
+    };
+
+    let mut percent_str: String = percentage.to_string();
+    percent_str.push_str("%");
+    percent_str = color.color_string(&percent_str.to_string()).to_string();
+    text.replace("{percent}", &percent_str).to_string()
 }

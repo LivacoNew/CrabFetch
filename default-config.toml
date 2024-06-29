@@ -66,6 +66,14 @@ progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
 
+# Thresholds for percentage colors 
+# Key is the percentage, value is the color to use at that threshold 
+percentage_color_thresholds = {
+    75 = "brightgreen",
+    85 = "brightyellow",
+    90 = "brightred"
+}
+
 # Whether to supress any errors that come or not
 suppress_errors = true
 

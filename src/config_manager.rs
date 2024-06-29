@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{collections::HashMap, env, fs::{self, File}, io::{Read, Write}, path::Path};
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
@@ -23,6 +23,7 @@ pub struct Configuration {
     pub progress_progress: String,
     pub progress_empty: String,
     pub progress_target_length: u8,
+    pub percentage_color_thresholds: HashMap<u8, String>,
     pub suppress_errors: bool,
 
     pub ascii: AsciiConfiguration,
@@ -129,6 +130,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("progress_progress", "=").unwrap();
     builder = builder.set_default("progress_empty", " ").unwrap();
     builder = builder.set_default("progress_target_length", 20).unwrap();
+    builder = builder.set_default("percenage_color_thresholds.75", "brightgreen").unwrap();
+    builder = builder.set_default("percenage_color_thresholds.85", "brightyellow").unwrap();
+    builder = builder.set_default("percenage_color_thresholds.90", "brightred").unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
@@ -366,6 +370,14 @@ progress_progress = '='
 progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
+
+# Thresholds for percentage colors 
+# Key is the percentage, value is the color to use at that threshold 
+percentage_color_thresholds = {
+    75 = "brightgreen",
+    85 = "brightyellow",
+    90 = "brightred"
+}
 
 # Whether to supress any errors that come or not
 suppress_errors = true

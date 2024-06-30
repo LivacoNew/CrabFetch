@@ -131,11 +131,12 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("progress_progress", "=").unwrap();
     builder = builder.set_default("progress_empty", " ").unwrap();
     builder = builder.set_default("progress_target_length", 20).unwrap();
+    builder = builder.set_default("use_ibis", false).unwrap();
+    builder = builder.set_default("suppress_errors", true).unwrap();
+
     builder = builder.set_default("percenage_color_thresholds.75", "brightgreen").unwrap();
     builder = builder.set_default("percenage_color_thresholds.85", "brightyellow").unwrap();
     builder = builder.set_default("percenage_color_thresholds.90", "brightred").unwrap();
-    builder = builder.set_default("use_ibis", false).unwrap();
-    builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
@@ -313,13 +314,15 @@ pub fn generate_config_file(location_override: Option<String>) {
 
 // The default config, stored so that it can be written
 const DEFAULT_CONFIG_CONTENTS: &str = r#"
+# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki
+
+
 # The modules to display and in what order.
-# All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
+# All modules; space, underline:{length}, segment:{name}, end_segment, hostname, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, battery, uptime, locale, editor, colors, bright_colors
 modules = [
     "hostname",
     "underline:16",
 
-    # "segment:lol",
     "cpu",
     "gpu",
     "memory",
@@ -365,6 +368,7 @@ underline_character = '―'
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
+segment_bottom = "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]"
 
 # Formatting characters used in progress bars 
 progress_left_border = '['
@@ -374,14 +378,15 @@ progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
 
-# Whether to use 'ibibytes opposed to regular 'gabytes
+# Whether to use 'ibibytes opposed to 'gabytes 
 # E.g use Gibibytes (GiB) opposed to Gigabytes (GB)
 use_ibis = false
 
 # Whether to supress any errors that come or not
 suppress_errors = true
 
-# percentage_color_thresholds = {75 = "brightgreen", 85 = "brightyellow", 90 = "brightred"}
+# Percentage coloring thresholds 
+# Empty this section to make it not color 
 [percentage_color_thresholds]
 75 = "brightgreen"
 85 = "brightyellow"
@@ -406,7 +411,7 @@ margin = 4
 
 # Below here is the actual modules
 # Refer to the wiki for any module-specific parameters or hidden parameters
-# Also remember that you can override some stuff on these, e.g the title formatting.
+# Also remember that you can override some stuff on these, e.g the title formatting. Again check the wiki.
 
 [hostname]
 title = ""
@@ -445,8 +450,7 @@ title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD
 # {model} -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram_mb} -> The total memory of the GPU in mb
-# {vram_gb} -> The total memory of the GPU in gb
+# {vram} -> The total memory of the GPU in mb
 format = "{vendor} {model} ({vram})"
 
 

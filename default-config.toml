@@ -1,10 +1,12 @@
+# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki
+
+
 # The modules to display and in what order.
-# All modules; hostname, space, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, uptime, colors, bright_colors
+# All modules; space, underline:{length}, segment:{name}, end_segment, hostname, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, battery, uptime, locale, editor, colors, bright_colors
 modules = [
     "hostname",
     "underline:16",
 
-    "segment:Hardware",
     "cpu",
     "gpu",
     "memory",
@@ -12,11 +14,7 @@ modules = [
     "mounts",
     "host",
     "displays",
-    "end_segment",
-    
-    "space",
 
-    "segment:Software",
     "os",
     "packages",
     "desktop",
@@ -24,9 +22,7 @@ modules = [
     "shell",
     "editor",
     "uptime",
-    "battery",
     "locale",
-    "end_segment",
 
     "space",
     "colors",
@@ -56,7 +52,7 @@ underline_character = '―'
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
-segment_bottom = "{color-white}[======------{name_sized_gap:-}------======]"
+segment_bottom = "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]"
 
 # Formatting characters used in progress bars 
 progress_left_border = '['
@@ -66,16 +62,19 @@ progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
 
-# Thresholds for percentage colors 
-# Key is the percentage, value is the color to use at that threshold 
-percentage_color_thresholds = {
-    75 = "brightgreen",
-    85 = "brightyellow",
-    90 = "brightred"
-}
+# Whether to use 'ibibytes opposed to 'gabytes 
+# E.g use Gibibytes (GiB) opposed to Gigabytes (GB)
+use_ibis = false
 
 # Whether to supress any errors that come or not
 suppress_errors = true
+
+# Percentage coloring thresholds 
+# Empty this section to make it not color 
+[percentage_color_thresholds]
+75 = "brightgreen"
+85 = "brightyellow"
+90 = "brightred"
 
 
 [ascii]
@@ -96,7 +95,7 @@ margin = 4
 
 # Below here is the actual modules
 # Refer to the wiki for any module-specific parameters or hidden parameters
-# Also remember that you can override some stuff on these, e.g the title formatting.
+# Also remember that you can override some stuff on these, e.g the title formatting. Again check the wiki.
 
 [hostname]
 title = ""
@@ -135,9 +134,8 @@ title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD
 # {model} -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram_mb} -> The total memory of the GPU in mb
-# {vram_gb} -> The total memory of the GPU in gb
-format = "{vendor} {model} ({vram_gb} GB)"
+# {vram} -> The total memory of the GPU in mb
+format = "{vendor} {model} ({vram})"
 
 
 [memory]
@@ -151,7 +149,7 @@ title = "Memory"
 # {phys_max_gib} -> The maximum total memory in GiB.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
-format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
+format = "{used} / {max} ({percent})"
 
 
 [swap]
@@ -165,7 +163,7 @@ title = "Swap"
 # {max_gib} -> The maximum total swap in GiB.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
-format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
+format = "{used} / {total} ({percent})"
 
 
 [mounts]
@@ -185,7 +183,7 @@ title = "Disk {mount}"
 # {space_total_gb} -> The total space in gigabytes.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
-format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
+format = "{space_used} used of {space_total} ({percent})"
 
 # Mounts that shouldn't be included
 # The mounts only need to start with these
@@ -272,8 +270,7 @@ title = "Locale"
 title = "Battery"
 # Placeholders;
 # {percentage} -> The battery percentage
-# {bar} -> A progress bar representing the total battery available.
-format = "{bar} {percentage}%"
+format = "{percentage}%"
 
 
 

@@ -153,13 +153,13 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("gpu.format", "{vendor} {model} ({vram_gb} GB)").unwrap();
 
     builder = builder.set_default("memory.title", "Memory").unwrap();
-    builder = builder.set_default("memory.format", "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)").unwrap();
+    builder = builder.set_default("memory.format", "{used} / {max} ({percent}%)").unwrap();
 
     builder = builder.set_default("swap.title", "Swap").unwrap();
-    builder = builder.set_default("swap.format", "{used_gib} GiB / {total_gib} GiB ({percent}%)").unwrap();
+    builder = builder.set_default("swap.format", "{used} / {total} ({percent}%)").unwrap();
 
     builder = builder.set_default("mounts.title", "Disk {mount}").unwrap();
-    builder = builder.set_default("mounts.format", "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)").unwrap();
+    builder = builder.set_default("mounts.format", "{used} used of {total} ({percent}%)").unwrap();
     builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
 
     builder = builder.set_default("host.title", "Host").unwrap();
@@ -317,6 +317,7 @@ modules = [
     "hostname",
     "underline:16",
 
+    # "segment:lol",
     "cpu",
     "gpu",
     "memory",
@@ -371,16 +372,14 @@ progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
 
-# Thresholds for percentage colors 
-# Key is the percentage, value is the color to use at that threshold 
-percentage_color_thresholds = {
-    75 = "brightgreen",
-    85 = "brightyellow",
-    90 = "brightred"
-}
-
 # Whether to supress any errors that come or not
 suppress_errors = true
+
+# percentage_color_thresholds = {75 = "brightgreen", 85 = "brightyellow", 90 = "brightred"}
+[percentage_color_thresholds]
+75 = "brightgreen"
+85 = "brightyellow"
+90 = "brightred"
 
 
 [ascii]
@@ -456,7 +455,7 @@ title = "Memory"
 # {phys_max_gib} -> The maximum total memory in GiB.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
-format = "{phys_used_gib} GiB / {phys_max_gib} GiB ({percent}%)"
+format = "{used} / {max} ({percent})"
 
 
 [swap]
@@ -470,7 +469,7 @@ title = "Swap"
 # {max_gib} -> The maximum total swap in GiB.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
-format = "{used_gib} GiB / {total_gib} GiB ({percent}%)"
+format = "{used} / {total} ({percent})"
 
 
 [mounts]
@@ -490,7 +489,7 @@ title = "Disk {mount}"
 # {space_total_gb} -> The total space in gigabytes.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
-format = "{space_used_gb} GB used of {space_total_gb} GB ({percent}%)"
+format = "{space_used} used of {space_total} ({percent})"
 
 # Mounts that shouldn't be included
 # The mounts only need to start with these
@@ -577,7 +576,6 @@ title = "Locale"
 title = "Battery"
 # Placeholders;
 # {percentage} -> The battery percentage
-# {bar} -> A progress bar representing the total battery available.
 format = "{percentage}%"
 
 

@@ -130,3 +130,40 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
     text.replace("{percent}", &percent_str).to_string()
 }
 
+pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String {
+    let mut result: f64 = kilobytes as f64;
+    let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera 
+    let divider = if ibis {1024} else {1000};
+    if ibis {
+        result = result * 1.024;
+    }
+
+    for _ in 0..3 {
+        let cur_step: f64 = result as f64 / divider as f64;
+        if cur_step <= 1.0{
+            break; // Use current 
+        }
+
+        result = cur_step;
+        steps += 1;
+    }
+    result = round(result, dec_places);
+
+    let dec_places: usize = dec_places as usize;
+    let mut res: String = format!("{:.dec_places$}", result).to_string();
+    res.push_str(match steps {
+        0 => if ibis {" KiB"} else {" KB"},
+        1 => if ibis {" MiB"} else {" MB"},
+        2 => if ibis {" GiB"} else {" GB"},
+        3 => if ibis {" TiB"} else {" TB"},
+        _ => " ?"
+    });
+    return res;
+}
+
+// Rust is a great language, but when I need to start re-implementing the most basic of functions
+// into your language, you know you've fucked up specing your language... badly.
+pub fn round(number: f64, places: u32) -> f64 {
+    let power: f64 = 10_u32.pow(places) as f64;
+    (number * power).round() / power
+}

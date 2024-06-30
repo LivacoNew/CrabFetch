@@ -6,8 +6,8 @@ use serde::Deserialize;
 use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
 
 pub struct SwapInfo {
-    used_kib: u32,
-    total_kib: u32,
+    used_kb: u64,
+    total_kb: u64,
     percent: f32
 }
 #[derive(Deserialize)]
@@ -28,8 +28,8 @@ pub struct SwapConfiguration {
 impl Module for SwapInfo {
     fn new() -> SwapInfo {
         SwapInfo {
-            used_kib: 0,
-            total_kib: 0,
+            used_kb: 0,
+            total_kb: 0,
             percent: 0.0
         }
     }
@@ -125,12 +125,8 @@ impl Module for SwapInfo {
         }
 
         formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), &config)
-            .replace("{used_kib}", &self.used_kib.to_string())
-            .replace("{used_mib}", &(self.used_kib as f32 / 1024.0).round().to_string())
-            .replace("{used_gib}", &(self.used_kib as f32 / 1024.0 / 1024.0).round().to_string())
-            .replace("{total_kib}", &self.total_kib.to_string())
-            .replace("{total_mib}", &(self.total_kib as f32 / 1024.0).round().to_string())
-            .replace("{total_gib}", &(self.total_kib as f32 / 1024.0 / 1024.0).round().to_string())
+            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, false, dec_places))
+            .replace("{total}", &formatter::auto_format_bytes(self.total_kb, false, dec_places))
             .replace("{bar}", &bar)
     }
 }
@@ -161,12 +157,18 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
         let mut values: Vec<&str> = line.split(['\t', ' ']).collect();
         values.retain(|x| x.trim() != "");
 
-        swap.used_kib += values[3].parse::<u32>().unwrap();
-        swap.total_kib += values[2].parse::<u32>().unwrap();
+        swap.used_kb += match values[3].parse::<f64>() {
+            Ok(r) => (r / 1.024) as u64,
+            Err(_) => 0 as u64,
+        };
+        swap.total_kb += match values[2].parse::<f64>() {
+            Ok(r) => (r / 1.024) as u64,
+            Err(_) => 0 as u64,
+        };
     }
 
-    if swap.total_kib != 0 {
-        swap.percent = (swap.used_kib as f32 / swap.total_kib as f32) * 100.0;
+    if swap.total_kb != 0 {
+        swap.percent = (swap.used_kb as f32 / swap.total_kb as f32) * 100.0;
     }
 
     Ok(swap)

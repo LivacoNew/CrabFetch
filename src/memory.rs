@@ -6,8 +6,8 @@ use serde::Deserialize;
 use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
 
 pub struct MemoryInfo {
-    used_kib: u32,
-    max_kib: u32,
+    used_kb: u64,
+    max_kb: u64,
     percentage: f32
 }
 #[derive(Deserialize)]
@@ -28,8 +28,8 @@ pub struct MemoryConfiguration {
 impl Module for MemoryInfo {
     fn new() -> MemoryInfo {
         MemoryInfo {
-            used_kib: 0,
-            max_kib: 0,
+            used_kb: 0,
+            max_kb: 0,
             percentage: 0.0
         }
     }
@@ -125,12 +125,8 @@ impl Module for MemoryInfo {
         }
 
         formatter::process_percentage_placeholder(&config.memory.format, MemoryInfo::round(self.percentage, dec_places), &config)
-            .replace("{phys_used_kib}", &MemoryInfo::round(self.used_kib as f32, dec_places).to_string())
-            .replace("{phys_used_mib}", &MemoryInfo::round(self.used_kib as f32 / 1024.0, dec_places).to_string())
-            .replace("{phys_used_gib}", &MemoryInfo::round(self.used_kib as f32 / 1.049e+5, dec_places).to_string())
-            .replace("{phys_max_kib}", &MemoryInfo::round(self.max_kib as f32, dec_places).to_string())
-            .replace("{phys_max_mib}", &MemoryInfo::round(self.max_kib as f32 / 1024.0, dec_places).to_string())
-            .replace("{phys_max_gib}", &MemoryInfo::round(self.max_kib as f32 / 1.049e+5, dec_places).to_string())
+            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, false, dec_places))
+            .replace("{max}", &formatter::auto_format_bytes(self.max_kb, false, dec_places))
             .replace("{bar}", &bar.to_string())
     }
 }
@@ -146,7 +142,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
         },
     };
 
-    let mut mem_available: u32 = 0;
+    let mut mem_available: u64 = 0;
     let buffer: BufReader<File> = BufReader::new(file);
     for line in buffer.lines() {
         if line.is_err() {
@@ -156,9 +152,9 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
 
         if line.starts_with("MemTotal") {
             let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
-            var = &var[..var.len() - 4].trim();
-            memory.max_kib = match var.to_string().parse::<u32>() {
-                Ok(r) => r,
+            var = &var[..var.len() - 3].trim();
+            memory.max_kb = match var.to_string().parse::<f64>() {
+                Ok(r) => (r / 1.024) as u64,
                 Err(e) => {
                     return Err(ModuleError::new("Memory", format!("Could not parse total memory: {}", e)));
                 }
@@ -166,21 +162,21 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
         }
         if line.starts_with("MemAvailable") {
             let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
-            var = &var[..var.len() - 4].trim();
-            mem_available = match var.to_string().parse::<u32>() {
-                Ok(r) => r,
+            var = &var[..var.len() - 3].trim();
+            mem_available = match var.to_string().parse::<f64>() {
+                Ok(r) => (r / 1.024) as u64,
                 Err(e) => {
                     return Err(ModuleError::new("Memory", format!("Could not parse memfree memory: {}", e)));
                 }
             }
         }
-        if memory.max_kib != 0 && mem_available != 0 {
+        if memory.max_kb != 0 && mem_available != 0 {
             break;
         }
     }
 
-    memory.used_kib = memory.max_kib - mem_available;
-    memory.percentage = (memory.used_kib as f32 / memory.max_kib as f32) * 100.0;
+    memory.used_kb = memory.max_kb - mem_available;
+    memory.percentage = (memory.used_kb as f32 / memory.max_kb as f32) * 100.0;
 
     Ok(memory)
 }

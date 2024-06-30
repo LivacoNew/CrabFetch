@@ -9,8 +9,8 @@ use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Mo
 pub struct MountInfo {
     device: String,     // /dev/sda
     mount: String,      // /hdd
-    space_avail_mb: i64,
-    space_total_mb: i64,
+    space_avail_kb: u64,
+    space_total_kb: u64,
     percent: f32
 }
 #[derive(Deserialize)]
@@ -34,8 +34,8 @@ impl Module for MountInfo {
         MountInfo {
             device: "".to_string(),
             mount: "".to_string(),
-            space_avail_mb: 0,
-            space_total_mb: 0,
+            space_avail_kb: 0,
+            space_total_kb: 0,
             percent: 0.0
         }
     }
@@ -141,12 +141,9 @@ impl Module for MountInfo {
         formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
-            .replace("{space_used_mb}", &(self.space_total_mb - self.space_avail_mb).to_string())
-            .replace("{space_avail_mb}", &self.space_avail_mb.to_string())
-            .replace("{space_total_mb}", &self.space_total_mb.to_string())
-            .replace("{space_used_gb}", &((self.space_total_mb - self.space_avail_mb) / 1024).to_string())
-            .replace("{space_avail_gb}", &(self.space_avail_mb / 1024).to_string())
-            .replace("{space_total_gb}", &(self.space_total_mb / 1024).to_string())
+            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, false, 0))
+            .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, false, dec_places))
+            .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, false, dec_places))
             .replace("{bar}", &bar.to_string())
     }
 }
@@ -239,13 +236,12 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
         // wtf does this "*const _" do
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
-            // log_error("Mount", format!("'statfs' syscall failed for mount point {path} - Returned code {x}"));
             return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, x)))
         }
 
-        mount.space_total_mb = ((buffer.f_blocks as i64) * buffer.f_bsize) / 1024 / 1024;
-        mount.space_avail_mb = ((buffer.f_bavail as i64) * buffer.f_bsize) / 1024 / 1024;
-        mount.percent = ((((mount.space_total_mb - mount.space_avail_mb) as f64) / mount.space_total_mb as f64) * 100.0) as f32;
+        mount.space_total_kb = (buffer.f_blocks * buffer.f_bsize as u64) / 1000;
+        mount.space_avail_kb = (buffer.f_bfree * buffer.f_bsize as u64) / 1000;
+        mount.percent = ((((mount.space_total_kb - mount.space_avail_kb) as f64) / mount.space_total_kb as f64) * 100.0) as f32;
     }
     Ok(())
 }

@@ -23,6 +23,7 @@ pub struct MemoryConfiguration {
     pub progress_progress: Option<String>,
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
+    pub use_ibis: Option<bool>,
     pub decimal_places: Option<u32>
 }
 impl Module for MemoryInfo {
@@ -124,9 +125,14 @@ impl Module for MemoryInfo {
             bar.push_str(right_border);
         }
 
+        let mut use_ibis: bool = config.use_ibis;
+        if config.memory.use_ibis.is_some() {
+            use_ibis = config.memory.use_ibis.unwrap();
+        }
+
         formatter::process_percentage_placeholder(&config.memory.format, MemoryInfo::round(self.percentage, dec_places), &config)
-            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, false, dec_places))
-            .replace("{max}", &formatter::auto_format_bytes(self.max_kb, false, dec_places))
+            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
+            .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
 }

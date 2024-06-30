@@ -24,6 +24,7 @@ pub struct Configuration {
     pub progress_empty: String,
     pub progress_target_length: u8,
     pub percentage_color_thresholds: HashMap<u8, String>,
+    pub use_ibis: bool,
     pub suppress_errors: bool,
 
     pub ascii: AsciiConfiguration,
@@ -133,6 +134,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("percenage_color_thresholds.75", "brightgreen").unwrap();
     builder = builder.set_default("percenage_color_thresholds.85", "brightyellow").unwrap();
     builder = builder.set_default("percenage_color_thresholds.90", "brightred").unwrap();
+    builder = builder.set_default("use_ibis", false).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     // ASCII
@@ -150,7 +152,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
     builder = builder.set_default("gpu.cache", false).unwrap();
     builder = builder.set_default("gpu.title", "GPU").unwrap();
-    builder = builder.set_default("gpu.format", "{vendor} {model} ({vram_gb} GB)").unwrap();
+    builder = builder.set_default("gpu.format", "{vendor} {model} ({vram})").unwrap();
 
     builder = builder.set_default("memory.title", "Memory").unwrap();
     builder = builder.set_default("memory.format", "{used} / {max} ({percent}%)").unwrap();
@@ -372,6 +374,10 @@ progress_empty = ' '
 # The target length of the progress bar
 progress_target_length = 20
 
+# Whether to use 'ibibytes opposed to regular 'gabytes
+# E.g use Gibibytes (GiB) opposed to Gigabytes (GB)
+use_ibis = false
+
 # Whether to supress any errors that come or not
 suppress_errors = true
 
@@ -441,7 +447,7 @@ title = "GPU"
 # {model} -> The model of the GPU, e.g Radeon RX 7800XT
 # {vram_mb} -> The total memory of the GPU in mb
 # {vram_gb} -> The total memory of the GPU in gb
-format = "{vendor} {model} ({vram_gb} GB)"
+format = "{vendor} {model} ({vram})"
 
 
 [memory]

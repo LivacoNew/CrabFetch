@@ -33,6 +33,7 @@ pub struct GPUConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
+    pub use_ibis: Option<bool>,
     pub format: String
 }
 
@@ -95,9 +96,13 @@ impl Module for GPUInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
+        let mut use_ibis: bool = config.use_ibis;
+        if config.gpu.use_ibis.is_some() {
+            use_ibis = config.gpu.use_ibis.unwrap();
+        }
         config.gpu.format.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
-            .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, false, 0))
+            .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
     }
 }
 

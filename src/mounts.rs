@@ -27,6 +27,7 @@ pub struct MountConfiguration {
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>,
+    pub use_ibis: Option<bool>,
     pub ignore: Vec<String>
 }
 impl Module for MountInfo {
@@ -138,12 +139,17 @@ impl Module for MountInfo {
             bar.push_str(right_border);
         }
 
+        let mut use_ibis: bool = config.use_ibis;
+        if config.mounts.use_ibis.is_some() {
+            use_ibis = config.mounts.use_ibis.unwrap();
+        }
+
         formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
-            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, false, 0))
-            .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, false, dec_places))
-            .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, false, dec_places))
+            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, use_ibis, 0))
+            .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, use_ibis, dec_places))
+            .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
 }

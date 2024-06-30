@@ -23,6 +23,7 @@ pub struct SwapConfiguration {
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>,
+    pub use_ibis: Option<bool>,
     pub format: String
 }
 impl Module for SwapInfo {
@@ -124,9 +125,14 @@ impl Module for SwapInfo {
             bar.push_str(right_border);
         }
 
+        let mut use_ibis: bool = config.use_ibis;
+        if config.swap.use_ibis.is_some() {
+            use_ibis = config.swap.use_ibis.unwrap();
+        }
+
         formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), &config)
-            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, false, dec_places))
-            .replace("{total}", &formatter::auto_format_bytes(self.total_kb, false, dec_places))
+            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
+            .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)
     }
 }

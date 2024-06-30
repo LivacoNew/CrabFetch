@@ -107,8 +107,10 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
 }
 
 pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Configuration) -> String {
+    let mut percent_str: String = percentage.to_string();
+    percent_str.push_str("%");
     if config.percentage_color_thresholds.len() <= 0 {
-        return text.replace("{percent}", &percentage.to_string()).to_string();
+        return text.replace("{percent}", &percent_str).to_string();
     }
 
     let mut cur_threshold: u8 = *config.percentage_color_thresholds.keys().min().unwrap();
@@ -124,8 +126,6 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
         Err(_) => CrabFetchColor::Clear,
     };
 
-    let mut percent_str: String = percentage.to_string();
-    percent_str.push_str("%");
     percent_str = color.color_string(&percent_str.to_string()).to_string();
     text.replace("{percent}", &percent_str).to_string()
 }

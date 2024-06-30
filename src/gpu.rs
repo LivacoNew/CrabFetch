@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
 
 pub struct GPUInfo {
     vendor: String,
@@ -97,8 +97,7 @@ impl Module for GPUInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.gpu.format.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
-            .replace("{vram_mb}", &self.vram_mb.to_string())
-            .replace("{vram_gb}", &(self.vram_mb / 1024).to_string())
+            .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, false, 0))
     }
 }
 

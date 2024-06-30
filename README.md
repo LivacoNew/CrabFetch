@@ -1,4 +1,7 @@
 # CrabFetch
+[![Packaging status](https://repology.org/badge/tiny-repos/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
+[![latest packaged version(s)](https://repology.org/badge/latest-versions/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
+
 CrabFetch is a highly performant and customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
 What makes CrabFetch different is that _it aims to be as performant as possible_ while still remaining easy to use. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
 
@@ -26,6 +29,8 @@ If CrabFetch doesn't support what you use, **make a issue** and I'll go about it
 > [!IMPORTANT]
 > Only Linux based OS's are supported. Any other operating system will not work.
 >
+[![Packaging status](https://repology.org/badge/vertical-allrepos/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
+
 Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for detailed instructions on how to install CrabFetch, as well as manually building.
 
 ### Arch Linux

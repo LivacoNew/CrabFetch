@@ -137,7 +137,7 @@ trait Module {
     fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
     fn replace_placeholders(&self, config: &Configuration) -> String;
 
-    // This helps the format function lol
+    // TODO: Move impls to use the formatter::round pub function
     fn round(number: f32, places: u32) -> f32 {
         let power: f32 = 10_u32.pow(places) as f32;
         (number * power).round() / power

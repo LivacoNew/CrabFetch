@@ -134,9 +134,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("use_ibis", false).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
-    builder = builder.set_default("percenage_color_thresholds.75", "brightgreen").unwrap();
-    builder = builder.set_default("percenage_color_thresholds.85", "brightyellow").unwrap();
-    builder = builder.set_default("percenage_color_thresholds.90", "brightred").unwrap();
+    builder = builder.set_default("percentage_color_thresholds.75", "brightgreen").unwrap();
+    builder = builder.set_default("percentage_color_thresholds.85", "brightyellow").unwrap();
+    builder = builder.set_default("percentage_color_thresholds.90", "brightred").unwrap();
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
@@ -156,13 +156,13 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("gpu.format", "{vendor} {model} ({vram})").unwrap();
 
     builder = builder.set_default("memory.title", "Memory").unwrap();
-    builder = builder.set_default("memory.format", "{used} / {max} ({percent}%)").unwrap();
+    builder = builder.set_default("memory.format", "{used} / {max} ({percent})").unwrap();
 
     builder = builder.set_default("swap.title", "Swap").unwrap();
-    builder = builder.set_default("swap.format", "{used} / {total} ({percent}%)").unwrap();
+    builder = builder.set_default("swap.format", "{used} / {total} ({percent})").unwrap();
 
     builder = builder.set_default("mounts.title", "Disk {mount}").unwrap();
-    builder = builder.set_default("mounts.format", "{used} used of {total} ({percent}%)").unwrap();
+    builder = builder.set_default("mounts.format", "{space_used} used of {space_total} ({percent})").unwrap();
     builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
 
     builder = builder.set_default("host.title", "Host").unwrap();

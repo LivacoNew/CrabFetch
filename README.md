@@ -12,7 +12,7 @@ What makes CrabFetch different is that _it aims to be as performant as possible_
 ## Performance
 Performance is CrabFetch's main selling point. Don't let me just say that, let me prove it;  
 
-Below is a table comparing performance between [HyFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch), [Macchina](https://github.com/Macchina-CLI/macchina) and CrabFetch.  
+We're going to compare the performance of [HyFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch), [Macchina](https://github.com/Macchina-CLI/macchina) and CrabFetch.  
 Configs were created to match up as closely as possible, with these benchmarks being taken by `hyperfine 1.18.0`.  
 ![As close as possible configs](https://i.imgur.com/RCEQOJo.png)  
   

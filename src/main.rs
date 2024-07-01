@@ -1,4 +1,4 @@
-use std::{cmp::max, env, fmt::{Debug, Display}, process::exit, time::Instant};
+use std::{cmp::{max, min}, env, fmt::{Debug, Display}, process::exit, time::Instant};
 
 use battery::BatteryInfo;
 use cpu::CPUInfo;
@@ -159,7 +159,7 @@ trait Module {
             str.push_str(&title.to_string());
             // Inline value stuff
             if config.inline_values {
-                for _ in 0..(max_title_len - (title.chars().count() as u64)) {
+                for _ in 0..(max_title_len - min(title.chars().count() as u64, max_title_len)) {
                     str.push_str(" ");
                 }
             }

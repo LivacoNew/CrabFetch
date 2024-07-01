@@ -450,19 +450,15 @@ title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD
 # {model} -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram} -> The total memory of the GPU in mb
+# {vram} -> The total memory of the GPU.
 format = "{vendor} {model} ({vram})"
 
 
 [memory]
 title = "Memory"
 # Placeholders;
-# {phys_used_kib} -> The currently used memory in KiB.
-# {phys_used_mib} -> The currently used memory in MiB.
-# {phys_used_gib} -> The currently used memory in GiB.
-# {phys_max_kib} -> The maximum total memory in KiB.
-# {phys_max_mib} -> The maximum total memory in MiB.
-# {phys_max_gib} -> The maximum total memory in GiB.
+# {used} -> The currently in-use memory.
+# {max} -> The maximum total memory.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
 format = "{used} / {max} ({percent})"
@@ -471,12 +467,8 @@ format = "{used} / {max} ({percent})"
 [swap]
 title = "Swap"
 # Placeholders;
-# {used_kib} -> The currently used swap in KiB.
-# {used_mib} -> The currently used swap in MiB.
-# {used_gib} -> The currently used swap in GiB.
-# {max_kib} -> The maximum total swap  in KiB.
-# {max_mib} -> The maximum total swap in MiB.
-# {max_gib} -> The maximum total swap in GiB.
+# {used} -> The currently used swap.
+# {max} -> The maximum total swap.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
 format = "{used} / {total} ({percent})"
@@ -491,12 +483,9 @@ title = "Disk {mount}"
 # Placeholders;
 # {device} -> Device, e.g /dev/sda
 # {mount} -> The mount point, e.g /home
-# {space_used_mb} -> The space used in megabytes.
-# {space_avail_mb} -> The space available in metabytes.
-# {space_total_mb} -> The total space in metabytes.
-# {space_used_gb} -> The space used in gigabytes.
-# {space_avail_gb} -> The space available in gigabytes.
-# {space_total_gb} -> The total space in gigabytes.
+# {space_used} -> The space used.
+# {space_avail} -> The space available.
+# {space_total} -> The total space.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
 format = "{space_used} used of {space_total} ({percent})"

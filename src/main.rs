@@ -91,23 +91,23 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
     // this kinda sucks
     for module in &config.modules {
         match module.as_str() {
-            "hostname" => res = max(res, config.hostname.title.len() as u64),
-            "cpu" => res = max(res, config.cpu.title.len() as u64),
-            "gpu" => res = max(res, config.gpu.title.len() as u64),
-            "memory" => res = max(res, config.memory.title.len() as u64),
-            "swap" => res = max(res, config.swap.title.len() as u64),
-            "mounts" => res = max(res, config.mounts.title.len() as u64),
-            "host" => res = max(res, config.host.title.len() as u64),
-            "displays" => res = max(res, config.displays.title.len() as u64),
-            "os" => res = max(res, config.os.title.len() as u64),
-            "packages" => res = max(res, config.packages.title.len() as u64),
-            "desktop" => res = max(res, config.desktop.title.len() as u64),
-            "terminal" => res = max(res, config.terminal.title.len() as u64),
-            "shell" => res = max(res, config.shell.title.len() as u64),
-            "battery" => res = max(res, config.battery.title.len() as u64),
-            "uptime" => res = max(res, config.uptime.title.len() as u64),
-            "locale" => res = max(res, config.locale.title.len() as u64),
-            "editor" => res = max(res, config.editor.title.len() as u64),
+            "hostname" => res = max(res, config.hostname.title.chars().count() as u64),
+            "cpu" => res = max(res, config.cpu.title.chars().count() as u64),
+            "gpu" => res = max(res, config.gpu.title.chars().count() as u64),
+            "memory" => res = max(res, config.memory.title.chars().count() as u64),
+            "swap" => res = max(res, config.swap.title.chars().count() as u64),
+            "mounts" => res = max(res, config.mounts.title.chars().count() as u64),
+            "host" => res = max(res, config.host.title.chars().count() as u64),
+            "displays" => res = max(res, config.displays.title.chars().count() as u64),
+            "os" => res = max(res, config.os.title.chars().count() as u64),
+            "packages" => res = max(res, config.packages.title.chars().count() as u64),
+            "desktop" => res = max(res, config.desktop.title.chars().count() as u64),
+            "terminal" => res = max(res, config.terminal.title.chars().count() as u64),
+            "shell" => res = max(res, config.shell.title.chars().count() as u64),
+            "battery" => res = max(res, config.battery.title.chars().count() as u64),
+            "uptime" => res = max(res, config.uptime.title.chars().count() as u64),
+            "locale" => res = max(res, config.locale.title.chars().count() as u64),
+            "editor" => res = max(res, config.editor.title.chars().count() as u64),
             _ => {}
         }
     }
@@ -159,7 +159,7 @@ trait Module {
             str.push_str(&title.to_string());
             // Inline value stuff
             if config.inline_values {
-                for _ in 0..(max_title_len - (title.len() as u64)) {
+                for _ in 0..(max_title_len - (title.chars().count() as u64)) {
                     str.push_str(" ");
                 }
             }
@@ -272,7 +272,6 @@ fn main() {
     let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
     print_bench_time(args.benchmark, "Parsing Config", bench);
     let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
-    let max_title_length: u64 = calc_max_title_length(&config);
 
     // Define our module outputs, and figure out which modules need pre-calculated 
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
@@ -282,7 +281,7 @@ fn main() {
         // OS needs done 
         let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
         let os: Result<OSInfo, ModuleError> = os::get_os();
-        print_bench_time(args.benchmark, "OS Module", os_bench);
+        print_bench_time(args.benchmark, "OS Pre-Module", os_bench);
         known_outputs.os = Some(os);
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
@@ -294,6 +293,8 @@ fn main() {
         }
     }
     print_bench_time(args.benchmark, "ASCII (Potentially includes OS parse)", bench);
+
+    let max_title_length: u64 = calc_max_title_length(&config);
 
     // 
     //  Detect

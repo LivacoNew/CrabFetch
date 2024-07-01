@@ -164,11 +164,11 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
         values.retain(|x| x.trim() != "");
 
         swap.used_kb += match values[3].parse::<f64>() {
-            Ok(r) => (r / 1.024) as u64,
+            Ok(r) => (r * 1.024) as u64,
             Err(_) => 0 as u64,
         };
         swap.total_kb += match values[2].parse::<f64>() {
-            Ok(r) => (r / 1.024) as u64,
+            Ok(r) => (r * 1.024) as u64,
             Err(_) => 0 as u64,
         };
     }

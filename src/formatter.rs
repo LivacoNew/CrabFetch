@@ -135,12 +135,12 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera 
     let divider = if ibis {1024} else {1000};
     if ibis {
-        result = result * 1.024;
+        result = result / 1.024;
     }
 
     for _ in 0..3 {
         let cur_step: f64 = result as f64 / divider as f64;
-        if cur_step <= 1.0{
+        if cur_step <= 1.0 {
             break; // Use current 
         }
 

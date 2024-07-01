@@ -2,27 +2,28 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
 [![latest packaged version(s)](https://repology.org/badge/latest-versions/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
 
-CrabFetch is a highly performant and customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
+CrabFetch is a highly performant and extremelty easily customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
 What makes CrabFetch different is that _it aims to be as performant as possible_ while still remaining easy to use. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
 
-![Showcase 1](https://i.imgur.com/MTAULWp.png)
-![Showcase 2](https://i.imgur.com/c6S2q9n.png)
-![Showcase 3](https://i.imgur.com/jz2ioEH.png)
-![Showcase 4](https://i.imgur.com/kJ7l93H.png)
+![Showcase 1](https://i.imgur.com/k6GMh63.png)
+![Showcase 2](https://i.imgur.com/abu7XOl.png)
 
 
 ## Performance
-Below is a table comparing performance between [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.<br>
-All benchmarks were done via the [hyperfine](https://archlinux.org/packages/extra/x86_64/hyperfine/) utility, on the same machine. Configs were created to match up as closely as possible.
+Performance is CrabFetch's main selling point. Don't let me just say that, let me prove it;  
 
-**Please note you may not get the same times**, depending on what modules you have enabled and depending on your system. From testing, NeoFetch is dead in the dust but FastFetch and CrabFetch are typically either neck and neck or one wins over the other. I'm already looking into more ways to improve CrabFetch's times, but it depends on your environment/needs which one is actually a better fit. For all of my personal systems however, CrabFetch wins.
+Below is a table comparing performance between [HyFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch), [Macchina](https://github.com/Macchina-CLI/macchina) and CrabFetch.  
+Configs were created to match up as closely as possible, with these benchmarks being taken by `hyperfine 1.18.0`.  
+![As close as possible configs](https://i.imgur.com/RCEQOJo.png)  
+  
+The following screenshot shows the results;  
+![CrabFetch runs the fastest.](https://i.imgur.com/EMD5YWc.png)  
+  
+I implore you to try to run this benchmark yourself, to see if you get similar times. If not, please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know!
 
-![Benchmark Results](https://i.imgur.com/6INKbtk.png)
 
 ## System Support
-Currently, support for different softwares on CrabFetch is limited from me not having the time to go out and implement everything required. I've tried to implement all the most common ones but ultimately I will miss some.
-A full list of what is supported can be found on the [Wiki](https://github.com/LivacoNew/CrabFetch/wiki/Compatability-List).
-If CrabFetch doesn't support what you use, **make a issue** and I'll go about it!
+If CrabFetch doesn't correctly detect something on your system, [make a issue(https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=detection&projects=&template=detection-issue.md&title=) and I'll go hunting for it!
 
 
 ## Installation
@@ -31,28 +32,29 @@ If CrabFetch doesn't support what you use, **make a issue** and I'll go about it
 >
 [![Packaging status](https://repology.org/badge/vertical-allrepos/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
 
-Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for detailed instructions on how to install CrabFetch, as well as manually building.
+Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for more detailed instructions on how to install CrabFetch, as well as manually building.
 
 ### Arch Linux
 You can use either;
 - [crab-fetch](https://aur.archlinux.org/packages/crab-fetch) (AUR)
 - [crab-fetch-git](https://aur.archlinux.org/packages/crab-fetch-git) (AUR)
 
+### Debian
+.deb files are provided in releases as of `0.3.0`. From there, simply install it using;
+```sh
+sudo apt install ./crabfetch.deb
+```
+
 ### Other
 Go to the [latest release](https://github.com/LivacoNew/CrabFetch/releases/latest) and download the file for your CPU's architecture. From there, just run;
 ```sh
-cp crabfetch-x86-64 /usr/local/bin/crabfetch
+cp crabfetch /usr/local/bin/crabfetch
 ```
 **Be aware that this means your package manager will not be aware of CrabFetch.**
 
 ## Configuration
 To generate the default configuration file, run `crabfetch -g`.<br>
 The configuration file should be in `~/.config/CrabFetch/config.toml`. From there, refer to either the comments or the [wiki page](https://github.com/LivacoNew/CrabFetch/wiki/Configuration).
-
-
-## Not got what you want?
-Make a issue and I'll see if I can add it in. I'm aware support is kind of sparse right now, as I still need to test on different types of systems.
-
 
 ## Credits
 - [NeoFetch](https://github.com/dylanaraps/neofetch) for being an occasional source on where to find some info in Linux.

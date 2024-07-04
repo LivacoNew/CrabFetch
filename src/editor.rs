@@ -90,7 +90,19 @@ pub fn get_editor() -> Result<EditorInfo, ModuleError> {
         },
         Err(e) => {
             if e == VarError::NotPresent {
-                "None".to_string()
+                match env::var("VISUAL") {
+                    Ok(r) => {
+                        editor.name = r.split("/").last().unwrap().to_string();
+                        r
+                    },
+                    Err(e) => {
+                        if e == VarError::NotPresent {
+                            "None".to_string()
+                        } else {
+                            return Err(ModuleError::new("Editor", format!("Could not parse $VISUAL env variable: {}", e)));
+                        }
+                    }
+                }
             } else {
                 return Err(ModuleError::new("Editor", format!("Could not parse $EDITOR env variable: {}", e)));
             }

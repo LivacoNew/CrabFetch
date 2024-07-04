@@ -161,8 +161,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("swap.title", "Swap").unwrap();
     builder = builder.set_default("swap.format", "{used} / {total} ({percent})").unwrap();
 
-    builder = builder.set_default("mounts.title", "Disk {mount}").unwrap();
-    builder = builder.set_default("mounts.format", "{space_used} used of {space_total} ({percent})").unwrap();
+    builder = builder.set_default("mounts.title", "Disk ({mount})").unwrap();
+    builder = builder.set_default("mounts.format", "{space_used} used of {space_total} ({percent}) [{filesystem}]").unwrap();
     builder = builder.set_default("mounts.ignore", vec!["/boot", "/snap"]).unwrap();
 
     builder = builder.set_default("host.title", "Host").unwrap();
@@ -476,9 +476,10 @@ format = "{used} / {total} ({percent})"
 
 [mounts]
 # Each mount has it's own entry. Title Placeholders;
-# {device}              -> Device, e.g /dev/sda
-# {mount}               -> The mount point, e.g /home
-title = "Disk {mount}"
+# {device} -> Device, e.g /dev/sda
+# {mount} -> The mount point, e.g /home
+# {filesystem} -> The filesystem running on that mount.
+title = "Disk ({mount})"
 
 # Placeholders;
 # {device} -> Device, e.g /dev/sda
@@ -486,9 +487,10 @@ title = "Disk {mount}"
 # {space_used} -> The space used.
 # {space_avail} -> The space available.
 # {space_total} -> The total space.
+# {filesystem} -> The filesystem running on that mount.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
-format = "{space_used} used of {space_total} ({percent})"
+format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
 # Mounts that shouldn't be included
 # The mounts only need to start with these

@@ -9,6 +9,7 @@ use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Mo
 pub struct MountInfo {
     device: String,     // /dev/sda
     mount: String,      // /hdd
+    filesystem: String,
     space_avail_kb: u64,
     space_total_kb: u64,
     percent: f32
@@ -35,6 +36,7 @@ impl Module for MountInfo {
         MountInfo {
             device: "".to_string(),
             mount: "".to_string(),
+            filesystem: "".to_string(),
             space_avail_kb: 0,
             space_total_kb: 0,
             percent: 0.0
@@ -63,7 +65,8 @@ impl Module for MountInfo {
 
         let mut title: String = config.mounts.title.clone();
         title = title.replace("{device}", &self.device)
-            .replace("{mount}", &self.mount);
+            .replace("{mount}", &self.mount)
+            .replace("{filesystem}", &self.filesystem);
 
         let mut value: String = self.replace_placeholders(config);
         value = self.replace_color_placeholders(&value);
@@ -92,7 +95,8 @@ impl Module for MountInfo {
 
         let mut title: String = config.mounts.title.clone();
         title = title.replace("{device}", "Unknown")
-            .replace("{mount}", "Unknown");
+            .replace("{mount}", "Unknown")
+            .replace("{filesystem}", "Unknown");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, "Unknown")
     }
@@ -147,6 +151,7 @@ impl Module for MountInfo {
         formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
+            .replace("{filesystem}", &self.filesystem)
             .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, use_ibis, 0))
             .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, use_ibis, dec_places))
             .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
@@ -195,9 +200,14 @@ pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
         if mount_point == "none" || mount_point == "swap" {
             continue
         }
+        let fs: &str = entries[2];
+        if fs == "swap" {
+            continue
+        }
 
         let mut mount: MountInfo = MountInfo::new();
         mount.mount = mount_point.to_string();
+        mount.filesystem = fs.to_string();
 
         // Convert the device entries to device names
         // TODO: support LABEL and PARTLABEL

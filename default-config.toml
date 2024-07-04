@@ -188,7 +188,7 @@ title = "Host"
 [displays]
 # Same as mounts. Placeholders;
 # {name} -> The monitor name, e.g eDP-2
-title = "Display {name}"
+title = "Display ({name})"
 
 # The format each display should be in. Placeholders;
 # {name} -> The monitor "name", e.g eDP-2 for Wayland and 412 for x11.

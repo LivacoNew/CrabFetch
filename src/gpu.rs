@@ -261,7 +261,10 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
         let mut gpu: GPUInfo = GPUInfo::new();
         gpu.vendor = dev_data.0;
         if vendor == "1002" { // AMD
-            gpu.model = search_amd_model(device)?;
+            gpu.model = match search_amd_model(device)? {
+                Some(r) => r,
+                None => dev_data.1,
+            };
         } else {
             gpu.model = dev_data.1;
         }
@@ -351,7 +354,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
     Ok((vendor_result.to_string(), device_result.to_string()))
 }
 // TODO: Revision ID searching too
-fn search_amd_model(device: &str) -> Result<String, ModuleError> {
+fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
     let mut ids_path: Option<&str> = None;
     if Path::new("/usr/share/libdrm/amdgpu.ids").exists() {
         ids_path = Some("/usr/share/libdrm/amdgpu.ids");
@@ -387,10 +390,10 @@ fn search_amd_model(device: &str) -> Result<String, ModuleError> {
     }
 
     if device_result.is_empty() {
-        device_result += device;
+        return Ok(None)
     }
 
-    Ok(device_result.to_string())
+    Ok(Some(device_result.to_string()))
 }
 
 

@@ -245,7 +245,11 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
         };
 
         gpu.vendor = dev_data.0;
-        gpu.model = dev_data.1;
+        if vendor == "1002" { // AMD
+            gpu.model = search_amd_model(device)?;
+        } else {
+            gpu.model = dev_data.1;
+        }
 
         // Finally, Vram
         let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
@@ -329,6 +333,49 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
 
     Ok((vendor_result.to_string(), device_result.to_string()))
 }
+// TODO: Revision ID searching too
+fn search_amd_model(device: &str) -> Result<String, ModuleError> {
+    let mut ids_path: Option<&str> = None;
+    if Path::new("/usr/share/libdrm/amdgpu.ids").exists() {
+        ids_path = Some("/usr/share/libdrm/amdgpu.ids");
+    }
+    if ids_path.is_none() {
+        return Err(ModuleError::new("GPU", format!("Could not find an appropriate path for getting AMD PCI ID info.")));
+    }
+
+    let file: File = match File::open(ids_path.unwrap()) {
+        Ok(r) => r,
+        Err(e) => {
+            return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e)));
+        },
+    };
+    let buffer: BufReader<File> = BufReader::new(file);
+
+    let mut device_result: String = String::new();
+    let dev_term: String = device.to_lowercase().to_string();
+    for line in buffer.lines() { 
+        if line.is_err() {
+            continue;
+        }
+        let line: String = line.unwrap();
+
+        if line.trim().starts_with("#") {
+            continue
+        }
+
+        if line.to_lowercase().starts_with(&dev_term) {
+            device_result = line.split("\t").nth(2).unwrap().trim().to_string();
+            break
+        }
+    }
+
+    if device_result.is_empty() {
+        device_result += device;
+    }
+
+    Ok(device_result.to_string())
+}
+
 
 fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
     let output: Vec<u8> = match Command::new("glxinfo")

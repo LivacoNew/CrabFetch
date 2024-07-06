@@ -106,11 +106,11 @@ impl Module for GPUInfo {
     }
 }
 
-pub fn get_gpu(method: GPUMethod, use_cache: bool) -> Result<GPUInfo, ModuleError> {
+pub fn get_gpus(method: GPUMethod, use_cache: bool) -> Result<Vec<GPUInfo>, ModuleError> {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
-    let mut gpu: GPUInfo = GPUInfo::new();
+    let mut gpus: Vec<GPUInfo> = Vec::new();
 
     // Get the GPU info via the selected method
     if use_cache {
@@ -126,13 +126,21 @@ pub fn get_gpu(method: GPUMethod, use_cache: bool) -> Result<GPUInfo, ModuleErro
                 let mut contents: String = String::new();
                 match file.as_ref().unwrap().read_to_string(&mut contents) {
                     Ok(_) => {
-                        let split: Vec<&str> = contents.split("\n").collect();
-                        if split[0] == method.to_string() {
-                            gpu.vendor = split[1].to_string();
-                            gpu.model = split[2].to_string();
-                            gpu.vram_mb = split[3].parse::<u32>().unwrap();
-                            return Ok(gpu);
+                        let gpu_entry: Vec<&str> = contents.split("\n\n").collect();
+                        for entry in gpu_entry {
+                            if entry.is_empty() {
+                                continue;
+                            }
+                            let mut gpu: GPUInfo = GPUInfo::new();
+                            let split: Vec<&str> = entry.split("\n").collect();
+                            if split[0] == method.to_string() {
+                                gpu.vendor = split[1].to_string();
+                                gpu.model = split[2].to_string();
+                                gpu.vram_mb = split[3].parse::<u32>().unwrap();
+                            }
+                            gpus.push(gpu);
                         }
+                        return Ok(gpus);
                     },
                     Err(e) => return Err(ModuleError::new("GPU", format!("GPU Cache exists, but cannot read from it - {}", e))),
                 }
@@ -146,8 +154,11 @@ pub fn get_gpu(method: GPUMethod, use_cache: bool) -> Result<GPUInfo, ModuleErro
 
 
     let filled: Result<(), ModuleError> = match method {
-        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpu),
-        GPUMethod::GLXInfo => fill_from_glxinfo(&mut gpu),
+        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus),
+        GPUMethod::GLXInfo => {
+            let mut gpu: GPUInfo = GPUInfo::new();
+            fill_from_glxinfo(&mut gpu)
+        },
     };
     match filled {
         Ok(_) => {},
@@ -160,17 +171,20 @@ pub fn get_gpu(method: GPUMethod, use_cache: bool) -> Result<GPUInfo, ModuleErro
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("GPU", format!("Unable to cache GPU info: {}", e)))
         };
-        let write: String = format!("{}\n{}\n{}\n{}", method.to_string(), gpu.vendor, gpu.model, gpu.vram_mb);
+        let mut write: String = String::new();
+        for gpu in &gpus {
+            write.push_str(&format!("{}\n{}\n{}\n{}\n\n", method.to_string(), gpu.vendor, gpu.model, gpu.vram_mb));
+        }
         match file.write(write.as_bytes()) {
             Ok(_) => {},
             Err(e) => return Err(ModuleError::new("GPU", format!("Error writing to GPU cache: {}", e)))
         }
     }
 
-    Ok(gpu)
+    Ok(gpus)
 }
 
-fn fill_from_pcisysfile(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
+fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
     // This scans /sys/bus/pci/devices/ and checks the class to find the first display adapter it
     // can
     // This needs expanded at a later date
@@ -244,6 +258,7 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
             Err(e) => return Err(e)
         };
 
+        let mut gpu: GPUInfo = GPUInfo::new();
         gpu.vendor = dev_data.0;
         if vendor == "1002" { // AMD
             gpu.model = search_amd_model(device)?;
@@ -264,10 +279,10 @@ fn fill_from_pcisysfile(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
             },
         }
         gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
-        return Ok(());
+        gpus.push(gpu);
     }
 
-    Err(ModuleError::new("GPU", format!("Unable to find suitable GPU target.")))
+    return Ok(());
 }
 fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), ModuleError> {
     // Search all known locations

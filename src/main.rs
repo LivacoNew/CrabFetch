@@ -205,7 +205,7 @@ impl Debug for ModuleError {
 struct ModuleOutputs {
     hostname: Option<Result<HostnameInfo, ModuleError>>,
     cpu: Option<Result<CPUInfo, ModuleError>>,
-    gpu: Option<Result<GPUInfo, ModuleError>>,
+    gpu: Option<Result<Vec<GPUInfo>, ModuleError>>,
     memory: Option<Result<MemoryInfo, ModuleError>>,
     swap: Option<Result<SwapInfo, ModuleError>>,
     mounts: Option<Result<Vec<MountInfo>, ModuleError>>,
@@ -388,11 +388,13 @@ fn main() {
                         }
                     }
                     let use_cache: bool = !args.ignore_cache && config.gpu.cache;
-                    known_outputs.gpu = Some(gpu::get_gpu(method, use_cache));
+                    known_outputs.gpu = Some(gpu::get_gpus(method, use_cache));
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
-                    Ok(gpu) => {
-                        output.push(gpu.style(&config, max_title_length))
+                    Ok(gpus) => {
+                        for gpu in gpus {
+                            output.push(gpu.style(&config, max_title_length))
+                        }
                     },
                     Err(e) => {
                         if log_errors {

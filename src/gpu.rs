@@ -267,18 +267,20 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
         }
 
         // Finally, Vram
-        let mut vram_file: File = match File::open(d.path().join("mem_info_vram_total")) {
-            Ok(r) => r,
-            Err(_) => return Ok(()), // dw about it, this can happen on VM's for some reason
-        };
-        let mut vram_str: String = String::new();
-        match vram_file.read_to_string(&mut vram_str) {
-            Ok(_) => {},
-            Err(e) => {
-                return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
+        match File::open(d.path().join("mem_info_vram_total")) {
+            Ok(mut r) => {
+                let mut vram_str: String = String::new();
+                match r.read_to_string(&mut vram_str) {
+                    Ok(_) => {},
+                    Err(e) => {
+                        return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
+                    },
+                }
+                gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
             },
-        }
-        gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+            Err(_) => {}, // dw about it, this can happen on VM's for some reason
+        };
+
         gpus.push(gpu);
     }
 

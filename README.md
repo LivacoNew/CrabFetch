@@ -23,7 +23,7 @@ I implore you to try to run this benchmark yourself, to see if you get similar t
 
 
 ## System Support
-If CrabFetch doesn't correctly detect something on your system, [make a issue(https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=detection&projects=&template=detection-issue.md&title=) and I'll go hunting for it!
+If CrabFetch doesn't correctly detect something on your system, [make a issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=detection&projects=&template=detection-issue.md&title=) and I'll go hunting for it!
 
 
 ## Installation

@@ -13,6 +13,7 @@ use host::HostInfo;
 use locale::LocaleInfo;
 use memory::MemoryInfo;
 use mounts::MountInfo;
+use music::MusicInfo;
 use os::OSInfo;
 use packages::PackagesInfo;
 use shell::ShellInfo;
@@ -42,6 +43,7 @@ mod editor;
 mod locale;
 mod battery;
 mod formatter;
+mod music;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -107,6 +109,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "battery" => res = max(res, config.battery.title.chars().count() as u64),
             "uptime" => res = max(res, config.uptime.title.chars().count() as u64),
             "locale" => res = max(res, config.locale.title.chars().count() as u64),
+            "music" => res = max(res, config.music.title.chars().count() as u64),
             "editor" => res = max(res, config.editor.title.chars().count() as u64),
             _ => {}
         }
@@ -218,6 +221,7 @@ struct ModuleOutputs {
     battery: Option<Result<BatteryInfo, ModuleError>>,
     uptime: Option<Result<UptimeInfo, ModuleError>>,
     locale: Option<Result<LocaleInfo, ModuleError>>,
+    music: Option<Result<MusicInfo, ModuleError>>,
     editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>
 }
@@ -239,6 +243,7 @@ impl ModuleOutputs {
             battery: None,
             uptime: None,
             locale: None,
+            music: None,
             editor: None,
             os: None
         }
@@ -648,6 +653,25 @@ fn main() {
                     },
                 }; 
                 print_bench_time(args.benchmark, "Locale Module", bench);
+            },
+            "music" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                if known_outputs.music.is_none() {
+                    known_outputs.music = Some(music::get_music(&config.music.player));
+                }
+                match known_outputs.music.as_ref().unwrap() {
+                    Ok(music) => {
+                        output.push(music.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(MusicInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+                print_bench_time(args.benchmark, "Music Module", bench);
             },
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, fs::{self, File}, io::{Read, Write}, path::
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, formatter::CrabFetchColor, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, music::MusicConfiguration, os::OSConfiguration, packages::PackagesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 
 
 #[derive(Deserialize)]
@@ -45,6 +45,7 @@ pub struct Configuration {
     pub uptime: UptimeConfiguration,
     pub battery: BatteryConfiguration,
     pub locale: LocaleConfiguration,
+    pub music: MusicConfiguration,
     pub editor: EditorConfiguration
 }
 
@@ -112,6 +113,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                                   "editor".to_string(),
                                   "uptime".to_string(),
                                   "locale".to_string(),
+                                  "music".to_string(),
 
                                   "space".to_string(),
                                   "colors".to_string(),
@@ -199,6 +201,10 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("locale.title", "Locale").unwrap();
     builder = builder.set_default("locale.format", "{locale}").unwrap();
+
+    builder = builder.set_default("music.title", "Music").unwrap();
+    builder = builder.set_default("music.format", "{track} by {track_artists} ({album})").unwrap();
+    builder = builder.set_default("music.player", "spotify").unwrap();
 
     // Check for any module overrides
     if module_override.is_some() {
@@ -571,6 +577,16 @@ fancy = true
 
 [locale]
 title = "Locale"
+
+
+[music]
+title = "Music"
+# Placeholders;
+# {track} - The name of the track
+# {album} - The name of the album
+# {track_artists} - The names of all track artists
+# {album_artists} - The names of all album artists
+format = "{track} by {track_artists} ({album})"
 
 
 [battery]

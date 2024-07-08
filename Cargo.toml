@@ -19,3 +19,4 @@ libc = "0.2.153"
 humantime = "2.1.0"
 x11rb = {version = "0.13.1", features=["randr"]}
 wayland-client = "0.31.3"
+dbus = "0.9.7"

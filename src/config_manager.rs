@@ -588,6 +588,12 @@ title = "Music"
 # {album_artists} - The names of all album artists
 format = "{track} by {track_artists} ({album})"
 
+# The player to get music data from
+# The player must support the MPRIS standard (most do.)
+# Known good selections; (make a GitHub issue if a known good one needs added here)
+# - spotify
+player = "spotify"
+
 
 [battery]
 title = "Battery"

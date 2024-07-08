@@ -393,7 +393,7 @@ fn main() {
                         }
                     }
                     let use_cache: bool = !args.ignore_cache && config.gpu.cache;
-                    known_outputs.gpu = Some(gpu::get_gpus(method, use_cache));
+                    known_outputs.gpu = Some(gpu::get_gpus(method, use_cache, config.gpu.amd_accuracy));
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
                     Ok(gpus) => {

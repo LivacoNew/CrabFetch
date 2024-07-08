@@ -130,6 +130,10 @@ method = "pcisysfile"
 # It's reccomended to use this with "glxinfo" to give you full speed while retaining accurate GPU info.
 cache = false
 
+# Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
+# Only does anything with pcisysfile method 
+amd_accuracy = true
+
 title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD

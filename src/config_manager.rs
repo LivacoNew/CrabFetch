@@ -154,6 +154,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
     builder = builder.set_default("gpu.cache", false).unwrap();
+    builder = builder.set_default("gpu.amd_accuracy", true).unwrap();
     builder = builder.set_default("gpu.title", "GPU").unwrap();
     builder = builder.set_default("gpu.format", "{vendor} {model} ({vram})").unwrap();
 
@@ -319,8 +320,7 @@ pub fn generate_config_file(location_override: Option<String>) {
 
 
 // The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = r#"
-# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki
+const DEFAULT_CONFIG_CONTENTS: &str = r#"# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki
 
 
 # The modules to display and in what order.
@@ -451,6 +451,10 @@ method = "pcisysfile"
 # On top of the above, this allows you to choose to cache the GPU info.
 # It's reccomended to use this with "glxinfo" to give you full speed while retaining accurate GPU info.
 cache = false
+
+# Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
+# Only does anything with pcisysfile method 
+amd_accuracy = true
 
 title = "GPU"
 # Placeholders;
@@ -603,5 +607,4 @@ format = "{percentage}%"
 
 
 
-# You've reached the end! Congrats, have a muffin :)
-"#;
+# You've reached the end! Congrats, have a muffin :)"#;

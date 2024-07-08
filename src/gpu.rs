@@ -27,6 +27,7 @@ impl ToString for GPUMethod {
 pub struct GPUConfiguration {
     pub method: GPUMethod,
     pub cache: bool,
+    pub amd_accuracy: bool,
 
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -106,7 +107,7 @@ impl Module for GPUInfo {
     }
 }
 
-pub fn get_gpus(method: GPUMethod, use_cache: bool) -> Result<Vec<GPUInfo>, ModuleError> {
+pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool) -> Result<Vec<GPUInfo>, ModuleError> {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
@@ -154,7 +155,7 @@ pub fn get_gpus(method: GPUMethod, use_cache: bool) -> Result<Vec<GPUInfo>, Modu
 
 
     let filled: Result<(), ModuleError> = match method {
-        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus),
+        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus, amd_accuracy),
         GPUMethod::GLXInfo => {
             let mut gpu: GPUInfo = GPUInfo::new();
             fill_from_glxinfo(&mut gpu)
@@ -184,7 +185,7 @@ pub fn get_gpus(method: GPUMethod, use_cache: bool) -> Result<Vec<GPUInfo>, Modu
     Ok(gpus)
 }
 
-fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
+fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool) -> Result<(), ModuleError> {
     // This scans /sys/bus/pci/devices/ and checks the class to find the first display adapter it
     // can
     // This needs expanded at a later date
@@ -260,7 +261,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
 
         let mut gpu: GPUInfo = GPUInfo::new();
         gpu.vendor = dev_data.0;
-        if vendor == "1002" { // AMD
+        if vendor == "1002" && amd_accuracy { // AMD
             gpu.model = match search_amd_model(device)? {
                 Some(r) => r,
                 None => dev_data.1,

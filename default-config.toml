@@ -23,6 +23,7 @@ modules = [
     "editor",
     "uptime",
     "locale",
+    "music",
 
     "space",
     "colors",

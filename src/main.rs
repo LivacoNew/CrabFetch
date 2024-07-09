@@ -14,6 +14,7 @@ use initsys::InitSystemInfo;
 use locale::LocaleInfo;
 use memory::MemoryInfo;
 use mounts::MountInfo;
+#[cfg(feature = "music")]
 use music::MusicInfo;
 use os::OSInfo;
 use packages::PackagesInfo;
@@ -44,6 +45,7 @@ mod editor;
 mod locale;
 mod battery;
 mod formatter;
+#[cfg(feature = "music")]
 mod music;
 mod initsys;
 
@@ -111,6 +113,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             "battery" => res = max(res, config.battery.title.chars().count() as u64),
             "uptime" => res = max(res, config.uptime.title.chars().count() as u64),
             "locale" => res = max(res, config.locale.title.chars().count() as u64),
+            #[cfg(feature = "music")]
             "music" => res = max(res, config.music.title.chars().count() as u64),
             "editor" => res = max(res, config.editor.title.chars().count() as u64),
             _ => {}
@@ -223,6 +226,7 @@ struct ModuleOutputs {
     battery: Option<Result<BatteryInfo, ModuleError>>,
     uptime: Option<Result<UptimeInfo, ModuleError>>,
     locale: Option<Result<LocaleInfo, ModuleError>>,
+    #[cfg(feature = "music")]
     music: Option<Result<MusicInfo, ModuleError>>,
     editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>,
@@ -246,6 +250,7 @@ impl ModuleOutputs {
             battery: None,
             uptime: None,
             locale: None,
+            #[cfg(feature = "music")]
             music: None,
             editor: None,
             os: None,
@@ -658,6 +663,7 @@ fn main() {
                 }; 
                 print_bench_time(args.benchmark, "Locale Module", bench);
             },
+            #[cfg(feature = "music")]
             "music" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.music.is_none() {

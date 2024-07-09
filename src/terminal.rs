@@ -180,7 +180,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
             // get a more creative username man
             contents = match fs::canonicalize("/proc/self/fd/0") {
                 Ok(r) => r.display().to_string(),
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize {} symlink: {}", path, e)))
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize /proc/self/fd/0 symlink: {}", e)))
             };
         }
     }

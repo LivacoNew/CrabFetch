@@ -155,6 +155,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
     builder = builder.set_default("gpu.cache", false).unwrap();
     builder = builder.set_default("gpu.amd_accuracy", true).unwrap();
+    builder = builder.set_default("gpu.ignore_disabled_gpus", true).unwrap();
     builder = builder.set_default("gpu.title", "GPU").unwrap();
     builder = builder.set_default("gpu.format", "{vendor} {model} ({vram})").unwrap();
 
@@ -456,6 +457,10 @@ cache = false
 # Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
 # Only does anything with pcisysfile method 
 amd_accuracy = true
+
+# Ignore any GPU's that are marked as "disabled" by Linux
+ignore_disabled_gpus = true
+
 
 title = "GPU"
 # Placeholders;

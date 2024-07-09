@@ -135,6 +135,10 @@ cache = false
 # Only does anything with pcisysfile method 
 amd_accuracy = true
 
+# Ignore any GPU's that are marked as "disabled" by Linux
+ignore_disabled_gpus = true
+
+
 title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD

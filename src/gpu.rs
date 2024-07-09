@@ -28,6 +28,7 @@ pub struct GPUConfiguration {
     pub method: GPUMethod,
     pub cache: bool,
     pub amd_accuracy: bool,
+    pub ignore_disabled_gpus: bool,
 
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
@@ -107,7 +108,7 @@ impl Module for GPUInfo {
     }
 }
 
-pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool) -> Result<Vec<GPUInfo>, ModuleError> {
+pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool, ignore_disabled_gpus: bool) -> Result<Vec<GPUInfo>, ModuleError> {
     // Unlike other modules, GPU is cached!
     // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
     // It caches into /tmp/crabfetch-gpu
@@ -155,7 +156,7 @@ pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool) -> Resul
 
 
     let filled: Result<(), ModuleError> = match method {
-        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus, amd_accuracy),
+        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus, amd_accuracy, ignore_disabled_gpus),
         GPUMethod::GLXInfo => {
             let mut gpu: GPUInfo = GPUInfo::new();
             fill_from_glxinfo(&mut gpu)
@@ -185,7 +186,7 @@ pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool) -> Resul
     Ok(gpus)
 }
 
-fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool) -> Result<(), ModuleError> {
+fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disabled: bool) -> Result<(), ModuleError> {
     // This scans /sys/bus/pci/devices/ and checks the class to find the first display adapter it
     // can
     // This needs expanded at a later date
@@ -215,7 +216,6 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool) -> Result<(
             Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {}", e))),
         };
         // println!("{}", d.path().to_str().unwrap());
-
         let mut class_file: File = match File::open(d.path().join("class")) {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("class").to_str().unwrap(), e))),
@@ -230,6 +230,21 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool) -> Result<(
             // Not a display device
             // And yes, I'm doing this check with a string instead of parsing it w/ a AND fuck you.
             continue
+        }
+
+        if ignore_disabled {
+            let mut enable_file: File = match File::open(d.path().join("enable")) {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("enable").to_str().unwrap(), e))),
+            };
+            let mut enable_str: String = String::new();
+            match enable_file.read_to_string(&mut enable_str) {
+                Ok(_) => {},
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+            }
+            if enable_str.trim() == "0" {
+                continue;
+            }
         }
 
         // Vendor/Device

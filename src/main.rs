@@ -10,6 +10,7 @@ use editor::EditorInfo;
 use formatter::CrabFetchColor;
 use gpu::{GPUInfo, GPUMethod};
 use host::HostInfo;
+use initsys::InitSystemInfo;
 use locale::LocaleInfo;
 use memory::MemoryInfo;
 use mounts::MountInfo;
@@ -44,6 +45,7 @@ mod locale;
 mod battery;
 mod formatter;
 mod music;
+mod initsys;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -223,7 +225,8 @@ struct ModuleOutputs {
     locale: Option<Result<LocaleInfo, ModuleError>>,
     music: Option<Result<MusicInfo, ModuleError>>,
     editor: Option<Result<EditorInfo, ModuleError>>,
-    os: Option<Result<OSInfo, ModuleError>>
+    os: Option<Result<OSInfo, ModuleError>>,
+    initsys: Option<Result<InitSystemInfo, ModuleError>>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -245,7 +248,8 @@ impl ModuleOutputs {
             locale: None,
             music: None,
             editor: None,
-            os: None
+            os: None,
+            initsys: None
         }
     }
 }
@@ -691,6 +695,25 @@ fn main() {
                     },
                 }; 
                 print_bench_time(args.benchmark, "Editor Module", bench);
+            },
+            "initsys" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                if known_outputs.initsys.is_none() {
+                    known_outputs.initsys = Some(initsys::get_init_system());
+                }
+                match known_outputs.initsys.as_ref().unwrap() {
+                    Ok(init) => {
+                        output.push(init.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(InitSystemInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+                print_bench_time(args.benchmark, "InitSys Module", bench);
             },
             "colors" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

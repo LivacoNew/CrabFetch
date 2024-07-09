@@ -289,5 +289,9 @@ title = "Battery"
 format = "{percentage}%"
 
 
+[initsys]
+title = "Init System"
+
+
 
 # You've reached the end! Congrats, have a muffin :)

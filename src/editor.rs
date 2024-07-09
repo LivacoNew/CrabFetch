@@ -80,7 +80,7 @@ impl Module for EditorInfo {
     }
 }
 
-pub fn get_editor() -> Result<EditorInfo, ModuleError> {
+pub fn get_editor(fancy: bool) -> Result<EditorInfo, ModuleError> {
     let mut editor: EditorInfo = EditorInfo::new();
 
     editor.path = match env::var("EDITOR") {
@@ -111,15 +111,17 @@ pub fn get_editor() -> Result<EditorInfo, ModuleError> {
 
     // Convert the name to a fancy variant
     // I don't like hardcoding like this, but otherwise the result looks dumb
-    editor.name = match editor.name.as_str() {
-        "vi" => "VI".to_string(),
-        "vim" => "Vim".to_string(),
-        "nvim" => "NeoVim".to_string(),
-        "nano" => "GNU Nano".to_string(),
-        "emacs" => "Emacs".to_string(),
-        "gedit" => "GEdit".to_string(),
-        _ => editor.name
-    };
+    if fancy {
+        editor.name = match editor.name.as_str() {
+            "vi" => "VI".to_string(),
+            "vim" => "Vim".to_string(),
+            "nvim" => "NeoVim".to_string(),
+            "nano" => "GNU Nano".to_string(),
+            "emacs" => "Emacs".to_string(),
+            "gedit" => "GEdit".to_string(),
+            _ => editor.name
+        };
+    }
 
     Ok(editor)
 }

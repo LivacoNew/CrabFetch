@@ -686,7 +686,7 @@ fn main() {
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor());
+                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
                     Ok(editor) => {

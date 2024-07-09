@@ -26,51 +26,22 @@ impl Module for DesktopInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.desktop.title_color).is_some() {
-            title_color = &config.desktop.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.desktop.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.desktop.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.desktop.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.desktop.title_bold.is_some() {
-            title_bold = config.desktop.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.desktop.title_italic.is_some() {
-            title_italic = config.desktop.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.desktop.seperator.is_some() {
-            seperator = config.desktop.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.desktop.title_color).is_some() {
-            title_color = config.desktop.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.desktop.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.desktop.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.desktop.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.desktop.title_bold.is_some() {
-            title_bold = config.desktop.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.desktop.title_italic.is_some() {
-            title_italic = config.desktop.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.desktop.seperator.is_some() {
-            seperator = config.desktop.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -100,7 +71,7 @@ pub fn get_desktop() -> Result<DesktopInfo, ModuleError> {
             } else if env::var("DISPLAY").is_ok() {
                 "x11".to_string()
             } else {
-                return Err(ModuleError::new("Desktop", format!("Could not identify desktop session type.")));
+                return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
             }
         }
     };

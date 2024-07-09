@@ -79,14 +79,14 @@ impl CrabFetchColor {
     }
 }
 
-pub fn replace_color_placeholders(str: &String) -> String { // out of place here?
+pub fn replace_color_placeholders(str: &str) -> String { // out of place here?
     let mut new_string = String::new();
     let split: Vec<&str> = str.split("{color-").collect();
     if split.len() <= 1 {
-        return str.clone();
+        return str.to_string();
     }
     for s in split {
-        let len: usize = match s.find("}") {
+        let len: usize = match s.find('}') {
             Some(r) => r,
             None => {
                 new_string.push_str(s);
@@ -108,8 +108,8 @@ pub fn replace_color_placeholders(str: &String) -> String { // out of place here
 
 pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Configuration) -> String {
     let mut percent_str: String = percentage.to_string();
-    percent_str.push_str("%");
-    if config.percentage_color_thresholds.len() <= 0 {
+    percent_str.push('%');
+    if config.percentage_color_thresholds.is_empty() {
         return text.replace("{percent}", &percent_str).to_string();
     }
 
@@ -135,11 +135,11 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera 
     let divider = if ibis {1024} else {1000};
     if ibis {
-        result = result / 1.024;
+        result /= 1.024;
     }
 
     for _ in 0..3 {
-        let cur_step: f64 = result as f64 / divider as f64;
+        let cur_step: f64 = result / divider as f64;
         if cur_step <= 1.0 {
             break; // Use current 
         }
@@ -158,7 +158,8 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
         3 => if ibis {" TiB"} else {" TB"},
         _ => " ?"
     });
-    return res;
+
+    res
 }
 
 // Rust is a great language, but when I need to start re-implementing the most basic of functions
@@ -166,4 +167,19 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
 pub fn round(number: f64, places: u32) -> f64 {
     let power: f64 = 10_u32.pow(places) as f64;
     (number * power).round() / power
+}
+
+// Bar processing 
+// Modifies the bar string in place
+pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progress_char: &str, empty_char: &str, target_percentage: f32, length: u8) {
+    bar.push_str(left_border);
+    let bar_length: u8 = length - 2;
+    for x in 0..(bar_length) {
+        if target_percentage as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+            bar.push_str(progress_char);
+        } else {
+            bar.push_str(empty_char);
+        }
+    }
+    bar.push_str(right_border);
 }

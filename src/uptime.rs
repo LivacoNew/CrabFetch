@@ -25,51 +25,22 @@ impl Module for UptimeInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.uptime.title_color).is_some() {
-            title_color = &config.uptime.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.uptime.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.uptime.title_bold.is_some() {
-            title_bold = config.uptime.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.uptime.title_italic.is_some() {
-            title_italic = config.uptime.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.uptime.seperator.is_some() {
-            seperator = config.uptime.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.uptime.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.uptime.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.uptime.title_color).is_some() {
-            title_color = config.uptime.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.uptime.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.uptime.title_bold.is_some() {
-            title_bold = config.uptime.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.uptime.title_italic.is_some() {
-            title_italic = config.uptime.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.uptime.seperator.is_some() {
-            seperator = config.uptime.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.uptime.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.uptime.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -90,7 +61,7 @@ pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
         Ok(_) => {},
         Err(e) => return Err(ModuleError::new("Uptime", format!("Can't read from /proc/uptime - {}", e))),
     }
-    uptime.uptime = match contents.split(" ").collect::<Vec<&str>>()[0].parse::<f64>() {
+    uptime.uptime = match contents.split(' ').collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
         Err(e) => return Err(ModuleError::new("Uptime", format!("Could not parse /proc/uptime: {}", e))),
     };

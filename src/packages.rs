@@ -26,25 +26,10 @@ impl Module for PackagesInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_length: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.packages.title_color).is_some() {
-            title_color = &config.packages.title_color.as_ref().unwrap();
-        }
-
-        let mut title_bold: bool = config.title_bold;
-        if config.packages.title_bold.is_some() {
-            title_bold = config.packages.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.packages.title_italic.is_some() {
-            title_italic = config.packages.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.packages.seperator.is_some() {
-            seperator = config.packages.seperator.as_ref().unwrap();
-        }
-
+        let title_color: &CrabFetchColor = config.packages.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.packages.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.packages.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.packages.seperator.as_ref().unwrap_or(&config.seperator);
 
         // Full style
         let mut str: String = String::new();
@@ -63,7 +48,7 @@ impl Module for PackagesInfo {
             // Inline value stuff
             if config.inline_values {
                 for _ in 0..(max_title_length - (title.len() as u64)) {
-                    str.push_str(" ");
+                    str.push(' ');
                 }
             }
             str.push_str(seperator);
@@ -71,7 +56,7 @@ impl Module for PackagesInfo {
 
         let mut value: String = String::new();
         for manager in &self.packages {
-            if value.len() > 0 {
+            if !value.is_empty() {
                 value.push_str(", ");
             }
             // :(
@@ -91,7 +76,7 @@ impl Module for PackagesInfo {
     fn unknown_output(_config: &Configuration, _max_title_length: u64) -> String {
         // get_packages can't fail, so this isn't implemented
         // if it does, your fucked, and panic time ensures
-        panic!("Packages should never fail, something's wrong.");
+        panic!("Packages should never fail, something's wrong. Report this to my GitHub please.");
     }
 }
 
@@ -111,22 +96,18 @@ impl ManagerInfo {
 pub fn get_packages() -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
-    match process_pacman_packages() {
-        Some(r) => packages.packages.push(ManagerInfo::fill("pacman", r)),
-        None => {}
-    };
-    match process_flatpak_packages() {
-        Some(r) => packages.packages.push(ManagerInfo::fill("flatpak", r)),
-        None => {}
-    };
-    match process_dpkg_packages() {
-        Some(r) => packages.packages.push(ManagerInfo::fill("dpkg", r)),
-        None => {}
-    };
-    match process_rpm_packages() {
-        Some(r) => packages.packages.push(ManagerInfo::fill("rpm", r)),
-        None => {}
-    };
+    if let Some(r) = process_pacman_packages() {
+        packages.packages.push(ManagerInfo::fill("pacman", r));
+    }
+    if let Some(r) = process_flatpak_packages() {
+        packages.packages.push(ManagerInfo::fill("flatpak", r));
+    }
+    if let Some(r) = process_dpkg_packages() {
+        packages.packages.push(ManagerInfo::fill("dpkg", r));
+    }
+    if let Some(r) = process_rpm_packages() {
+        packages.packages.push(ManagerInfo::fill("rpm", r));
+    }
 
     packages
 }
@@ -207,7 +188,7 @@ fn _process_dpkg_packages_legacy() -> Option<u64> {
     }
 
     let mut result: u64 = 0;
-    for entry in contents.split("\n") {
+    for entry in contents.split('\n') {
         if !entry.contains("Status: install ok installed") {
             continue
         }
@@ -226,7 +207,8 @@ fn process_rpm_packages() -> Option<u64> {
         Ok(r) => r,
         Err(_) => return None,
     };
-    match db.iterate("SELECT COUNT(1) FROM `Packages`;", |v| {
+
+    let success: Result<_, _> = db.iterate("SELECT COUNT(1) FROM `Packages`;", |v| {
         if v[0].1.is_some() {
             result = match v[0].1.unwrap().parse() {
                 Ok(r) => r,
@@ -234,7 +216,9 @@ fn process_rpm_packages() -> Option<u64> {
             };
         }
         true
-    }) {
+    });
+
+    match success {
         Ok(_) => Some(result),
         Err(_) => None,
     }

@@ -35,58 +35,26 @@ impl Module for CPUInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.cpu.title_color).is_some() {
-            title_color = config.cpu.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.cpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.cpu.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.cpu.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.cpu.title_bold.is_some() {
-            title_bold = config.cpu.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.cpu.title_italic.is_some() {
-            title_italic = config.cpu.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.cpu.seperator.is_some() {
-            seperator = config.cpu.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.cpu.title_color).is_some() {
-            title_color = config.cpu.title_color.as_ref().unwrap();
-        }
-
-        let mut title_bold: bool = config.title_bold;
-        if config.cpu.title_bold.is_some() {
-            title_bold = config.cpu.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.cpu.title_italic.is_some() {
-            title_italic = config.cpu.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.cpu.seperator.is_some() {
-            seperator = config.cpu.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        let title_color: &CrabFetchColor = config.cpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.cpu.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.cpu.seperator.as_ref().unwrap_or(&config.seperator);
+        
+        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut dec_places: u32 = config.decimal_places;
-        if config.cpu.decimal_places.is_some() {
-            dec_places = config.cpu.decimal_places.unwrap();
-        }
+        let dec_places: u32 = config.cpu.decimal_places.unwrap_or(config.decimal_places);
 
         config.cpu.format.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
@@ -169,7 +137,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         }
     }
 
-    cpu.current_clock_mhz = cpu.current_clock_mhz / cpu_mhz_count as f32;
+    cpu.current_clock_mhz /= cpu_mhz_count as f32;
     Ok(())
 }
 fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {

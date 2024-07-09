@@ -32,63 +32,27 @@ impl Module for MusicInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.music.title_color).is_some() {
-            title_color = &config.music.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.music.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.music.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.music.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.music.title_bold.is_some() {
-            title_bold = config.music.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.music.title_italic.is_some() {
-            title_italic = config.music.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.music.seperator.is_some() {
-            seperator = config.music.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.music.title_color).is_some() {
-            title_color = config.music.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.music.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.music.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.music.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.music.title_bold.is_some() {
-            title_bold = config.music.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.music.title_italic.is_some() {
-            title_italic = config.music.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.music.seperator.is_some() {
-            seperator = config.music.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut album_artists: String = String::new();
-        self.album_artists
-            .iter()
-            .for_each(|x| album_artists.push_str(x));
-
-        let mut track_artists: String = String::new();
-        self.track_artists
-            .iter()
-            .for_each(|x| track_artists.push_str(x));
+        let album_artists: String = self.album_artists.join(" ");
+        let track_artists: String = self.track_artists.join(" ");
 
         config.music.format.replace("{track}", &self.track)
             .replace("{album}", &self.album)
@@ -105,7 +69,7 @@ pub fn get_music(player: &str) -> Result<MusicInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Music", format!("Unable to connect to DBus: {}", e)))
     };
     let player_dest: String = format!("org.mpris.MediaPlayer2.{}", player.to_lowercase());
-    if player_dest.ends_with(".") {
+    if player_dest.ends_with('.') {
         // Leaving the player string empty can cause a crash without this check
         return Err(ModuleError::new("Music", "You have specified your player in an invalid way, tried to use a invalid DBus destination.".to_string()))
     }

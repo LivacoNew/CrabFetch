@@ -44,111 +44,50 @@ impl Module for MountInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.mounts.title_color).is_some() {
-            title_color = config.mounts.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.mounts.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.mounts.title_bold.is_some() {
-            title_bold = config.mounts.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.mounts.title_italic.is_some() {
-            title_italic = config.mounts.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.mounts.seperator.is_some() {
-            seperator = config.mounts.seperator.as_ref().unwrap();
-        }
-
-        let mut title: String = config.mounts.title.clone();
-        title = title.replace("{device}", &self.device)
+        let title: String = config.mounts.title.clone()
+            .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{filesystem}", &self.filesystem);
 
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, &value)
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.mounts.title_color).is_some() {
-            title_color = config.mounts.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.mounts.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.mounts.title_bold.is_some() {
-            title_bold = config.mounts.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.mounts.title_italic.is_some() {
-            title_italic = config.mounts.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.mounts.seperator.is_some() {
-            seperator = config.mounts.seperator.as_ref().unwrap();
-        }
-
-        let mut title: String = config.mounts.title.clone();
-        title = title.replace("{device}", "Unknown")
+        let title: String = config.mounts.title.clone()
+            .replace("{device}", "Unknown")
             .replace("{mount}", "Unknown")
             .replace("{filesystem}", "Unknown");
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut dec_places: u32 = config.decimal_places;
-        if config.mounts.decimal_places.is_some() {
-            dec_places = config.mounts.decimal_places.unwrap();
-        }
+        let dec_places: u32 = config.mounts.decimal_places.unwrap_or(config.decimal_places);
+        let use_ibis: bool = config.memory.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
-        if config.mounts.format.contains("{bar}") {
-            let mut left_border: &str = config.progress_left_border.as_str();
-            if config.mounts.progress_left_border.is_some() {
-                left_border = config.mounts.progress_left_border.as_ref().unwrap();
-            }
-            let mut right_border: &str = config.progress_right_border.as_str();
-            if config.mounts.progress_right_border.is_some() {
-                right_border = config.mounts.progress_right_border.as_ref().unwrap();
-            }
-            let mut progress: &str = config.progress_progress.as_str();
-            if config.mounts.progress_progress.is_some() {
-                progress = config.mounts.progress_progress.as_ref().unwrap();
-            }
-            let mut empty: &str = config.progress_empty.as_str();
-            if config.mounts.progress_empty.is_some() {
-                empty = config.mounts.progress_empty.as_ref().unwrap();
-            }
-            let mut length: u8 = config.progress_target_length;
-            if config.mounts.progress_target_length.is_some() {
-                length = config.mounts.progress_target_length.unwrap();
-            }
-
-            bar.push_str(left_border);
-
-            let bar_length: u8 = length - 2;
-            for x in 0..(bar_length) {
-                if self.percent as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
-                    bar.push_str(progress);
-                } else {
-                    bar.push_str(empty);
-                }
-            }
-            bar.push_str(right_border);
+        if config.memory.format.contains("{bar}") {
+            let left_border: &str = config.mounts.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
+            let right_border: &str = config.mounts.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
+            let progress: &str = config.mounts.progress_progress.as_ref().unwrap_or(&config.progress_progress);
+            let empty: &str = config.mounts.progress_empty.as_ref().unwrap_or(&config.progress_empty);
+            let length: u8 = config.mounts.progress_target_length.unwrap_or(config.progress_target_length);
+            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        let mut use_ibis: bool = config.use_ibis;
-        if config.mounts.use_ibis.is_some() {
-            use_ibis = config.mounts.use_ibis.unwrap();
-        }
-
-        formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{filesystem}", &self.filesystem)
@@ -160,8 +99,8 @@ impl Module for MountInfo {
 }
 impl MountInfo {
     pub fn is_ignored(&self, config: &Configuration) -> bool {
-        for x in config.mounts.ignore.to_vec() {
-            if self.mount.starts_with(&x) {
+        for x in &config.mounts.ignore {
+            if self.mount.starts_with(x) {
                 return true
             }
         }
@@ -188,7 +127,7 @@ pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
             continue
         }
         let line: String = line.unwrap();
-        if line.starts_with("#") || line.trim().is_empty() {
+        if line.starts_with('#') || line.trim().is_empty() {
             continue
         }
 
@@ -212,9 +151,8 @@ pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
         // Convert the device entries to device names
         // TODO: support LABEL and PARTLABEL
         let device_name: &str = entries[0];
-        if device_name.starts_with("UUID=") {
+        if let Some(uuid) = device_name.strip_prefix("UUID=") {
             // UUID
-            let uuid: String = device_name[5..].to_string();
             let uuid_path: PathBuf = Path::new("/dev/disk/by-uuid/").join(uuid);
             if !uuid_path.is_symlink() {
                 continue; // ??

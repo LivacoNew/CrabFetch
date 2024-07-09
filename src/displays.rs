@@ -24,35 +24,31 @@ impl DisplayInfo {
         match self.wl_transform.unwrap() {
             WEnum::Value(transform) => {
                 match transform {
-                    Transform::Normal => {}, // Nothing
                     Transform::_90 => {
                         // Swap width/height
                         let (width, height) = (self.width, self.height);
                         self.width = height;
                         self.height = width;
                     },
-                    Transform::_180 => {}, // Nothing
                     Transform::_270 => {
                         // Swap width/height
                         let (width, height) = (self.width, self.height);
                         self.width = height;
                         self.height = width;
                     },
-                    Transform::Flipped => {}, // Nothing
                     Transform::Flipped90 => {
                         // Swap width/height
                         let (width, height) = (self.width, self.height);
                         self.width = height;
                         self.height = width;
                     },
-                    Transform::Flipped180 => {}, // Nothing
                     Transform::Flipped270 => {
                         // Swap width/height
                         let (width, height) = (self.width, self.height);
                         self.width = height;
                         self.height = width;
                     },
-                    _ => {}, // Clueless mate
+                    _ => {}
                 }
             },
             WEnum::Unknown(_) => {}, // ? no idea what to do here
@@ -83,57 +79,25 @@ impl Module for DisplayInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.displays.title_color).is_some() {
-            title_color = config.displays.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.displays.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.displays.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.displays.title_bold.is_some() {
-            title_bold = config.displays.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.displays.title_italic.is_some() {
-            title_italic = config.displays.title_italic.unwrap();
-        }
+        let title: String = config.displays.title.clone().replace("{name}", &self.name);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.displays.seperator.is_some() {
-            seperator = config.displays.seperator.as_ref().unwrap();
-        }
-
-        let mut title: String = config.displays.title.clone();
-        title = title.replace("{name}", &self.name);
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.displays.title_color).is_some() {
-            title_color = config.displays.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.displays.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.displays.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.displays.title_bold.is_some() {
-            title_bold = config.displays.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.displays.title_italic.is_some() {
-            title_italic = config.displays.title_italic.unwrap();
-        }
+        let title: String = config.displays.title.clone().replace("{name}", "Unknown");
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.displays.seperator.is_some() {
-            seperator = config.displays.seperator.as_ref().unwrap();
-        }
-
-        let mut title: String = config.displays.title.clone();
-        title = title.replace("{name}", "Unknown");
-
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -155,11 +119,11 @@ pub fn get_displays() -> Result<Vec<DisplayInfo>, ModuleError> {
     // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
     // can report any string and break if someone's dumb enough to do that
     if env::var("WAYLAND_DISPLAY").is_ok() {
-        return fetch_wayland();
+        fetch_wayland()
     } else if env::var("DISPLAY").is_ok() {
-        return fetch_xorg();
+        fetch_xorg()
     } else {
-        return Err(ModuleError::new("Display", format!("Could not identify desktop session type.")));
+        Err(ModuleError::new("Display", "Could not identify desktop session type.".to_string()))
     }
 }
 
@@ -187,7 +151,7 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
         Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 window: {}", e))),
     };
 
-    if !conn.extension_information(randr::X11_EXTENSION_NAME).is_ok() {
+    if conn.extension_information(randr::X11_EXTENSION_NAME).is_err() {
         return Err(ModuleError::new("Display", "X11 compositor doesn't have required 'randr' extension.".to_string()));
     }
 
@@ -231,7 +195,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for WaylandState {
         if let wl_registry::Event::Global {name, interface, version} = event {
             if interface == "wl_output" {
                 // This is what we're looking for, bind to it
-                reg.bind::<wl_output::WlOutput, _, _>(name, version, &qh, ());
+                reg.bind::<wl_output::WlOutput, _, _>(name, version, qh, ());
                 state.num_outputs += 1;   
             }
         }
@@ -255,14 +219,8 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
             } 
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
-            display.width = match width.to_string().parse::<u16>() {
-                Ok(r) => r,
-                Err(_) => 0
-            };
-            display.height = match height.to_string().parse::<u16>() {
-                Ok(r) => r,
-                Err(_) => 0
-            };
+            display.width = width.to_string().parse::<u16>().unwrap_or(0);
+            display.height = height.to_string().parse::<u16>().unwrap_or(0);
             display.refresh_rate = match (*refresh as f32 / 1000.0).round().to_string().parse::<u16>() {
                 Ok(r) => Some(r),
                 // There's no real "error handling" here so just set it to 0 so it's not None and letting us get stuck in an infinite loop

@@ -36,101 +36,39 @@ impl Module for SwapInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.swap.title_color).is_some() {
-            title_color = &config.swap.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.swap.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.swap.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.swap.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.swap.title_bold.is_some() {
-            title_bold = config.swap.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.swap.title_italic.is_some() {
-            title_italic = config.swap.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.swap.seperator.is_some() {
-            seperator = config.swap.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.swap.title_color).is_some() {
-            title_color = config.swap.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.swap.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.swap.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.swap.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.swap.title_bold.is_some() {
-            title_bold = config.swap.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.swap.title_italic.is_some() {
-            title_italic = config.swap.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.swap.seperator.is_some() {
-            seperator = config.swap.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut dec_places: u32 = config.decimal_places;
-        if config.mounts.decimal_places.is_some() {
-            dec_places = config.mounts.decimal_places.unwrap();
-        }
+        let dec_places: u32 = config.swap.decimal_places.unwrap_or(config.decimal_places);
+        let use_ibis: bool = config.swap.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
         if config.swap.format.contains("{bar}") {
-            let mut left_border: &str = config.progress_left_border.as_str();
-            if config.swap.progress_left_border.is_some() {
-                left_border = config.swap.progress_left_border.as_ref().unwrap();
-            }
-            let mut right_border: &str = config.progress_right_border.as_str();
-            if config.swap.progress_right_border.is_some() {
-                right_border = config.swap.progress_right_border.as_ref().unwrap();
-            }
-            let mut progress: &str = config.progress_progress.as_str();
-            if config.swap.progress_progress.is_some() {
-                progress = config.swap.progress_progress.as_ref().unwrap();
-            }
-            let mut empty: &str = config.progress_empty.as_str();
-            if config.swap.progress_empty.is_some() {
-                empty = config.swap.progress_empty.as_ref().unwrap();
-            }
-            let mut length: u8 = config.progress_target_length;
-            if config.swap.progress_target_length.is_some() {
-                length = config.swap.progress_target_length.unwrap();
-            }
-
-            bar.push_str(left_border);
-
-            let bar_length: u8 = length - 2;
-            for x in 0..(bar_length) {
-                if self.percent as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
-                    bar.push_str(progress);
-                } else {
-                    bar.push_str(empty);
-                }
-            }
-            bar.push_str(right_border);
+            let left_border: &str = config.swap.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
+            let right_border: &str = config.swap.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
+            let progress: &str = config.swap.progress_progress.as_ref().unwrap_or(&config.progress_progress);
+            let empty: &str = config.swap.progress_empty.as_ref().unwrap_or(&config.progress_empty);
+            let length: u8 = config.swap.progress_target_length.unwrap_or(config.progress_target_length);
+            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        let mut use_ibis: bool = config.use_ibis;
-        if config.swap.use_ibis.is_some() {
-            use_ibis = config.swap.use_ibis.unwrap();
-        }
-
-        formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)
@@ -154,10 +92,10 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
             return Err(ModuleError::new("Swap", format!("Can't read from /proc/swaps - {}", e)));
         },
     }
-    let mut lines: Vec<&str> = contents.split("\n").collect();
+    let mut lines: Vec<&str> = contents.split('\n').collect();
     lines.remove(0);
     for line in lines {
-        if line.trim() == "" {
+        if line.is_empty() {
             continue;
         }
         let mut values: Vec<&str> = line.split(['\t', ' ']).collect();
@@ -165,11 +103,11 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
 
         swap.used_kb += match values[3].parse::<f64>() {
             Ok(r) => (r * 1.024) as u64,
-            Err(_) => 0 as u64,
+            Err(_) => 0_u64,
         };
         swap.total_kb += match values[2].parse::<f64>() {
             Ok(r) => (r * 1.024) as u64,
-            Err(_) => 0 as u64,
+            Err(_) => 0_u64,
         };
     }
 

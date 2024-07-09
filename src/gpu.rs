@@ -49,59 +49,28 @@ impl Module for GPUInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.gpu.title_color).is_some() {
-            title_color = config.gpu.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.gpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.gpu.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.gpu.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.gpu.title_bold.is_some() {
-            title_bold = config.gpu.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.gpu.title_italic.is_some() {
-            title_italic = config.gpu.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.gpu.seperator.is_some() {
-            seperator = config.gpu.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.gpu.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.gpu.title, title_color, title_bold, title_italic, seperator, &value)
     }
 
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.gpu.title_color).is_some() {
-            title_color = config.gpu.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.gpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.gpu.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.gpu.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.gpu.title_bold.is_some() {
-            title_bold = config.gpu.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.gpu.title_italic.is_some() {
-            title_italic = config.gpu.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.gpu.seperator.is_some() {
-            seperator = config.gpu.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.gpu.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.gpu.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut use_ibis: bool = config.use_ibis;
-        if config.gpu.use_ibis.is_some() {
-            use_ibis = config.gpu.use_ibis.unwrap();
-        }
+        let use_ibis: bool = config.gpu.use_ibis.unwrap_or(config.use_ibis);
+
         config.gpu.format.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
             .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
@@ -134,7 +103,7 @@ pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool, ignore_d
                                 continue;
                             }
                             let mut gpu: GPUInfo = GPUInfo::new();
-                            let split: Vec<&str> = entry.split("\n").collect();
+                            let split: Vec<&str> = entry.split('\n').collect();
                             if split[0] == method.to_string() {
                                 gpu.vendor = split[1].to_string();
                                 gpu.model = split[2].to_string();
@@ -286,24 +255,21 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
         }
 
         // Finally, Vram
-        match File::open(d.path().join("mem_info_vram_total")) {
-            Ok(mut r) => {
-                let mut vram_str: String = String::new();
-                match r.read_to_string(&mut vram_str) {
-                    Ok(_) => {},
-                    Err(e) => {
-                        return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
-                    },
-                }
-                gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
-            },
-            Err(_) => {}, // dw about it, this can happen on VM's for some reason
-        };
+        if let Ok(mut r) = File::open(d.path().join("mem_info_vram_total")) {
+            let mut vram_str: String = String::new();
+            match r.read_to_string(&mut vram_str) {
+                Ok(_) => {},
+                Err(e) => {
+                    return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
+                },
+            }
+            gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+        }
 
         gpus.push(gpu);
     }
 
-    return Ok(());
+    Ok(())
 }
 fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), ModuleError> {
     // Search all known locations
@@ -316,7 +282,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
     }
 
     if ids_path.is_none() {
-        return Err(ModuleError::new("GPU", format!("Could not find an appropriate path for getting PCI ID info.")));
+        return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting PCI ID info.".to_string()));
     }
 
     let file: File = match File::open(ids_path.unwrap()) {
@@ -340,7 +306,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
         }
         let line: String = line.unwrap();
 
-        if line.trim().starts_with("#") {
+        if line.trim().starts_with('#') {
             continue
         }
 
@@ -376,7 +342,7 @@ fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
         ids_path = Some("/usr/share/libdrm/amdgpu.ids");
     }
     if ids_path.is_none() {
-        return Err(ModuleError::new("GPU", format!("Could not find an appropriate path for getting AMD PCI ID info.")));
+        return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting AMD PCI ID info.".to_string()));
     }
 
     let file: File = match File::open(ids_path.unwrap()) {
@@ -395,12 +361,12 @@ fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
         }
         let line: String = line.unwrap();
 
-        if line.trim().starts_with("#") {
+        if line.trim().starts_with('#') {
             continue
         }
 
         if line.to_lowercase().starts_with(&dev_term) {
-            device_result = line.split("\t").nth(2).unwrap().trim().to_string();
+            device_result = line.split('\t').nth(2).unwrap().trim().to_string();
             break
         }
     }
@@ -420,7 +386,7 @@ fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
             Ok(r) => r.stdout,
             Err(e) => {
                 if NotFound == e.kind() {
-                    return Err(ModuleError::new("GPU", format!("GPU requires the 'glxinfo' command, which is not present!")));
+                    return Err(ModuleError::new("GPU", "GPU requires the 'glxinfo' command, which is not present!".to_string()));
                 } else {
                     return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e)));
                 }
@@ -437,7 +403,7 @@ fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
     // for the vendor and remove it from the output
     // VRam is from line starting "Dedicated video memory"
 
-    for line in contents.split("\n").collect::<Vec<&str>>() {
+    for line in contents.split('\n').collect::<Vec<&str>>() {
         let line: &str = line.trim();
         if line.starts_with("OpenGL vendor string:") {
             // E.g OpenGL vendor string: AMD
@@ -446,7 +412,7 @@ fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
         if line.starts_with("OpenGL renderer string:") {
             // E.g OpenGL renderer string: AMD Radeon RX 7800 XT (radeonsi, navi32, LLVM 17.0.6, DRM 3.57, 6.8.1-arch1-1)
             // Looks for the first ( and takes from there back
-            gpu.model = line[24..line.find("(").unwrap()].replace(&gpu.vendor, "").trim().to_string()
+            gpu.model = line[24..line.find('(').unwrap()].replace(&gpu.vendor, "").trim().to_string()
         }
         if line.starts_with("Dedicated video memory:") {
             // E.g Dedicated video memory: 16384 MB

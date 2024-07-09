@@ -31,96 +31,38 @@ impl Module for BatteryInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.battery.title_color).is_some() {
-            title_color = &config.battery.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.battery.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.battery.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.battery.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.battery.title_bold.is_some() {
-            title_bold = config.battery.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.battery.title_italic.is_some() {
-            title_italic = config.battery.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.battery.seperator.is_some() {
-            seperator = config.battery.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.battery.title_color).is_some() {
-            title_color = config.battery.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.battery.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.battery.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.battery.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.battery.title_bold.is_some() {
-            title_bold = config.battery.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.battery.title_italic.is_some() {
-            title_italic = config.battery.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.battery.seperator.is_some() {
-            seperator = config.battery.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut dec_places: u32 = config.decimal_places;
-        if config.mounts.decimal_places.is_some() {
-            dec_places = config.mounts.decimal_places.unwrap();
-        }
+        let dec_places: u32 = config.cpu.decimal_places.unwrap_or(config.decimal_places);
 
         let mut bar: String = String::new();
         if config.battery.format.contains("{bar}") {
-            let mut left_border: &str = config.progress_left_border.as_str();
-            if config.battery.progress_left_border.is_some() {
-                left_border = config.battery.progress_left_border.as_ref().unwrap();
-            }
-            let mut right_border: &str = config.progress_right_border.as_str();
-            if config.battery.progress_right_border.is_some() {
-                right_border = config.battery.progress_right_border.as_ref().unwrap();
-            }
-            let mut progress: &str = config.progress_progress.as_str();
-            if config.battery.progress_progress.is_some() {
-                progress = config.battery.progress_progress.as_ref().unwrap();
-            }
-            let mut empty: &str = config.progress_empty.as_str();
-            if config.battery.progress_empty.is_some() {
-                empty = config.battery.progress_empty.as_ref().unwrap();
-            }
-            let mut length: u8 = config.progress_target_length;
-            if config.battery.progress_target_length.is_some() {
-                length = config.battery.progress_target_length.unwrap();
-            }
-
-            bar.push_str(left_border);
-
-            let bar_length: u8 = length - 2;
-            for x in 0..(bar_length) {
-                if self.percentage as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
-                    bar.push_str(progress);
-                } else {
-                    bar.push_str(empty);
-                }
-            }
-            bar.push_str(right_border);
+            let left_border: &str = config.battery.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
+            let right_border: &str = config.battery.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
+            let progress: &str = config.battery.progress_progress.as_ref().unwrap_or(&config.progress_progress);
+            let empty: &str = config.battery.progress_empty.as_ref().unwrap_or(&config.progress_empty);
+            let length: u8 = config.battery.progress_target_length.unwrap_or(config.progress_target_length);
+            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
-        formatter::process_percentage_placeholder(&config.battery.format, BatteryInfo::round(self.percentage, dec_places), &config)
+        formatter::process_percentage_placeholder(&config.battery.format, BatteryInfo::round(self.percentage, dec_places), config)
             .replace("{bar}", &bar)
     }
 }

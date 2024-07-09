@@ -25,59 +25,26 @@ impl Module for TerminalInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (&config.terminal.title_color).is_some() {
-            title_color = &config.terminal.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.terminal.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.terminal.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.terminal.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.terminal.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.terminal.title_bold.is_some() {
-            title_bold = config.terminal.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.terminal.title_italic.is_some() {
-            title_italic = config.terminal.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.terminal.seperator.is_some() {
-            seperator = config.terminal.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.terminal.title_color).is_some() {
-            title_color = config.terminal.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.terminal.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.terminal.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.terminal.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.terminal.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.terminal.title_bold.is_some() {
-            title_bold = config.terminal.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.terminal.title_italic.is_some() {
-            title_italic = config.terminal.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.terminal.seperator.is_some() {
-            seperator = config.terminal.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.terminal.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let mut format: String = "{terminal_name}".to_string();
-        if config.terminal.format.is_some() {
-            format = config.terminal.format.clone().unwrap();
-        }
-
+        let format: String = config.terminal.format.clone().unwrap_or("{terminal_name}".to_string());
         format.replace("{terminal_name}", &self.terminal_name)
     }
 }
@@ -115,7 +82,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         let path: String = format!("/proc/{}/stat", parent_pid);
         // println!("Shell proccess ID should be {} leading to {}", parent_pid, path);
 
-        let mut parent_stat: File = match File::open(path.to_string()) {
+        let mut parent_stat: File = match File::open(&path) {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         };
@@ -125,7 +92,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         }
         // println!("Got contents: {}", contents);
 
-        let content_split: Vec<&str> = stat_contents.split(" ").collect::<Vec<&str>>();
+        let content_split: Vec<&str> = stat_contents.split(' ').collect::<Vec<&str>>();
 
         if shell_level == 1 {
             terminal_pid = Some(match content_split[3].parse() {
@@ -153,7 +120,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     let terminal_pid: u32 = terminal_pid.unwrap();
     let path: String = format!("/proc/{}/cmdline", terminal_pid);
 
-    let mut terminal_cmdline: File = match File::open(path.to_string()) {
+    let mut terminal_cmdline: File = match File::open(&path) {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
     };
@@ -163,15 +130,15 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
     }
 
-    contents = contents.split(" ").collect::<Vec<&str>>()[0].to_string();
+    contents = contents.split(' ').collect::<Vec<&str>>()[0].to_string();
     // Fix for this happening; https://cdn.discordapp.com/attachments/1011301373482115163/1221945908250280096/image.png?ex=66146ccf&is=6601f7cf&hm=2045e0d8150ff468c84ee0fe10ca9105dd4793df05c599715bd1bd7c74d4dc9d&
     contents = contents.split("--").next().unwrap().to_string();
-    contents = contents.split("/").last().unwrap().to_string();
+    contents = contents.split('/').last().unwrap().to_string();
     // Fix for gnome terminal coming out as gnome-terminal-server
-    if contents.trim().replace("\0", "") == "gnome-terminal-server" {
+    if contents.trim().replace('\0', "") == "gnome-terminal-server" {
         contents = "GNOME Terminal".to_string();
     }
-    if contents.trim().replace("\0", "") == "sshd:" {
+    if contents.trim().replace('\0', "") == "sshd:" {
         if !chase_ssh_tty {
             contents = "SSH Terminal".to_string();
         } else {

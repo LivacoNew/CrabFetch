@@ -125,7 +125,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
 // This is done here simply to make the main function not as indented of a mess, it's abstracted into here
 fn benchmark_point(benchmarking: bool) -> Option<Instant> {
     if !benchmarking {return None;}
-    return Some(Instant::now());
+    Some(Instant::now())
 }
 fn print_bench_time(benchmarking: bool, name: &str, time: Option<Instant>) {
     if !benchmarking {
@@ -168,7 +168,7 @@ trait Module {
             // Inline value stuff
             if config.inline_values {
                 for _ in 0..(max_title_len - min(title.chars().count() as u64, max_title_len)) {
-                    str.push_str(" ");
+                    str.push(' ');
                 }
             }
             str.push_str(seperator);
@@ -178,7 +178,7 @@ trait Module {
 
         str
     }
-    fn replace_color_placeholders(&self, str: &String) -> String {
+    fn replace_color_placeholders(&self, str: &str) -> String {
         formatter::replace_color_placeholders(str)
     }
 }
@@ -318,7 +318,7 @@ fn main() {
     let mut cur_segment_length: usize = 0;
     for module in &config.modules {
         let module_parse_bench: Option<Instant> = benchmark_point(args.benchmark); 
-        let module_split: Vec<&str> = module.split(":").collect();
+        let module_split: Vec<&str> = module.split(':').collect();
         let module_name: &str = module_split[0];
         match module_name {
             "space" => {
@@ -768,7 +768,7 @@ fn main() {
     let mut ascii_length: usize = 0;
     let mut ascii_target_length: u16 = 0;
     if config.ascii.display {
-        ascii_split = ascii.0.split("\n").filter(|x| x.trim() != "").collect();
+        ascii_split = ascii.0.split('\n').filter(|x| x.trim() != "").collect();
         ascii_length = ascii_split.len();
         ascii_target_length = ascii.1 + config.ascii.margin;
     }
@@ -788,26 +788,27 @@ fn main() {
     print_bench_time(args.benchmark, "Module + ASCII Output", bench);
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
     if current_line < ascii_length && config.ascii.display {
+        let mut ascii_line: usize = current_line;
         for _ in current_line..ascii_length {
-            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
-            current_line += 1;
+            print!("{}", get_ascii_line(ascii_line, &ascii_split, &ascii_target_length, &config));
+            ascii_line += 1;
             println!();
         }
     }
     print_bench_time(args.benchmark, "Remaining ASCII Output", bench);
 }
 
-fn get_ascii_line(current_line: usize, ascii_split: &Vec<&str>, target_length: &u16, config: &Configuration) -> String {
-    let percentage: f32 = (current_line as f32 / ascii_split.len() as f32) as f32;
+fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: &u16, config: &Configuration) -> String {
+    let percentage: f32 = current_line as f32 / ascii_split.len() as f32;
     let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
 
     let mut line = String::new();
     if ascii_split.len() > current_line {
         line = ascii_split[current_line].to_string();
     }
-    let remainder: u16 = target_length - (line.chars().collect::<Vec<char>>().len() as u16);
+    let remainder: u16 = target_length - (line.chars().count() as u16);
     for _ in 0..remainder {
-        line.push_str(" ");
+        line.push(' ');
     }
 
     if current_line < ascii_split.len() {

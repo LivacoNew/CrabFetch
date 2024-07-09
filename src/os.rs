@@ -29,51 +29,22 @@ impl Module for OSInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.os.title_color).is_some() {
-            title_color = config.os.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.os.title_bold.is_some() {
-            title_bold = config.os.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.os.title_italic.is_some() {
-            title_italic = config.os.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.os.seperator.is_some() {
-            seperator = config.os.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.os.title_color).is_some() {
-            title_color = config.os.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.os.title_bold.is_some() {
-            title_bold = config.os.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.os.title_italic.is_some() {
-            title_italic = config.os.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.os.seperator.is_some() {
-            seperator = config.os.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -103,7 +74,7 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
             return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e)));
         },
     }
-    for line in contents.trim().to_string().split("\n").collect::<Vec<&str>>() {
+    for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {
             os.distro = line[13..line.len() - 1].to_string();
             continue;

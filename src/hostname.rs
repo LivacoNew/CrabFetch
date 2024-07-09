@@ -26,51 +26,22 @@ impl Module for HostnameInfo {
         }
     }
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.hostname.title_color).is_some() {
-            title_color = config.hostname.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.hostname.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.hostname.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.hostname.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.hostname.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.hostname.title_bold.is_some() {
-            title_bold = config.hostname.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.hostname.title_italic.is_some() {
-            title_italic = config.hostname.title_italic.unwrap();
-        }
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        let mut seperator: &str = config.seperator.as_str();
-        if config.hostname.seperator.is_some() {
-            seperator = config.hostname.seperator.as_ref().unwrap();
-        }
-
-        let mut value: String = self.replace_placeholders(config);
-        value = self.replace_color_placeholders(&value);
-
-        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, &seperator, &value)
+        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, seperator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let mut title_color: &CrabFetchColor = &config.title_color;
-        if (config.hostname.title_color).is_some() {
-            title_color = config.hostname.title_color.as_ref().unwrap();
-        }
+        let title_color: &CrabFetchColor = config.hostname.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.hostname.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.hostname.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.hostname.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let mut title_bold: bool = config.title_bold;
-        if config.hostname.title_bold.is_some() {
-            title_bold = config.hostname.title_bold.unwrap();
-        }
-        let mut title_italic: bool = config.title_italic;
-        if config.hostname.title_italic.is_some() {
-            title_italic = config.hostname.title_italic.unwrap();
-        }
-
-        let mut seperator: &str = config.seperator.as_str();
-        if config.hostname.seperator.is_some() {
-            seperator = config.hostname.seperator.as_ref().unwrap();
-        }
-
-        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, &seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -132,14 +103,14 @@ fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleE
             Ok(r) => r.stdout,
             Err(_) => {
                 // fuck it
-                return Err(ModuleError::new("Hostname", format!("Can't find hostname source.")));
+                return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string()));
             },
         };
 
     hostname.hostname = match String::from_utf8(output) {
         Ok(r) => r.trim().to_string(),
         Err(_) => {
-            return Err(ModuleError::new("Hostname", format!("Can't find hostname source.")));
+            return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string()));
         },
     };
 

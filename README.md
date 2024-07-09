@@ -83,11 +83,3 @@ I was fed up of NeoFetch having to load in every time I spawned a terminal. Fast
 
 ### Do you plan on supporting other operating systems?
 Not anytime soon. I already work on limited time for all my projects, and having to boot up VM's to test beta software constantly is annoying. That plus the idea of working with Windows again scares me.
-
-
-## Working On (Roadmap)
-- [ ] [Kitty Image Support](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
-- [ ] Multiple GPUs
-- [ ] Config Presets
-- [ ] Local IP
-- [ ] Music Player / Song

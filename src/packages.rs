@@ -16,6 +16,7 @@ pub struct PackagesConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
+    pub ignore: Vec<String>,
     pub format: String
 }
 impl Module for PackagesInfo {
@@ -56,6 +57,10 @@ impl Module for PackagesInfo {
 
         let mut value: String = String::new();
         for manager in &self.packages {
+            if config.packages.ignore.contains(&manager.manager_name) {
+                continue
+            }
+
             if !value.is_empty() {
                 value.push_str(", ");
             }

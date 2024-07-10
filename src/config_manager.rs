@@ -186,6 +186,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("packages.title", "Packages").unwrap();
     builder = builder.set_default("packages.format", "{count} ({manager})").unwrap();
+    builder = builder.set_default("packages.ignore", Vec::<String>::new()).unwrap();
 
     builder = builder.set_default("desktop.title", "Desktop").unwrap();
     builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();
@@ -556,6 +557,9 @@ title = "Packages"
 # {manager} -> The name of the manager
 # {count} -> The amount of packages that manager reports
 format = "{count} ({manager})"
+
+# List of package managers to ignore, for whatever reason you choose to
+ignore = []
 
 
 [desktop]

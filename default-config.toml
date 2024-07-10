@@ -224,6 +224,9 @@ title = "Packages"
 # {count} -> The amount of packages that manager reports
 format = "{count} ({manager})"
 
+# List of package managers to ignore, for whatever reason you choose to
+ignore = []
+
 
 [desktop]
 title = "Desktop"

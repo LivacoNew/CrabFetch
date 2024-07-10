@@ -15,7 +15,7 @@ pub struct UptimeConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: String,
+    pub format: Option<String>,
 }
 impl Module for UptimeInfo {
     fn new() -> UptimeInfo {
@@ -44,7 +44,8 @@ impl Module for UptimeInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.uptime.format.replace("{time}", &format_duration(self.uptime).to_string())
+        let format: String = config.uptime.format.clone().unwrap_or("{time}".to_string());
+        format.replace("{time}", &format_duration(self.uptime).to_string())
     }
 }
 

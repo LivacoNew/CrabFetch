@@ -196,7 +196,6 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("shell.show_default_shell", "false").unwrap();
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
-    builder = builder.set_default("uptime.format", "{time}").unwrap();
 
     builder = builder.set_default("battery.title", "Battery").unwrap();
     builder = builder.set_default("battery.format", "{percentage}%").unwrap();

@@ -21,7 +21,7 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         });
         return (user_override.unwrap(), length)
     }
-    let os: &str = &os.replace('"', " ");
+    let os: &str = &os.replace('"', "");
 
     match os {
         "arch" => arch(),

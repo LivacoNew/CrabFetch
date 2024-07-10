@@ -108,6 +108,9 @@ pub fn get_packages() -> PackagesInfo {
     if let Some(r) = process_rpm_packages() {
         packages.packages.push(ManagerInfo::fill("rpm", r));
     }
+    if let Some(r) = process_xbps_packages() {
+        packages.packages.push(ManagerInfo::fill("xbps", r));
+    }
 
     packages
 }
@@ -149,7 +152,7 @@ fn process_dpkg_packages() -> Option<u64> {
         Ok(r) => r,
         Err(_) => return None,
     };
-    let target_bytes: Vec<u8> = vec![83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100];
+    let target_bytes: Vec<u8> = vec!(83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100);
 
     let mut count = 0;
     for y in file_bytes {
@@ -222,4 +225,36 @@ fn process_rpm_packages() -> Option<u64> {
         Ok(_) => Some(result),
         Err(_) => None,
     }
+}
+
+fn process_xbps_packages() -> Option<u64> {
+    // Same deal as dpkg, as it's a ginormous file
+    // I'm not sure if adding the database format version statically as 0.38 will cause issues, but
+    // considering their current docs as well as a reddit post from 4 years ago both use 0.38 I'm
+    // assuming it's safe to do this 
+    //
+    // https://man.voidlinux.org/xbps-pkgdb.1#FILES
+    // https://www.reddit.com/r/voidlinux/comments/ig6hur/comment/g2rz5pk/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+
+    let mut result: u64 = 0;
+    let file_bytes: Vec<u8> = match fs::read("/var/db/xbps/pkgdb-0.38.plist") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+    let target_bytes: Vec<u8> = vec!(60, 107, 101, 121, 62, 105, 110, 115, 116, 97, 108, 108, 101, 100, 95, 115, 105, 122, 101, 60, 47, 107, 101, 121, 62);
+
+    let mut count = 0;
+    for y in file_bytes {
+        if y == target_bytes[count] {
+            count += 1;
+            if count == (target_bytes.len() - 1) {
+                result += 1;
+                count = 0;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    Some(result)
 }

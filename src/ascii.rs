@@ -21,18 +21,22 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         });
         return (user_override.unwrap(), length)
     }
+    let os: &str = &os.replace('"', " ");
 
     match os {
         "arch" => arch(),
         "debian" => debian(),
         "ubuntu" => ubuntu(),
         "fedora" => fedora(),
+        "void" => void(),
         _ => ("".to_string(), 0)
     }
 }
 
 // Define art down below here
-fn arch() -> (String, u16) { // Generated from https://www.text-image.com/convert/ascii.html
+// All distro ASCII's are generated from here; https://www.text-image.com/convert/ascii.html
+// I suck at ASCII art, and want to use smaller ones than the other fetch defaults.
+fn arch() -> (String, u16) { 
 ("             ~!
             ^YY^
            :JYYY^
@@ -48,7 +52,7 @@ fn arch() -> (String, u16) { // Generated from https://www.text-image.com/conver
 ^7~:                    :~7^"
  .to_string(), 28)
 }
-fn debian() -> (String, u16) { // Generated from https://www.text-image.com/convert/ascii.html
+fn debian() -> (String, u16) { 
 ("         .^!7!~~~^:
       :!JPPP55YY5555Y?!:
     ^YPG5?!:.    .:~?PGPJ:
@@ -67,7 +71,7 @@ fn debian() -> (String, u16) { // Generated from https://www.text-image.com/conv
          .^~~:..            "
  .to_string(), 28)
 }
-fn ubuntu() -> (String, u16) { // https://www.text-image.com/convert/ascii.html
+fn ubuntu() -> (String, u16) { 
 ("           .^~7?JJYYYYJJ?7~^.
         :!?JYYYYYYYYYYYYY55YY?!:
      .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
@@ -88,7 +92,7 @@ JYYY7^:^7~  ~5YYYYYYYYYYYY5~   7YYYYYYYJ
         :!?JYYYYYYYYYYYYY55YY?!:
            .^~7?JJYYYYJJ?7~^.           ".to_string(), 40) // fatty
 }
-fn fedora() -> (String, u16) { // https://www.text-image.com/convert/ascii.html
+fn fedora() -> (String, u16) { 
 ("      .^7J5PGGGGGPY7~.
     ^JPGGGGGGGP5J??J5PJ^
   ^YGBGGGGGGP!.   . ^5PGY^
@@ -102,4 +106,22 @@ GPY55GGGGGB!  !BGGGGGGGGGG!
 GG5Y55Y55J~  :5GGGGGGGBGY^
 PGGP5!     :7PGGGGGGGPJ^
 ~YGGGPYJJY5GGGGGP5J7^.      ".to_string(), 28)
+}
+fn void() -> (String, u16) {
+("             ..::::::::::..             
+           ::::::::::::::::::.          
+            .:::::....::::::::::.       
+      !^      .          ..::::::.      
+     ?5Y?^                  .::::::     
+    75YY5J.       ...         .::::.    
+J555B5YYY:.~7!7Y5YY5PP?::Y557^5PP5YY55Y!
+^B@@@#555?7!G@@&?!!B@@@!G@@#7#@@B7!Y@@@@
+ .G@@@#GY. J@@@J!7P@@#JG@@#7#@@#7!J@@@B!
+  .YBP5YY: :?YYJY5PY7^!5Y5^75Y5YYY55?~  
+    75YY5J.        ...        .::::.    
+    .?5YY5Y~                  .::::     
+      !Y5YY5J!:.        .:.     ..      
+       :?Y5555YY?7!!!!7?YYY!.           
+         :!JY55555555555555Y?.          
+            :~!?JYYYYYYJ?!^:            ".to_string(), 40)
 }

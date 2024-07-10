@@ -116,6 +116,7 @@ fn calc_max_title_length(config: &Configuration) -> u64 {
             #[cfg(feature = "music")]
             "music" => res = max(res, config.music.title.chars().count() as u64),
             "editor" => res = max(res, config.editor.title.chars().count() as u64),
+            "initsys" => res = max(res, config.initsys.title.chars().count() as u64),
             _ => {}
         }
     }

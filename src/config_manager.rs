@@ -207,7 +207,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("editor.fancy", true).unwrap();
 
     builder = builder.set_default("locale.title", "Locale").unwrap();
-    builder = builder.set_default("locale.format", "{locale}").unwrap();
+    builder = builder.set_default("locale.format", "{language} ({encoding})").unwrap();
 
     builder = builder.set_default("music.title", "Music").unwrap();
     builder = builder.set_default("music.format", "{track} by {track_artists} ({album})").unwrap();
@@ -594,6 +594,10 @@ fancy = true
 
 [locale]
 title = "Locale"
+# Placeholders;
+# {language} - The selected language
+# {encoding} - The encoding selected, most likely UTF-8
+format = "{language} ({encoding})"
 
 
 [music]

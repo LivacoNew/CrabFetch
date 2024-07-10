@@ -5,7 +5,8 @@ use serde::Deserialize;
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
 pub struct LocaleInfo {
-    code: String,
+    language: String,
+    encoding: String,
 }
 #[derive(Deserialize)]
 pub struct LocaleConfiguration {
@@ -19,7 +20,8 @@ pub struct LocaleConfiguration {
 impl Module for LocaleInfo {
     fn new() -> LocaleInfo {
         LocaleInfo {
-            code: "".to_string()
+            language: "".to_string(),
+            encoding: "".to_string()
         }
     }
 
@@ -43,17 +45,21 @@ impl Module for LocaleInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.locale.format.replace("{locale}", &self.code)
+        config.locale.format.replace("{language}", &self.language)
+            .replace("{encoding}", &self.encoding)
     }
 }
 
 pub fn get_locale() -> Result<LocaleInfo, ModuleError> {
     let mut locale: LocaleInfo = LocaleInfo::new();
 
-    locale.code = match env::var("LANG") {
+    let raw: String = match env::var("LANG") {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Locale", format!("Could not parse $LANG env variable: {}", e)))
     };
+    let raw_split: Vec<&str> = raw.split('.').collect();
+    locale.language = raw_split[0].to_string();
+    locale.encoding = raw_split[1].to_string();
 
     Ok(locale)
 }

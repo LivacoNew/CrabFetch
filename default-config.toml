@@ -264,6 +264,10 @@ fancy = true
 
 [locale]
 title = "Locale"
+# Placeholders;
+# {language} - The selected language
+# {encoding} - The encoding selected, most likely UTF-8
+format = "{language} ({encoding})"
 
 
 [music]

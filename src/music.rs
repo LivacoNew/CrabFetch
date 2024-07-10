@@ -96,11 +96,11 @@ pub fn get_music(player: &str) -> Result<MusicInfo, ModuleError> {
     };
     music.track_artists = match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:artist") {
         Some(r) => r.to_vec(),
-        None => vec!("Unknown".to_string()),
+        None => vec!["Unknown".to_string()],
     };
     music.album_artists = match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:albumArtist") {
         Some(r) => r.to_vec(),
-        None => vec!("Unknown".to_string()),
+        None => vec!["Unknown".to_string()],
     };
 
     Ok(music)

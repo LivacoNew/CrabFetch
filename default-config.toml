@@ -24,6 +24,8 @@ modules = [
     "uptime",
     "locale",
     "music",
+    "initsys",
+    "processes",
 
     "space",
     "colors",
@@ -295,6 +297,10 @@ format = "{percentage}%"
 
 [initsys]
 title = "Init System"
+
+
+[processes]
+title = "Total Processes"
 
 
 

@@ -18,6 +18,7 @@ use mounts::MountInfo;
 use music::MusicInfo;
 use os::OSInfo;
 use packages::PackagesInfo;
+use processes::ProcessesInfo;
 use shell::ShellInfo;
 use swap::SwapInfo;
 use terminal::TerminalInfo;
@@ -48,6 +49,7 @@ mod formatter;
 #[cfg(feature = "music")]
 mod music;
 mod initsys;
+mod processes;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -232,6 +234,7 @@ struct ModuleOutputs {
     editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>,
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
+    processes: Option<Result<ProcessesInfo, ModuleError>>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -255,7 +258,8 @@ impl ModuleOutputs {
             music: None,
             editor: None,
             os: None,
-            initsys: None
+            initsys: None,
+            processes: None,
         }
     }
 }
@@ -721,6 +725,25 @@ fn main() {
                     },
                 }; 
                 print_bench_time(args.benchmark, "InitSys Module", bench);
+            },
+            "processes" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                if known_outputs.processes.is_none() {
+                    known_outputs.processes = Some(processes::get_process_count());
+                }
+                match known_outputs.processes.as_ref().unwrap() {
+                    Ok(processes) => {
+                        output.push(processes.style(&config, max_title_length))
+                    },
+                    Err(e) => {
+                        if log_errors {
+                            output.push(e.to_string());
+                        } else {
+                            output.push(ProcessesInfo::unknown_output(&config, max_title_length));
+                        }
+                    },
+                }; 
+                print_bench_time(args.benchmark, "Processes Module", bench);
             },
             "colors" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

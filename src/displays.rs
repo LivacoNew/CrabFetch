@@ -111,6 +111,14 @@ impl Module for DisplayInfo {
             .replace("{refresh_rate}", &refresh_rate)
     }
 }
+impl DisplayInfo {
+    // Used by calc_max_title_length
+    pub fn get_title_size(&self, config: &Configuration) -> u64 {
+        config.displays.title.clone()
+            .replace("{name}", &self.name)
+            .chars().count() as u64
+    }
+}
 
 pub fn get_displays() -> Result<Vec<DisplayInfo>, ModuleError> {
     // Good news, during my college final deadline hell over the past 2 months, I learned how to

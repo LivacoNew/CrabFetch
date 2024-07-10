@@ -94,19 +94,65 @@ pub struct Args {
 }
 
 // Figures out the max title length for when we're using inline value display
-fn calc_max_title_length(config: &Configuration) -> u64 {
+// Some of these require the modules pre-computing as they have dynamic titles
+fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutputs, benchmarking: bool) -> u64 {
     let mut res: u64 = 0;
     // this kinda sucks
     for module in &config.modules {
         match module.as_str() {
             "hostname" => res = max(res, config.hostname.title.chars().count() as u64),
             "cpu" => res = max(res, config.cpu.title.chars().count() as u64),
-            "gpu" => res = max(res, config.gpu.title.chars().count() as u64),
+            "gpu" => res = {
+                if config.gpu.title.contains("{index}") {
+                    // Allows for 2 digits in it's place, because no ones going to have more than
+                    // 99 GPU's in a single system, and if you are then why tf are you using
+                    // CrabFetch of all things go train an AI lmfao
+                    return max(res, config.gpu.title.chars().count() as u64 - 5);
+                }
+                max(res, config.gpu.title.chars().count() as u64)
+            },
             "memory" => res = max(res, config.memory.title.chars().count() as u64),
             "swap" => res = max(res, config.swap.title.chars().count() as u64),
-            "mounts" => res = max(res, config.mounts.title.chars().count() as u64),
+            "mounts" => res = {
+                let bench: Option<Instant> = benchmark_point(benchmarking); 
+
+                if known_outputs.mounts.is_none() {
+                    known_outputs.mounts = Some(mounts::get_mounted_drives());
+                }
+                let mut length: u64 = 0;
+                if known_outputs.mounts.as_ref().unwrap().is_err() {
+                    continue;
+                }
+                for info in known_outputs.mounts.as_ref().unwrap().as_ref().unwrap() {
+                    if info.is_ignored(config) {
+                        continue;
+                    }
+                    length = max(info.get_title_size(config), length);
+                }
+
+                print_bench_time(benchmarking, "Mounts Module (Pre-comp for max_title_length)", bench);
+
+                length
+            },
             "host" => res = max(res, config.host.title.chars().count() as u64),
-            "displays" => res = max(res, config.displays.title.chars().count() as u64),
+            "displays" => res = {
+                let bench: Option<Instant> = benchmark_point(benchmarking); 
+
+                if known_outputs.displays.is_none() {
+                    known_outputs.displays = Some(displays::get_displays());
+                }
+                let mut length: u64 = 0;
+                if known_outputs.displays.as_ref().unwrap().is_err() {
+                    continue;
+                }
+                for display in known_outputs.displays.as_ref().unwrap().as_ref().unwrap() {
+                    length = max(display.get_title_size(config), length);
+                }
+
+                print_bench_time(benchmarking, "Displays Module (Pre-comp for max_title_length)", bench);
+
+                length
+            },
             "os" => res = max(res, config.os.title.chars().count() as u64),
             "packages" => res = max(res, config.packages.title.chars().count() as u64),
             "desktop" => res = max(res, config.desktop.title.chars().count() as u64),
@@ -313,7 +359,7 @@ fn main() {
     }
     print_bench_time(args.benchmark, "ASCII (Potentially includes OS parse)", bench);
 
-    let max_title_length: u64 = calc_max_title_length(&config);
+    let max_title_length: u64 = calc_max_title_length(&config, &mut known_outputs, args.benchmark);
 
     // 
     //  Detect

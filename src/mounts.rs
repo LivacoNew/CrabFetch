@@ -107,6 +107,14 @@ impl MountInfo {
 
         false
     }
+    // Used by calc_max_title_length
+    pub fn get_title_size(&self, config: &Configuration) -> u64 {
+        config.mounts.title.clone()
+            .replace("{device}", &self.device)
+            .replace("{mount}", &self.mount)
+            .replace("{filesystem}", &self.filesystem)
+            .chars().count() as u64
+    }
 }
 
 pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {

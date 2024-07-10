@@ -199,3 +199,103 @@ pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progres
     }
     bar.push_str(right_border);
 }
+
+
+mod tests {
+    // Test bytes format correctly
+    #[test]
+    fn format_bytes() {
+        assert_eq!(crate::formatter::auto_format_bytes(15, false, 0), "15 KB");
+        assert_eq!(crate::formatter::auto_format_bytes(15, false, 1), "15.0 KB");
+        assert_eq!(crate::formatter::auto_format_bytes(15, false, 2), "15.00 KB");
+        assert_eq!(crate::formatter::auto_format_bytes(15, false, 3), "15.000 KB");
+
+        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 0), "2 MB");
+        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 1), "1.5 MB");
+        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 2), "1.53 MB");
+        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 3), "1.526 MB");
+
+        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 0), "2 GB");
+        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 1), "1.6 GB");
+        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 2), "1.56 GB");
+        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 3), "1.563 GB");
+
+        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 0), "16 TB");
+        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 1), "15.6 TB");
+        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 2), "15.63 TB");
+        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 3), "15.626 TB");
+    }
+    // Test 'ibibytes format correctly
+    #[test]
+    fn format_ibibytes() {
+        assert_eq!(super::auto_format_bytes(15, true, 0), "15 KiB");
+        assert_eq!(super::auto_format_bytes(15, true, 1), "14.6 KiB");
+        assert_eq!(super::auto_format_bytes(15, true, 2), "14.65 KiB");
+        assert_eq!(super::auto_format_bytes(15, true, 3), "14.648 KiB");
+
+        assert_eq!(super::auto_format_bytes(1526, true, 0), "1 MiB");
+        assert_eq!(super::auto_format_bytes(1526, true, 1), "1.5 MiB");
+        assert_eq!(super::auto_format_bytes(1526, true, 2), "1.46 MiB");
+        assert_eq!(super::auto_format_bytes(1526, true, 3), "1.455 MiB");
+
+        assert_eq!(super::auto_format_bytes(1562600, true, 0), "1 GiB");
+        assert_eq!(super::auto_format_bytes(1562600, true, 1), "1.5 GiB");
+        assert_eq!(super::auto_format_bytes(1562600, true, 2), "1.46 GiB");
+        assert_eq!(super::auto_format_bytes(1562600, true, 3), "1.455 GiB");
+
+        assert_eq!(super::auto_format_bytes(15626234632, true, 0), "14 TiB");
+        assert_eq!(super::auto_format_bytes(15626234632, true, 1), "14.2 TiB");
+        assert_eq!(super::auto_format_bytes(15626234632, true, 2), "14.21 TiB");
+        assert_eq!(super::auto_format_bytes(15626234632, true, 3), "14.212 TiB");
+    }
+    // Test progress bars get created correctly
+    #[test]
+    fn create_progress_bar() {
+        let mut bar_str: String = String::new();
+
+        // Test different percentages display right
+        super::make_bar(&mut bar_str, "[", "]", "=", "-", 0.0, 16);
+        assert_eq!(bar_str, "[--------------]");
+        bar_str = "".to_string();
+
+        super::make_bar(&mut bar_str, "[", "]", "=", "-", 25.0, 16);
+        assert_eq!(bar_str, "[====----------]");
+        bar_str = "".to_string();
+
+        super::make_bar(&mut bar_str, "[", "]", "=", "-", 50.0, 16);
+        assert_eq!(bar_str, "[=======-------]");
+        bar_str = "".to_string();
+
+        super::make_bar(&mut bar_str, "[", "]", "=", "-", 75.0, 16);
+        assert_eq!(bar_str, "[===========---]");
+        bar_str = "".to_string();
+
+        super::make_bar(&mut bar_str, "[", "]", "=", "-", 100.0, 16);
+        assert_eq!(bar_str, "[==============]");
+        bar_str = "".to_string();
+
+        // Check we can use odd characters
+        super::make_bar(&mut bar_str, "|", "|", ":", "'", 66.0, 16);
+        assert_eq!(bar_str, "|::::::::::''''|");
+        bar_str = "".to_string();
+
+        // Check we can use multiple chars per bar thing
+        // This voilates the length but is by design as to let people do wtf they want with it
+        super::make_bar(&mut bar_str, "[|", "|]", "!!", "--", 39.0, 16);
+        assert_eq!(bar_str, "[|!!!!!!!!!!!!----------------|]");
+        bar_str = "".to_string();
+
+        // Finally we'll check we can make super small/big ones
+        super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 255);
+        assert_eq!(bar_str, "[###################################################################################################                                                                                                                                                          ]");
+        bar_str = "".to_string();
+
+        super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 5);
+        assert_eq!(bar_str, "[## ]");
+        bar_str = "".to_string();
+
+        // Finally, this shouldn't give us anything as it's a fucked length
+        super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 1);
+        assert_eq!(bar_str, "");
+    }
+}

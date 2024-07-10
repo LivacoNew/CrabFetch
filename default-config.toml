@@ -141,6 +141,8 @@ amd_accuracy = true
 ignore_disabled_gpus = true
 
 
+# Placeholders;
+# - {index} -> The index of the GPU, only useful if you have more than one GPU.
 title = "GPU"
 # Placeholders;
 # {vendor} -> The vendor of the GPU, e.g AMD

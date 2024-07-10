@@ -411,8 +411,12 @@ fn main() {
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
                     Ok(gpus) => {
+                        let mut index: u8 = 1;
                         for gpu in gpus {
-                            output.push(gpu.style(&config, max_title_length))
+                            let mut gpu = gpu.clone();
+                            gpu.set_index(index);
+                            output.push(gpu.style(&config, max_title_length));
+                            index += 1;
                         }
                     },
                     Err(e) => {

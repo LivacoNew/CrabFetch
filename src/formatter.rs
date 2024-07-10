@@ -185,6 +185,9 @@ pub fn round(number: f64, places: u32) -> f64 {
 // Bar processing 
 // Modifies the bar string in place
 pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progress_char: &str, empty_char: &str, target_percentage: f32, length: u8) {
+    if length < (left_border.chars().count() as u8 + right_border.chars().count() as u8) {
+        return; // Will crash otherwise, user's own fault
+    }
     bar.push_str(left_border);
     let bar_length: u8 = length - 2;
     for x in 0..(bar_length) {

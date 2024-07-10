@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;

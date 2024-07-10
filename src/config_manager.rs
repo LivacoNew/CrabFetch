@@ -25,7 +25,7 @@ pub struct Configuration {
     pub progress_progress: String,
     pub progress_empty: String,
     pub progress_target_length: u8,
-    pub percentage_color_thresholds: HashMap<u8, String>,
+    pub percentage_color_thresholds: Vec<String>,
     pub use_ibis: bool,
     pub suppress_errors: bool,
 
@@ -142,10 +142,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("progress_target_length", 20).unwrap();
     builder = builder.set_default("use_ibis", false).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
-
-    builder = builder.set_default("percentage_color_thresholds.75", "brightgreen").unwrap();
-    builder = builder.set_default("percentage_color_thresholds.85", "brightyellow").unwrap();
-    builder = builder.set_default("percentage_color_thresholds.90", "brightred").unwrap();
+    builder = builder.set_default("percentage_color_thresholds", vec!["75:brightgreen", "85:brightyellow", "90:brightred"]).unwrap();
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
@@ -408,10 +405,13 @@ suppress_errors = true
 
 # Percentage coloring thresholds 
 # Empty this section to make it not color 
-[percentage_color_thresholds]
-75 = "brightgreen"
-85 = "brightyellow"
-90 = "brightred"
+# Values are in the format of "{percentage}:{color}"
+percentage_color_thresholds = [
+    "75:brightgreen"
+    "85:brightyellow"
+    "90:brightred"
+]
+
 
 
 [ascii]

@@ -113,20 +113,33 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
         return text.replace("{percent}", &percent_str).to_string();
     }
 
-    let mut cur_threshold: u8 = *config.percentage_color_thresholds.keys().min().unwrap();
+
+    // This is done in a bit of a shit way but idc to improve it, im writing this after being awake
+    // for 30 hours so I'm happy to push some shit to the repo for later me to deal with lol
+    let mut color_assigned: bool = false;
+    let mut cur_color: CrabFetchColor = CrabFetchColor::Clear;
+    let mut min_thres: u8 = 100;
+    let mut min_color: CrabFetchColor = CrabFetchColor::Clear;
     for x in &config.percentage_color_thresholds {
-        let threshold: u8 = *x.0;
-        if (percentage as u8) > threshold && threshold > cur_threshold {
-            cur_threshold = threshold;
+        let split: Vec<&str> = x.split(':').collect();
+        
+        if let Ok(threshold) = split[0].parse::<u8>() {
+            if (threshold as i8 - percentage as i8) < 0 {
+                cur_color = CrabFetchColor::from_str(split[1]).unwrap_or(CrabFetchColor::Clear);
+                color_assigned = true;
+            }
+
+            if min_thres > threshold && !color_assigned {
+                min_color = CrabFetchColor::from_str(split[1]).unwrap_or(CrabFetchColor::Clear);
+                min_thres = threshold;
+            }
         }
     }
+    if !color_assigned {
+        cur_color = min_color;
+    }
 
-    let color = match CrabFetchColor::from_str(&config.percentage_color_thresholds[&cur_threshold]) {
-        Ok(r) => r,
-        Err(_) => CrabFetchColor::Clear,
-    };
-
-    percent_str = color.color_string(&percent_str.to_string()).to_string();
+    percent_str = cur_color.color_string(&percent_str.to_string()).to_string();
     text.replace("{percent}", &percent_str).to_string()
 }
 

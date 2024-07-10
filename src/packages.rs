@@ -246,6 +246,7 @@ fn process_xbps_packages() -> Option<u64> {
         Ok(r) => r,
         Err(_) => return None,
     };
+    // "<key>installed_size</key>"
     let target_bytes: Vec<u8> = vec!(60, 107, 101, 121, 62, 105, 110, 115, 116, 97, 108, 108, 101, 100, 95, 115, 105, 122, 101, 60, 47, 107, 101, 121, 62);
 
     let mut count = 0;

@@ -413,7 +413,6 @@ percentage_color_thresholds = [
 ]
 
 
-
 [ascii]
 # If to display the ASCII distro art or not
 display = true

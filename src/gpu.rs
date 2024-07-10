@@ -73,7 +73,7 @@ impl Module for GPUInfo {
         let title: String = config.gpu.title.clone()
             .replace("{index}", "0").to_string();
 
-        Self::default_style(config, max_title_size, &config.gpu.title, title_color, title_bold, title_italic, seperator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

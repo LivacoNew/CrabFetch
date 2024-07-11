@@ -127,7 +127,10 @@ fn process_pacman_packages() -> Option<u64> {
         Err(_) => return None,
     };
 
-    Some(dir.count() as u64)
+    // -1 to account for the db file sitting there 
+    // tried doing it properly with the loops and directory shit yada yada it took 2 milliseconds,
+    // fuck that
+    Some(dir.count() as u64 - 1)
 }
 fn process_flatpak_packages() -> Option<u64> {
     // This counts everything in /app and /runtime

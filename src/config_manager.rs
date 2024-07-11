@@ -326,7 +326,51 @@ pub fn generate_config_file(location_override: Option<String>) {
     println!("Created default config file at {}", path);
 }
 
+mod tests {
+    // Test configs get created correctly, in the correct place and that the TOML is valid
+    #[test]
+    fn create_config() {
+        use std::{fs, path::Path, io::Error};
 
+        let location: String = "/tmp/crabfetch_test_config.toml".to_string();
+        crate::config_manager::generate_config_file(Some(location.clone()));
+        assert!(Path::new(&location).exists());
+
+        // Attempt to parse it
+        // TODO: Currently it panics whenever there's a config error (hence why I'm not asserting
+        // here), this needs fixed!
+        crate::config_manager::parse(&Some(location.clone()), &None, &false);
+        
+        // Finally, we remove the tmp config file 
+        let removed: Result<(), Error> = fs::remove_file(location);
+        assert!(removed.is_ok()); // Asserting this cus if the file fails to remove it's likely cus it never existed
+    }
+    
+    // Tests that the default-config.toml file is the same as the DEFAULT_CONFIG_CONTENTS string in
+    // here 
+    // In case anyone's wondering why they're seperated; it's so that package maintainers or people
+    // who want a copy of the default config without re-genning it can have it without digging in
+    // CrabFetch's source code
+    // This test's just to make sure I keep it up to date and don't forget to update one or the
+    // other
+    #[test]
+    fn config_is_consistent() {
+        use std::{path::{PathBuf, Path}, fs::File, io::Read};
+        let mut cargo_loc = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        cargo_loc.push("default-config.toml");
+        assert!(Path::new(&cargo_loc).exists());
+
+        let mut file: File = File::open(cargo_loc).unwrap();
+        let mut file_contents: String = String::new();
+        let _ = file.read_to_string(&mut file_contents);
+        // File saving will sometimes add new lines in different places than the rust ver, so I
+        // don't bother checking it as it just causes problems
+        file_contents = file_contents.replace('\n', "");
+        let comparing: &str = &crate::config_manager::DEFAULT_CONFIG_CONTENTS.replace('\n', "");
+
+        assert_eq!(file_contents, comparing);
+    }
+}
 
 // The default config, stored so that it can be written
 const DEFAULT_CONFIG_CONTENTS: &str = r#"# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki

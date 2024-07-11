@@ -334,7 +334,13 @@ fn main() {
         exit(0);
     }
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
-    let config: Configuration = config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file);
+    let config: Configuration = match config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("{}", e);
+            exit(-1);
+        },
+    };
     print_bench_time(args.benchmark, "Parsing Config", bench);
     let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
 

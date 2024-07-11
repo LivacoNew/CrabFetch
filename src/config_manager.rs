@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::{Read, Write}, path::Path};
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
@@ -54,12 +54,37 @@ pub struct Configuration {
     pub processes: ProcessesConfiguration
 }
 
-pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Configuration {
+// Config Error 
+pub struct ConfigurationError {
+    config_file: String,
+    message: String
+}
+impl ConfigurationError {
+    pub fn new(file_path: Option<String>, message: String) -> ConfigurationError {
+        ConfigurationError {
+            config_file: file_path.unwrap_or("Unknown".to_string()),
+            message
+        }
+    }
+}
+impl Display for ConfigurationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Failed to parse from file '{}': {}", self.config_file, self.message)
+    }
+}
+impl Debug for ConfigurationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} failed to parse: {}", self.config_file, self.message)
+    }
+}
+
+pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Result<Configuration, ConfigurationError> {
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
+    let mut config_path_str: Option<String> = None;
     if !ignore_file {
-        let config_path_str: String;
         if location_override.is_some() {
-            config_path_str = shellexpand::tilde(&location_override.clone().unwrap()).to_string();
+            config_path_str = Some(shellexpand::tilde(&location_override.clone().unwrap()).to_string());
+            let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
             // Config won't be happy unless it ends with .toml
             if !config_path_str.ends_with(".toml") {
                 // Simply crash, to avoid confusing the user as to why the default config is being used
@@ -77,7 +102,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         } else {
             // Find the config path
             // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-            config_path_str = match env::var("XDG_CONFIG_HOME") {
+            config_path_str = Some(match env::var("XDG_CONFIG_HOME") {
                 Ok(mut r) => {
                     r.push_str("/CrabFetch/config.toml");
                     r
@@ -91,10 +116,10 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                     home_dir.push_str("/.config/CrabFetch/config.toml");
                     home_dir
                 }
-            };
+            });
         }
 
-        builder = builder.add_source(config::File::with_name(&config_path_str).required(false));
+        builder = builder.add_source(config::File::with_name(&config_path_str.as_ref().unwrap()).required(false));
     }
     // Set the defaults here
     // General
@@ -225,15 +250,15 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     // Now stop.
     let config: Config = match builder.build() {
         Ok(r) => r,
-        Err(e) => panic!("Unable to parse config.toml: {}", e),
+        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
     };
 
     let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
         Ok(r) => r,
-        Err(e) => panic!("Unable to parse config.toml: {}", e),
+        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
     };
 
-    deserialized
+    Ok(deserialized)
 }
 
 pub fn check_for_ascii_override() -> Option<String> {
@@ -337,9 +362,7 @@ mod tests {
         assert!(Path::new(&location).exists());
 
         // Attempt to parse it
-        // TODO: Currently it panics whenever there's a config error (hence why I'm not asserting
-        // here), this needs fixed!
-        crate::config_manager::parse(&Some(location.clone()), &None, &false);
+        assert!(crate::config_manager::parse(&Some(location.clone()), &None, &false).is_ok());
         
         // Finally, we remove the tmp config file 
         let removed: Result<(), Error> = fs::remove_file(location);

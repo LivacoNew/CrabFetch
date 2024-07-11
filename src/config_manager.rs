@@ -407,8 +407,8 @@ suppress_errors = true
 # Empty this section to make it not color 
 # Values are in the format of "{percentage}:{color}"
 percentage_color_thresholds = [
-    "75:brightgreen"
-    "85:brightyellow"
+    "75:brightgreen",
+    "85:brightyellow",
     "90:brightred"
 ]
 

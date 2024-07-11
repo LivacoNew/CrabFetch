@@ -191,9 +191,9 @@ title = "Disk ({mount})"
 # {percent} -> The percentage of the disk used.
 format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
-# Mounts that shouldn't be included
-# The mounts only need to start with these
-ignore = ["/boot", "/snap"]
+# A ignore list for any point points OR filesystems to ignore
+# The entries only need to start with these to be ignored
+ignore = ["/boot", "/snap", "tmpfs", "vfat"]
 
 
 [host]

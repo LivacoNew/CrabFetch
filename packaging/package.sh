@@ -34,6 +34,8 @@ cargo build -r -F music
 cp $ROOT_DIR/target/release/crabfetch $PACKAGE_DIR
 cp $ROOT_DIR/LICENCE $PACKAGE_DIR
 cd $PACKAGE_DIR
+cp $PACKAGE_DIR/crabfetch $PACKAGE_DIR/crabfetch-unstripped
+strip $PACKAGE_DIR/crabfetch
 
 # holy moly bash this is terrible
 IFS=' '

@@ -590,7 +590,10 @@ fn main() {
                 }
                 match known_outputs.os.as_ref().unwrap() {
                     Ok(os) => {
-                        output.push(os.style(&config, max_title_length))
+                        output.push(os.style(&config, max_title_length));
+                        if config.os.newline_kernel {
+                            output.push(os.style_kernel(&config, max_title_length));
+                        }
                     },
                     Err(e) => {
                         if log_errors {

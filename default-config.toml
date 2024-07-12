@@ -220,6 +220,11 @@ title = "Operating System"
 # {kernel} -> The kernel version
 format = "{distro} ({kernel})"
 
+# Display the kernel version on a newline and if so, what format to use 
+newline_kernel = false
+kernel_title = "Kernel"
+kernel_format = "Linux {kernel}"
+
 
 [packages]
 title = "Packages"

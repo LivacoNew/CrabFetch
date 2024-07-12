@@ -205,6 +205,10 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("os.title", "Operating System").unwrap();
     builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
+    builder = builder.set_default("os.newline_kernel", false).unwrap();
+    builder = builder.set_default("os.kernel_title", "Kernel").unwrap();
+    builder = builder.set_default("os.kernel_format", "Linux {kernel}").unwrap();
+
 
     builder = builder.set_default("packages.title", "Packages").unwrap();
     builder = builder.set_default("packages.format", "{count} ({manager})").unwrap();
@@ -617,6 +621,11 @@ title = "Operating System"
 # {distro} -> The distro name
 # {kernel} -> The kernel version
 format = "{distro} ({kernel})"
+
+# Display the kernel version on a newline and if so, what format to use 
+newline_kernel = false
+kernel_title = "Kernel"
+kernel_format = "Linux {kernel}"
 
 
 [packages]

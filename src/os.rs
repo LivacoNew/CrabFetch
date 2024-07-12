@@ -8,7 +8,7 @@ use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, Mo
 pub struct OSInfo {
     distro: String,
     pub distro_id: String,
-    kernel: String
+    kernel: String,
 }
 #[derive(Deserialize)]
 pub struct OSConfiguration {
@@ -17,7 +17,10 @@ pub struct OSConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: String
+    pub format: String,
+    pub newline_kernel: bool,
+    pub kernel_title: String,
+    pub kernel_format: String
 }
 impl Module for OSInfo {
     fn new() -> OSInfo {
@@ -50,6 +53,19 @@ impl Module for OSInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.os.format.replace("{distro}", &self.distro)
             .replace("{kernel}", &self.kernel)
+    }
+}
+impl OSInfo {
+    // Identical to the regular style method, but placeholder's in the kernel instead
+    pub fn style_kernel(&self, config: &Configuration, max_title_size: u64) -> String {
+        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
+        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
+
+        let value: String = self.replace_color_placeholders(&config.os.kernel_format.replace("{kernel}", &self.kernel));
+
+        Self::default_style(config, max_title_size, &config.os.kernel_title, title_color, title_bold, title_italic, seperator, &value)
     }
 }
 

@@ -75,7 +75,7 @@ impl Module for MountInfo {
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
         let dec_places: u32 = config.mounts.decimal_places.unwrap_or(config.decimal_places);
-        let use_ibis: bool = config.memory.use_ibis.unwrap_or(config.use_ibis);
+        let use_ibis: bool = config.mounts.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
         if config.memory.format.contains("{bar}") {

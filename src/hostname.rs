@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, ffi::CStr, fs::File, io::Read, process::Command, time::Instant};
+use std::{env, ffi::CStr, fs::File, io::Read, mem, process::Command};
 
 use libc::{geteuid, getpwuid};
 use serde::Deserialize;
@@ -55,21 +55,18 @@ impl Module for HostnameInfo {
 pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
 
-    // We'll try the dangerous way first, then the backup way
-    let t = Instant::now();
-    hostname.username = match get_username_unsafe() {
+    // We'll try the safe way first, then the backup way
+    // This is purely cus reading that env variable is faster
+    hostname.username = match env::var("USER") {
         Ok(r) => r,
         Err(_) => {
-            // Backup to $USER
-            match env::var("USER") {
+            // syscall dangerous time
+            match get_username_unsafe() {
                 Ok(r) => r,
-                Err(e) => {
-                    return Err(ModuleError::new("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e)));
-                }
+                Err(_) => return Err(ModuleError::new("Hostname", "WARNING: Could not get username (env variable nor syscall)".to_string()))
             }
-        },
+        }
     };
-    println!("{:2?}", t.elapsed());
 
 
     // Hostname

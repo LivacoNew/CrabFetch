@@ -1,6 +1,7 @@
 use core::str;
-use std::{env, fs::File, io::Read, process::Command};
+use std::{env, ffi::CStr, fs::File, io::Read, process::Command, time::Instant};
 
+use libc::{geteuid, getpwuid};
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -54,14 +55,22 @@ impl Module for HostnameInfo {
 pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
 
-    // Gets the username from $USER
-    // Gets the hostname from /etc/hostname
-    hostname.username = match env::var("USER") {
+    // We'll try the dangerous way first, then the backup way
+    let t = Instant::now();
+    hostname.username = match get_username_unsafe() {
         Ok(r) => r,
-        Err(e) => {
-           return Err(ModuleError::new("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e)));
-        }
+        Err(_) => {
+            // Backup to $USER
+            match env::var("USER") {
+                Ok(r) => r,
+                Err(e) => {
+                    return Err(ModuleError::new("Hostname", format!("WARNING: Could not parse $USER env variable: {}", e)));
+                }
+            }
+        },
     };
+    println!("{:2?}", t.elapsed());
+
 
     // Hostname
     let mut file: File = match File::open("/etc/hostname") {
@@ -115,4 +124,19 @@ fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleE
     };
 
     Ok(())
+}
+
+fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply need to know if it failed or not to backup to $USER, the type of err doesn't matter really
+    let name: String;
+
+    unsafe { // i do find it funny that no-ones made guarenteed safe c lib bindings in a language designed entirely around memory safety lol
+        let user_id: u32 = geteuid();
+        let passwd: libc::passwd = *getpwuid(user_id);
+        name = match CStr::from_ptr(passwd.pw_name).to_str() {
+            Ok(r) => r.to_string(),
+            Err(_) => return Err(()),
+        };
+    }
+
+    Ok(name)
 }

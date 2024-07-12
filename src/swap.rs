@@ -78,7 +78,6 @@ impl Module for SwapInfo {
 pub fn get_swap() -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
 
-    // Uses /proc/swaps
     unsafe {
         let mut sysinfo: libc::sysinfo = mem::zeroed();
         libc::sysinfo(&mut sysinfo);

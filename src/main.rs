@@ -351,23 +351,6 @@ fn main() {
     // Define our module outputs, and figure out which modules need pre-calculated 
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
-    let mut ascii: (String, u16) = (String::new(), 0);
-    if config.ascii.display {
-        // OS needs done 
-        let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-        let os: Result<OSInfo, ModuleError> = os::get_os();
-        print_bench_time(args.benchmark, "OS Pre-Module", os_bench);
-        known_outputs.os = Some(os);
-        if known_outputs.os.as_ref().unwrap().is_ok() {
-            // Calculate the ASCII stuff while we're here
-            if args.distro_override.is_some() {
-                ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
-            } else {
-                ascii = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
-            }
-        }
-    }
-    print_bench_time(args.benchmark, "ASCII (Potentially includes OS parse)", bench);
 
     let max_title_length: u64 = calc_max_title_length(&config, &mut known_outputs, args.benchmark);
 
@@ -862,7 +845,21 @@ fn main() {
     // 
     //  Display
     //
-    let bench: Option<Instant> = benchmark_point(args.benchmark); 
+    let mut ascii: (String, u16) = (String::new(), 0);
+    if config.ascii.display {
+        let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
+        let os: Result<OSInfo, ModuleError> = os::get_os();
+        print_bench_time(args.benchmark, "OS Pre-Module", os_bench);
+        known_outputs.os = Some(os);
+        if known_outputs.os.as_ref().unwrap().is_ok() {
+            // Calculate the ASCII stuff while we're here
+            if args.distro_override.is_some() {
+                ascii = ascii::get_ascii(&args.distro_override.clone().unwrap());
+            } else {
+                ascii = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
+            }
+        }
+    }
     let mut ascii_split: Vec<&str> = Vec::new();
     let mut ascii_length: usize = 0;
     let mut ascii_target_length: u16 = 0;
@@ -871,7 +868,7 @@ fn main() {
         ascii_length = ascii_split.len();
         ascii_target_length = ascii.1 + config.ascii.margin;
     }
-    print_bench_time(args.benchmark, "Display ASCII Pre-Calc", bench);
+    print_bench_time(args.benchmark, "Display ASCII Pre-Calc (Includes OS if not already ran)", bench);
 
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut current_line: usize = 0;

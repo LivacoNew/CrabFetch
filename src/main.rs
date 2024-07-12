@@ -835,7 +835,11 @@ fn main() {
                 print_bench_time(args.benchmark, "Bright Colors Module", bench);
             }
             _ => {
-                output.push(format!("Unknown module: {}", module_name));
+                if config.unknown_as_text {
+                    output.push(formatter::replace_color_placeholders(module_name));
+                } else {
+                    output.push(format!("Unknown module: {}", module_name));
+                }
             }
         }
         print_bench_time(args.benchmark, "  Entire Module Parse/Detection", module_parse_bench);

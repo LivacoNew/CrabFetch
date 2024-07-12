@@ -11,6 +11,7 @@ use crate::music::MusicConfiguration;
 #[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
+    pub unknown_as_text: bool,
     pub seperator: String,
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
@@ -151,6 +152,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                                   "colors".to_string(),
                                   "bright_colors".to_string(),
                                   ]).unwrap();
+    builder = builder.set_default("unknown_as_text", false).unwrap();
     builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
@@ -433,6 +435,10 @@ modules = [
     "colors",
     "bright_colors"
 ]
+
+# Whether to treat unknown modules as a raw text output, allowing you to use custom strings n stuff.
+# Yes, these support color placeholders.
+unknown_as_text = false
 
 # The default seperator between a modules title and it's value
 seperator = " > "

@@ -32,6 +32,10 @@ modules = [
     "bright_colors"
 ]
 
+# Whether to treat unknown modules as a raw text output, allowing you to use custom strings n stuff.
+# Yes, these support color placeholders.
+unknown_as_text = false
+
 # The default seperator between a modules title and it's value
 seperator = " > "
 # The default color of a modules title

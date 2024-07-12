@@ -1,7 +1,7 @@
 use core::str;
 use std::{env, ffi::CStr, fs::File, io::Read, mem, process::Command};
 
-use libc::{geteuid, getpwuid};
+use libc::{geteuid, getpwuid, uname};
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -70,40 +70,69 @@ pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
 
 
     // Hostname
-    let mut file: File = match File::open("/etc/hostname") {
+    // Unlike username, reading the hostname data as a syscall is faster than the file
+    hostname.hostname = match get_hostname_unsafe() {
         Ok(r) => r,
         Err(_) => {
-            match backup_to_hostname_command(&mut hostname) {
-                Ok(_) => return Ok(hostname),
-                Err(e) => return Err(e),
+            let mut file: File = match File::open("/etc/hostname") {
+                Ok(r) => r,
+                Err(_) => {
+                    match backup_to_hostname_command(&mut hostname) {
+                        Ok(_) => return Ok(hostname),
+                        Err(e) => return Err(e),
+                    }
+                },
+            };
+            let mut contents: String = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {},
+                Err(_) => {
+                    match backup_to_hostname_command(&mut hostname) {
+                        Ok(_) => return Ok(hostname),
+                        Err(e) => return Err(e),
+                    }
+                },
             }
+            if contents.trim().is_empty() {
+                match backup_to_hostname_command(&mut hostname) {
+                    Ok(_) => return Ok(hostname),
+                    Err(e) => return Err(e),
+                }
+            }
+            contents.trim().to_string()
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(_) => {
-            match backup_to_hostname_command(&mut hostname) {
-                Ok(_) => return Ok(hostname),
-                Err(e) => return Err(e),
-            }
-        },
-    }
-    if contents.trim().is_empty() {
-        match backup_to_hostname_command(&mut hostname) {
-            Ok(_) => return Ok(hostname),
-            Err(e) => return Err(e),
-        }
-    }
 
-    hostname.hostname = contents.trim().to_string();
     Ok(hostname)
 }
 
+fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply need to know if it failed or not to backup to $USER, the type of err doesn't matter really
+    let name: String;
+
+    unsafe { // i do find it funny that no-ones made guarenteed safe c lib bindings in a language designed entirely around memory safety lol
+        let user_id: u32 = geteuid();
+        let passwd: libc::passwd = *getpwuid(user_id);
+        name = match CStr::from_ptr(passwd.pw_name).to_str() {
+            Ok(r) => r.to_string(),
+            Err(_) => return Err(()),
+        };
+    }
+
+    Ok(name)
+}
+fn get_hostname_unsafe() -> Result<String, ()> {
+    let hostname: String;
+
+    unsafe {
+        let mut name_buff: libc::utsname = mem::zeroed();
+        uname(&mut name_buff);
+        hostname = CStr::from_ptr(name_buff.nodename.as_ptr()).to_str().unwrap().to_string();
+    }
+
+    Ok(hostname)
+}
 fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
-    // If /etc/hostname is fucked, it'll come here
-    // This method is requried e.g in a default fedora install, where they don't bother filling out
-    // the /etc/hostname file
+    // If all else is fucked, it'll come here
     let output: Vec<u8> = match Command::new("hostname")
         .output() {
             Ok(r) => r.stdout,
@@ -121,19 +150,4 @@ fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleE
     };
 
     Ok(())
-}
-
-fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply need to know if it failed or not to backup to $USER, the type of err doesn't matter really
-    let name: String;
-
-    unsafe { // i do find it funny that no-ones made guarenteed safe c lib bindings in a language designed entirely around memory safety lol
-        let user_id: u32 = geteuid();
-        let passwd: libc::passwd = *getpwuid(user_id);
-        name = match CStr::from_ptr(passwd.pw_name).to_str() {
-            Ok(r) => r.to_string(),
-            Err(_) => return Err(()),
-        };
-    }
-
-    Ok(name)
 }

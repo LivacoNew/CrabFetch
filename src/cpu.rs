@@ -198,7 +198,7 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             Ok(r) => {
                 let file_name = r.file_name();
                 let file_name = file_name.to_str().unwrap();
-                if !file_name.starts_with("cpu") || file_name == "cpuidle" || file_name == "cpufreq" {
+                if !file_name.starts_with("cpu") || file_name == "cpuidle" || file_name.starts_with("cpufreq") {
                     continue
                 }
                 r.path().join(freq_path.unwrap())

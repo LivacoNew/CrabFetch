@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::File, io::{BufRead, BufReader, Read}, path::Path};
+use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path};
 
 use serde::Deserialize;
 
@@ -159,7 +159,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     Ok(())
 }
 fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
-    // All of this is relative to /sys/devices/system/cpu/cpu0/cpufreq
+    // All of this is relative to /sys/devices/system/cpu/X/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS
     // - scaling_max_freq - The max freq set by the policy
@@ -186,24 +186,47 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         cpu.max_clock_mhz = cpu.current_clock_mhz;
         return Ok(())
     }
+    freq_path = freq_path.unwrap().strip_prefix("/sys/devices/system/cpu/cpu0/");
 
-    let mut file: File = match File::open(freq_path.unwrap()) {
+    
+    let dir: ReadDir = match read_dir("/sys/devices/system/cpu/") {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e)));
-        },
+        Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu - {}", e)))
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.unwrap(), e)));
-        },
+    for entry in dir {
+        let freq_path = match entry {
+            Ok(r) => {
+                let file_name = r.file_name();
+                let file_name = file_name.to_str().unwrap();
+                if !file_name.starts_with("cpu") || file_name == "cpuidle" || file_name == "cpufreq" {
+                    continue
+                }
+                r.path().join(freq_path.unwrap())
+            },
+            Err(_) => continue, // ?
+        };
+        let freq_path = freq_path.as_path();
+
+        // Now I need to scan this dir for each entry
+        let mut file: File = match File::open(freq_path) {
+            Ok(r) => r,
+            Err(e) => {
+                return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e)));
+            },
+        };
+        let mut contents: String = String::new();
+        match file.read_to_string(&mut contents) {
+            Ok(_) => {},
+            Err(e) => {
+                return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e)));
+            },
+        }
+
+        match contents.trim().parse::<f32>() {
+            Ok(r) => cpu.max_clock_mhz = f32::max(r / 1000.0, cpu.max_clock_mhz),
+            Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {}", freq_path.to_str().unwrap(), e)))
+        };
     }
 
-    match contents.trim().parse::<f32>() {
-        Ok(r) => cpu.max_clock_mhz = r / 1000.0,
-        Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {}", freq_path.unwrap(), e)))
-    };
     Ok(())
 }

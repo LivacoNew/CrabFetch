@@ -50,7 +50,7 @@ impl Module for BatteryInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let dec_places: u32 = config.cpu.decimal_places.unwrap_or(config.decimal_places);
+        let dec_places: u32 = config.battery.decimal_places.unwrap_or(config.decimal_places);
 
         let mut bar: String = String::new();
         if config.battery.format.contains("{bar}") {

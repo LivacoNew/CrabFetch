@@ -321,5 +321,12 @@ title = "Init System"
 title = "Total Processes"
 
 
+[datetime]
+title = "Date Time"
+# Available placeholders; https://docs.rs/chrono/latest/chrono/format/strftime/index.html#specifiers
+# CrabFetch wiki page coming soon for it instead (tm)
+format = "%H:%M:%S on %e %B %G"
+
+
 
 # You've reached the end! Congrats, have a muffin :)

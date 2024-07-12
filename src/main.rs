@@ -4,6 +4,7 @@ use battery::BatteryInfo;
 use cpu::CPUInfo;
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
+use datetime::DateTimeInfo;
 use desktop::DesktopInfo;
 use displays::DisplayInfo;
 use editor::EditorInfo;
@@ -50,6 +51,7 @@ mod formatter;
 mod music;
 mod initsys;
 mod processes;
+mod datetime;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -281,6 +283,7 @@ struct ModuleOutputs {
     os: Option<Result<OSInfo, ModuleError>>,
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
     processes: Option<Result<ProcessesInfo, ModuleError>>,
+    datetime: Option<DateTimeInfo>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -306,6 +309,7 @@ impl ModuleOutputs {
             os: None,
             initsys: None,
             processes: None,
+            datetime: None,
         }
     }
 }
@@ -803,6 +807,14 @@ fn main() {
                     },
                 }; 
                 print_bench_time(args.benchmark, "Processes Module", bench);
+            },
+            "datetime" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                if known_outputs.datetime.is_none() {
+                    known_outputs.datetime = Some(datetime::get_date_time());
+                }
+                output.push(known_outputs.datetime.as_ref().unwrap().style(&config, max_title_length));
+                print_bench_time(args.benchmark, "Datetime Module", bench);
             },
             "colors" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

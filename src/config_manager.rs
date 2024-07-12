@@ -3,7 +3,7 @@ use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::{Read, Write}, path:
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
 #[cfg(feature = "music")]
 use crate::music::MusicConfiguration;
 
@@ -52,7 +52,8 @@ pub struct Configuration {
     pub music: MusicConfiguration,
     pub editor: EditorConfiguration,
     pub initsys: InitSystemConfiguration,
-    pub processes: ProcessesConfiguration
+    pub processes: ProcessesConfiguration,
+    pub datetime: DateTimeConfiguration
 }
 
 // Config Error 
@@ -246,6 +247,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("initsys.title", "Init System").unwrap();
 
     builder = builder.set_default("processes.title", "Total Processes").unwrap();
+
+    builder = builder.set_default("datetime.title", "Date/Time").unwrap();
+    builder = builder.set_default("datetime.format", "%H:%M:%S on %e %B %G").unwrap();
 
     // Check for any module overrides
     if module_override.is_some() {
@@ -723,6 +727,13 @@ title = "Init System"
 
 [processes]
 title = "Total Processes"
+
+
+[datetime]
+title = "Date Time"
+# Available placeholders; https://docs.rs/chrono/latest/chrono/format/strftime/index.html#specifiers
+# CrabFetch wiki page coming soon for it instead (tm)
+format = "%H:%M:%S on %e %B %G"
 
 
 

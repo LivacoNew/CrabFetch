@@ -316,7 +316,7 @@ impl ModuleOutputs {
 
 fn main() {
     // Are we defo in Linux?
-    if env::consts::OS != "linux" {
+    if env::consts::OS != "linux" && env::consts::OS != "android" {
         println!("CrabFetch only supports Linux! If you want to go through and add support for your own OS, make a pull request :)");
         exit(-1);
     }

@@ -10,16 +10,16 @@ What makes CrabFetch different is that _it aims to be as performant as possible_
 
 
 ## Performance
-Performance is CrabFetch's main selling point. Don't let me just say that, let me prove it;  
-
-We're going to compare the performance of [HyFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch), [Macchina](https://github.com/Macchina-CLI/macchina) and CrabFetch.  
+Comparing the performance of; [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.  
 Configs were created to match up as closely as possible, with these benchmarks being taken by `hyperfine 1.18.0`.  
-![As close as possible configs](https://i.imgur.com/RCEQOJo.png)  
+![As close as possible configs](https://i.imgur.com/cxwm7I5.png)  
   
 The following screenshot shows the results;  
-![CrabFetch runs the fastest.](https://i.imgur.com/EMD5YWc.png)  
+![CrabFetch runs the fastest.](https://i.imgur.com/ZvJGw7H.png)  
   
-I implore you to try to run this benchmark yourself, to see if you get similar times. If not, please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know!
+Try this benchmark yourself, if you don't get as good performance please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know!
+
+More in-depth benchmarks can be found [on the wiki](https://github.com/LivacoNew/CrabFetch/wiki/Benchmarks).
 
 
 ## System Support

@@ -11,6 +11,7 @@ pub struct CPUInfo {
     threads: u16,
     current_clock_mhz: f32,
     max_clock_mhz: f32,
+    arch: String
 }
 #[derive(Deserialize)]
 pub struct CPUConfiguration {
@@ -31,6 +32,7 @@ impl Module for CPUInfo {
             threads: 0,
             current_clock_mhz: 0.0,
             max_clock_mhz: 0.0,
+            arch: "".to_string()
         }
     }
 
@@ -63,6 +65,7 @@ impl Module for CPUInfo {
             .replace("{current_clock_ghz}", &CPUInfo::round(self.current_clock_mhz / 1000.0, dec_places).to_string())
             .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, dec_places).to_string())
             .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, dec_places).to_string())
+            .replace("{arch}", &self.arch.to_string())
     }
 }
 
@@ -123,6 +126,21 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                     Err(e) => {
                         return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e)));
                     },
+                }
+            }
+            if line.starts_with("flags") {
+                // https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/arch/x86/include/asm/cpufeatures.h
+                for flag in line.split(": ").collect::<Vec<&str>>()[1].split(' ') {
+                    // prepare for trouble
+                    cpu.arch = match flag {
+                        "ia86" => {"IA86".to_string()}
+                        "arch_capabilities" => {"IA32".to_string()}
+                        "lm" => {"x86_64".to_string()}
+                        _ => {continue} 
+                    };
+                    if !cpu.arch.is_empty() {
+                        break;
+                    }
                 }
             }
         }

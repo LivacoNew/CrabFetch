@@ -120,7 +120,8 @@ title = "CPU"
 # {current_clock_ghz} -> The current clock speed, in GHz.
 # {max_clock_mhz} -> The maximum clock speed, in MHz.
 # {max_clock_ghz} -> The maximum clock speed, in GHz.
-format = "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
+# {arch} -> The architecture of your CPU.
+format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 [gpu]

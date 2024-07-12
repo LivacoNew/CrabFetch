@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::File, io::Read};
+use std::mem;
 
 use serde::Deserialize;
 
@@ -79,36 +79,11 @@ pub fn get_swap() -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
 
     // Uses /proc/swaps
-    let mut file: File = match File::open("/proc/swaps") {
-        Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("Swap", format!("Can't read from /proc/swaps - {}", e)));
-        },
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("Swap", format!("Can't read from /proc/swaps - {}", e)));
-        },
-    }
-    let mut lines: Vec<&str> = contents.split('\n').collect();
-    lines.remove(0);
-    for line in lines {
-        if line.is_empty() {
-            continue;
-        }
-        let mut values: Vec<&str> = line.split(['\t', ' ']).collect();
-        values.retain(|x| x.trim() != "");
-
-        swap.used_kb += match values[3].parse::<f64>() {
-            Ok(r) => (r * 1.024) as u64,
-            Err(_) => 0_u64,
-        };
-        swap.total_kb += match values[2].parse::<f64>() {
-            Ok(r) => (r * 1.024) as u64,
-            Err(_) => 0_u64,
-        };
+    unsafe {
+        let mut sysinfo: libc::sysinfo = mem::zeroed();
+        libc::sysinfo(&mut sysinfo);
+        swap.total_kb = (sysinfo.totalswap * sysinfo.mem_unit as u64) / 1000;
+        swap.used_kb = swap.total_kb - ((sysinfo.freeswap * sysinfo.mem_unit as u64) / 1000);
     }
 
     if swap.total_kb != 0 {

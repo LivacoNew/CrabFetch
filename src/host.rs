@@ -1,6 +1,7 @@
 use core::str;
-use std::{fs::File, io::Read, path::Path};
+use std::{env, fs::File, io::Read, path::Path};
 
+use android_system_properties::AndroidSystemProperties;
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -51,6 +52,22 @@ impl Module for HostInfo {
 
 pub fn get_host() -> Result<HostInfo, ModuleError> {
     let mut host: HostInfo = HostInfo::new();
+
+    // Android 
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        // Use the system property instead
+        // Using some random ass crate for this, as I'm too dumb to bind to the actual C methods
+        // from rust
+        // If you want to figure it out yourself and help me out in a PR it's this I need;
+        // https://android.googlesource.com/platform/system/core/+/refs/heads/android12-dev/libcutils/properties.cpp#85
+        let props = AndroidSystemProperties::new();
+        // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
+        if let Some(val) = props.get("ro.product.model") {
+            host.host = val.trim().to_string();
+            return Ok(host);
+        }
+    }
 
     // Prioritises product_name for laptops, then goes to board_name
     let mut chosen_path: Option<&str> = None;

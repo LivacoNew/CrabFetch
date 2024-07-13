@@ -10,6 +10,7 @@ license = "Apache-2.0"
 
 [features]
 music = ["dep:dbus"]
+android = ["dep:android_system_properties"]
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }
@@ -24,3 +25,4 @@ x11rb = { version = "0.13.1", features = ["randr"] }
 wayland-client = "0.31.3"
 dbus = { version = "0.9.7", optional = true }
 chrono = { version = "0.4.38", features = ["alloc", "android-tzdata", "clock", "iana-time-zone", "now", "std"] }
+android_system_properties = { version = "0.1.5", optional = true }

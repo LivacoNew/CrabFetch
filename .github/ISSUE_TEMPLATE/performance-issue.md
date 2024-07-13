@@ -24,7 +24,8 @@ What were you expecting, screenshot another output if needed.
 
 **System Info**
  - Distro / Kernel Version: 
- - Terminal
+ - Terminal:
+ - Desktop Environment:
 
 **Additional Comments**
 Add any other context about the problem here.

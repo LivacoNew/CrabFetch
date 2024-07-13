@@ -72,7 +72,6 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         },
         Err(e) => return Err(ModuleError::new("Terminal", format!("Could not get $SHLVL env variable: {}", e)))
     };
-    let mut stat_contents: String = String::new();
     while shell_level > 0 {
         if loops > 10 {
             return Err(ModuleError::new("Terminal", "Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.".to_string()));
@@ -80,17 +79,16 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         loops += 1;
 
         let path: String = format!("/proc/{}/stat", parent_pid);
-        // println!("Shell proccess ID should be {} leading to {}", parent_pid, path);
 
         let mut parent_stat: File = match File::open(&path) {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         };
+        let mut stat_contents: String = String::new();
         match parent_stat.read_to_string(&mut stat_contents) {
             Ok(_) => {},
             Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
         }
-        // println!("Got contents: {}", contents);
 
         let content_split: Vec<&str> = stat_contents.split(' ').collect::<Vec<&str>>();
 

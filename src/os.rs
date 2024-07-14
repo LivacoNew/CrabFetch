@@ -1,8 +1,9 @@
 use core::str;
-use std::{env, fs::File, io::Read, process::Command};
+use std::{fs::File, io::Read};
 
 #[cfg(feature = "android")]
-use android_system_properties::AndroidSystemProperties;
+use {android_system_properties::AndroidSystemProperties, std::{process::Command, env}};
+
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};

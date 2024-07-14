@@ -2,7 +2,7 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
 [![latest packaged version(s)](https://repology.org/badge/latest-versions/crab-fetch.svg)](https://repology.org/project/crab-fetch/versions)
 
-CrabFetch is a highly performant and extremelty easily customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
+CrabFetch is a highly performant and extremely easily customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
 What makes CrabFetch different is that _it aims to be as performant as possible_ while still remaining easy to use. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
 
 ![Showcase 1](https://i.imgur.com/k6GMh63.png)

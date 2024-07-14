@@ -29,6 +29,7 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         "ubuntu" => ubuntu(),
         "fedora" => fedora(),
         "void" => void(),
+        "endeavouros" => endeavour(),
         _ => ("".to_string(), 0)
     }
 }
@@ -124,4 +125,18 @@ J555B5YYY:.~7!7Y5YY5PP?::Y557^5PP5YY55Y!
        :?Y5555YY?7!!!!7?YYY!.           
          :!JY55555555555555Y?.          
             :~!?JYYYYYYJ?!^:            ".to_string(), 40)
+}
+fn endeavour() -> (String, u16) {
+("                            
+              .!J^          
+             ^J555J^        
+           :755555557:      
+         :!J555555555Y!.    
+       :~7Y55555555555Y?^   
+     .~7?55555555555555Y?!. 
+   .^!7J5555555555555555J?7.
+  ^!77Y555555555555555555??!
+:!77?5555555555555555555Y???
+..:7JJJYYYYYYYYY55555YYJ??7^
+  ~777777777777!!!!!~~~^:.  ".to_string(), 28)
 }

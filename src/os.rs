@@ -1,6 +1,7 @@
 use core::str;
-use std::{fs::File, io::Read};
+use std::{env, fs::File, io::Read, process::Command};
 
+use android_system_properties::AndroidSystemProperties;
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -71,6 +72,35 @@ impl OSInfo {
 
 pub fn get_os() -> Result<OSInfo, ModuleError> {
     let mut os: OSInfo = OSInfo::new();
+
+    // Android 
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        let props = AndroidSystemProperties::new();
+        // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
+        if let Some(val) = props.get("ro.build.version.release_or_preview_display") {
+            os.distro = format!("Android {}", val);
+        } else {
+            os.distro = "Android".to_string();
+        }
+        os.distro_id = "android".to_string();
+        
+        // This may fuck performance, will have to keep an eye on this 
+        let output: Vec<u8> = match Command::new("uname").arg("r")
+            .output() {
+                Ok(r) => r.stdout,
+                Err(_) => {
+                    return Err(ModuleError::new("OS", "Can't find kernel version.".to_string()));
+                },
+            };
+
+        os.kernel = match String::from_utf8(output) {
+            Ok(r) => r.trim().to_string(),
+            Err(_) => {
+                return Err(ModuleError::new("OS", "Can't find kernel version.".to_string()));
+            },
+        };
+    }
 
     // Grabs the distro name from /etc/os-release
     // Grabs the kernel release from /proc/sys/kernel/osrelease

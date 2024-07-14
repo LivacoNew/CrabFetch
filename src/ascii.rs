@@ -32,6 +32,7 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         "endeavouros" => endeavour(),
         "linuxmint" => mint(),
         "elementary" => elementary(),
+        "zorin" => zorin(),
         _ => ("".to_string(), 0)
     }
 }
@@ -179,4 +180,21 @@ Y&:   ~@#.            J@^        B@^
     .?G5!:                ^JGP!     
       .!YPPJ7~^:....:^!?YPP?^       
           ^!JY5PPPPPP5Y?~.          ".to_string(), 36)
+}
+fn zorin() -> (String, u16) {
+("        !JJJJJJJJJJJJJJJJJJ!        
+      .!JJJJJJJJJJJJJJJJJJJJ!.      
+       ......................       
+                                    
+   :^^^^^^^^^^^^^^^^:         .^:   
+  !JJJJJJJJJJJJJJ?!^.      .^7?JJ!  
+.7JJJJJJJJJJJJ?!:.      .~7JJJJJJJ!.
+7JJJJJJJJJJ?~:       :~7JJJJJJJJJJJ7
+.7JJJJJJ7~:       :~?JJJJJJJJJJJJJ7.
+  !JJ7~.       :!?JJJJJJJJJJJJJJJ!  
+   ..         .:::...............   
+                                    
+      .^::::::::::::::::::::^.      
+      .7JJJJJJJJJJJJJJJJJJJJ7.      
+        !JJJJJJJJJJJJJJJJJJ!        ".to_string(), 36)
 }

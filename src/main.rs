@@ -524,7 +524,7 @@ fn main() {
                         if log_errors {
                             output.push(e.to_string());
                         } else {
-                            output.push(SwapInfo::unknown_output(&config, max_title_length));
+                            output.push(MountInfo::unknown_output(&config, max_title_length));
                         }
                     },
                 }; 

@@ -87,7 +87,7 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
         os.distro_id = "android".to_string();
         
         // This may fuck performance, will have to keep an eye on this 
-        let output: Vec<u8> = match Command::new("uname").arg("r")
+        let output: Vec<u8> = match Command::new("uname").arg("-r")
             .output() {
                 Ok(r) => r.stdout,
                 Err(_) => {
@@ -101,6 +101,8 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
                 return Err(ModuleError::new("OS", "Can't find kernel version.".to_string()));
             },
         };
+
+        return Ok(os);
     }
 
     // Grabs the distro name from /etc/os-release

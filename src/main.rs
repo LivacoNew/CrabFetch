@@ -119,7 +119,7 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
                 let bench: Option<Instant> = benchmark_point(benchmarking); 
 
                 if known_outputs.mounts.is_none() {
-                    known_outputs.mounts = Some(mounts::get_mounted_drives());
+                    known_outputs.mounts = Some(mounts::get_mounted_drives(config));
                 }
                 let mut length: u64 = 0;
                 if known_outputs.mounts.as_ref().unwrap().is_err() {
@@ -509,7 +509,7 @@ fn main() {
             "mounts" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.mounts.is_none() {
-                    known_outputs.mounts = Some(mounts::get_mounted_drives());
+                    known_outputs.mounts = Some(mounts::get_mounted_drives(&config));
                 }
                 match known_outputs.mounts.as_ref().unwrap() {
                     Ok(mounts) => {

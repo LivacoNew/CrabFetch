@@ -198,7 +198,7 @@ format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
 # A ignore list for any point points OR filesystems to ignore
 # The entries only need to start with these to be ignored
-ignore = ["/boot", "/snap", "tmpfs", "vfat"]
+ignore = ["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "/boot", "/snap"]
 
 
 [host]

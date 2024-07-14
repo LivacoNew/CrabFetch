@@ -117,11 +117,11 @@ impl MountInfo {
     }
 }
 
-pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
+pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
     // Read from /etc/fstab to get all currently mounted disks
-    let file: File = match File::open("/etc/fstab") {
+    let file: File = match File::open("/etc/mtab") {
         Ok(r) => r,
         Err(e) => {
             // Best guess I've got is that we're not on Linux
@@ -147,38 +147,26 @@ pub fn get_mounted_drives() -> Result<Vec<MountInfo>, ModuleError> {
         if mount_point == "none" || mount_point == "swap" {
             continue
         }
-        let fs: &str = entries[2];
-        if fs == "swap" {
-            continue
-        }
 
         let mut mount: MountInfo = MountInfo::new();
         mount.mount = mount_point.to_string();
-        mount.filesystem = fs.to_string();
+        mount.filesystem = entries[2].to_string();
 
         // Convert the device entries to device names
         // TODO: support LABEL and PARTLABEL
         let device_name: &str = entries[0];
-        if let Some(uuid) = device_name.strip_prefix("UUID=") {
-            // UUID
-            let uuid_path: PathBuf = Path::new("/dev/disk/by-uuid/").join(uuid);
-            if !uuid_path.is_symlink() {
-                continue; // ??
-            }
-            let device = match fs::canonicalize(uuid_path) {
-                Ok(r) => r,
-                Err(_) => continue, // ??
-            };
-            mount.device = device.to_str().unwrap().to_string();
-        } else {
-            // regular old devices
-            mount.device = device_name.to_string();
-        }
+        mount.device = match get_device_name(device_name) {
+            Some(r) => r,
+            None => continue, // ????
+        };
 
         // statfs to get space data
-        let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
-        if statfs.is_err() {
-            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
+        if !mount.is_ignored(config) {
+            let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
+            if statfs.is_err() {
+                continue
+                // return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
+            }
         }
 
         mounts.push(mount);
@@ -195,7 +183,6 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
     bytes.push(0);
     unsafe { // spooky
         let mut buffer: statfs = mem::zeroed();
-        // wtf does this "*const _" do
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
             return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, x)))
@@ -206,4 +193,25 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
         mount.percent = ((((mount.space_total_kb - mount.space_avail_kb) as f64) / mount.space_total_kb as f64) * 100.0) as f32;
     }
     Ok(())
+}
+
+fn get_device_name(device_name: &str) -> Option<String> {
+    let dev: String;
+    if let Some(uuid) = device_name.strip_prefix("UUID=") {
+        // UUID
+        let uuid_path: PathBuf = Path::new("/dev/disk/by-uuid/").join(uuid);
+        if !uuid_path.is_symlink() {
+            return None; // ???
+        }
+        let device = match fs::canonicalize(uuid_path) {
+            Ok(r) => r,
+            Err(_) => return None, // ??
+        };
+        dev = device.to_str().unwrap().to_string();
+    } else {
+        // regular old devices
+        dev = device_name.to_string();
+    }
+
+    Some(dev)
 }

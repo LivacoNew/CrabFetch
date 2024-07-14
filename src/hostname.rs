@@ -99,7 +99,10 @@ pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
                     Err(e) => return Err(e),
                 }
             }
-            contents.trim().to_string()
+            contents.trim()
+                .lines()
+                .filter(|x| !x.starts_with('#'))
+                .collect()
         },
     };
 

@@ -123,6 +123,9 @@ impl MountInfo {
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
+    #[cfg(not(feature = "android"))]
+    let path: &str = "/etc/mtab";
+    #[cfg(feature = "android")]
     let mut path: &str = "/etc/mtab";
     // Android 
     #[cfg(feature = "android")]

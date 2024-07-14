@@ -1,6 +1,8 @@
 use core::str;
 use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path};
 
+#[cfg(feature = "android")]
+use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -152,6 +154,22 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                 },
             };
             cpu_mhz_count += 1;
+        }
+    }
+
+    // Android 
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        // This property was a fucking nightmare to find, only being able to find out about it here https://github.com/ArrowOS-Devices/android_device_xiaomi_daisy/blob/arrow-12.1/vendor.prop#L185
+        // I have no idea how standard that property is, especially since I couldn't find it after
+        // a couple hours of scowering Android's docs but oh well
+        let props = AndroidSystemProperties::new();
+        // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
+        if let Some(soc_manu) = props.get("ro.soc.manufacturer") {
+            // chaining these let statements is only in the unstable branch so egypt it is
+            if let Some(soc_model) = props.get("ro.soc.model") {
+                cpu.name = format!("{} {}", soc_manu, soc_model);
+            }
         }
     }
 

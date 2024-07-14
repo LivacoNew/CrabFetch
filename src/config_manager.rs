@@ -199,7 +199,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("mounts.title", "Disk ({mount})").unwrap();
     builder = builder.set_default("mounts.format", "{space_used} used of {space_total} ({percent}) [{filesystem}]").unwrap();
-    builder = builder.set_default("mounts.ignore", vec!["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "/boot", "/snap"]).unwrap();
+    builder = builder.set_default("mounts.ignore", vec!["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "ramfs", "/boot", "/snap"]).unwrap();
 
     builder = builder.set_default("host.title", "Host").unwrap();
 
@@ -606,7 +606,7 @@ format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
 # A ignore list for any point points OR filesystems to ignore
 # The entries only need to start with these to be ignored
-ignore = ["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "/boot", "/snap"]
+ignore = ["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "ramfs", "/boot", "/snap"]
 
 
 [host]

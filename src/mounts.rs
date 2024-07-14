@@ -120,13 +120,13 @@ impl MountInfo {
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
-    // Read from /etc/fstab to get all currently mounted disks
+    // Read from /etc/mtab to get all currently mounted disks
     let file: File = match File::open("/etc/mtab") {
         Ok(r) => r,
         Err(e) => {
             // Best guess I've got is that we're not on Linux
             // In which case, L
-            return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/fstab: {}", e)));
+            return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {}", e)));
         },
     };
     let buffer: BufReader<File> = BufReader::new(file);

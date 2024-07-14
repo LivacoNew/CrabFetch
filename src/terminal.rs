@@ -132,10 +132,17 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     // Fix for this happening; https://cdn.discordapp.com/attachments/1011301373482115163/1221945908250280096/image.png?ex=66146ccf&is=6601f7cf&hm=2045e0d8150ff468c84ee0fe10ca9105dd4793df05c599715bd1bd7c74d4dc9d&
     contents = contents.split("--").next().unwrap().to_string();
     contents = contents.split('/').last().unwrap().to_string();
+
     // Fix for gnome terminal coming out as gnome-terminal-server
     if contents.trim().replace('\0', "") == "gnome-terminal-server" {
         contents = "GNOME Terminal".to_string();
     }
+    // Fix for elementaryos terminal being shitty
+    if contents.trim().replace('\0', "") == "io.elementary.terminal" {
+        contents = "Elementary Terminal".to_string();
+    }
+
+
     if contents.trim().replace('\0', "") == "sshd:" {
         if !chase_ssh_tty {
             contents = "SSH Terminal".to_string();

@@ -31,6 +31,7 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         "void" => void(),
         "endeavouros" => endeavour(),
         "linuxmint" => mint(),
+        "elementary" => elementary(),
         _ => ("".to_string(), 0)
     }
 }
@@ -159,4 +160,23 @@ fn mint() -> (String, u16) {
         ^!????????????????????!^        
           .^!7????????????7!^.          
               .::^^^^^^::.              ".to_string(), 40)
+}
+fn elementary() -> (String, u16) {
+("         :!J5PPP555PPPP5?~.         
+      :JPPY!^.:^~~~~^::~?5P5!.      
+    ^PGJ^  .7YY?!!!7JPY.  .!5BJ.    
+  .5#?   .YBJ:       .5&^    :5#!   
+ :BG.   !&G:           #G      !&J  
+.BG    ?@P             #P       ^&? 
+Y&:   ~@#.            J@^        B@^
+&5    5@?           .5#~       ^BG@J
+@J    P@!          7B5.       ?&J.#5
+#P    7@P       :?G5^       7BB~ :@?
+?@^    5@Y.  ^7PGJ:      :?BB7   Y&.
+ P#.   .Y@#5BGJ^     .^?P#P~    7@! 
+  P#5PGGGPYG&BPYYYY5GBG57.     J&7  
+   7&#7.    .~7?J??!~:       !BG^   
+    .?G5!:                ^JGP!     
+      .!YPPJ7~^:....:^!?YPP?^       
+          ^!JY5PPPPPP5Y?~.          ".to_string(), 36)
 }

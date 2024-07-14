@@ -1,6 +1,7 @@
 use core::str;
 use std::{env, fs::File, io::Read, process::Command};
 
+#[cfg(feature = "android")]
 use android_system_properties::AndroidSystemProperties;
 use serde::Deserialize;
 

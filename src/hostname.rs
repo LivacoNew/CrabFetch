@@ -114,8 +114,12 @@ fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply ne
 
     unsafe { // i do find it funny that no-ones made guarenteed safe c lib bindings in a language designed entirely around memory safety lol
         let user_id: u32 = geteuid();
-        let passwd: libc::passwd = *getpwuid(user_id);
-        name = match CStr::from_ptr(passwd.pw_name).to_str() {
+        let passwd: *mut libc::passwd = getpwuid(user_id);
+        if passwd.is_null() {
+            return Err(()) // null pointer
+        }
+
+        name = match CStr::from_ptr((*passwd).pw_name).to_str() {
             Ok(r) => r.to_string(),
             Err(_) => return Err(()),
         };

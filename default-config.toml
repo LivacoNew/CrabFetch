@@ -198,7 +198,48 @@ format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
 # A ignore list for any point points OR filesystems to ignore
 # The entries only need to start with these to be ignored
-ignore = ["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "ramfs", "/boot", "/snap"]
+ignore = [
+    # Filesystems
+    "tmpfs", 
+    "fuse", 
+    "binfmt", 
+    "configfs", 
+    "debugfs", 
+    "mqueue", 
+    "tracefs", 
+    "hugetlbfs", 
+    "bpf", 
+    "pstore", 
+    "cgroup", 
+    "dev", 
+    "securityfs", 
+    "autofs", 
+    "efivar", 
+    "sys", 
+    "proc", 
+    "swap", 
+    "ramfs", 
+
+    # Mounts
+    "/boot/",     # Boot partition 
+    "/snap/",     # Snap
+    # Android-Specific Ignored Mounts
+    # I have no idea what these do, they just seem to be irrelevant to my termux environment
+    "/sys/",
+    "/apex/",
+    "/dev/",
+    "/cache",
+    "/data",
+    "/product",
+    "/prism",
+    "/omr",
+    "/odm",
+    "/efs",
+    "/optics",
+    "/vendor",
+    "/metadata",
+    "/system"
+]
 
 
 [host]

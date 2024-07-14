@@ -1,6 +1,9 @@
 use std::{fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
 use std::mem;
 
+#[cfg(feature = "android")]
+use std::env;
+
 use libc::statfs;
 use serde::Deserialize;
 
@@ -120,8 +123,14 @@ impl MountInfo {
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
 
-    // Read from /etc/mtab to get all currently mounted disks
-    let file: File = match File::open("/etc/mtab") {
+    let mut path: &str = "/etc/mtab";
+    // Android 
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        path = "/proc/mounts";
+    }
+
+    let file: File = match File::open(path) {
         Ok(r) => r,
         Err(e) => {
             // Best guess I've got is that we're not on Linux

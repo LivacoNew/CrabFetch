@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, time::Duration};
+use std::{fs::File, io::Read, mem, time::Duration};
 
 use humantime::format_duration;
 use serde::Deserialize;
@@ -55,7 +55,11 @@ pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
     // Grabs from /proc/uptime
     let mut file: File = match File::open("/proc/uptime") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Uptime", format!("Can't read from /proc/uptime - {}", e))),
+        Err(_) => {
+            // Backup to the sysinfo call
+            use_syscall(&mut uptime);
+            return Ok(uptime);
+        },
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
@@ -68,4 +72,13 @@ pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
     };
 
     Ok(uptime)
+}
+
+fn use_syscall(uptime: &mut UptimeInfo) {
+    unsafe {
+        // TODO: Prevent this dupe syscall from going off, only run it once pls
+        let mut sysinfo: libc::sysinfo = mem::zeroed();
+        libc::sysinfo(&mut sysinfo);
+        uptime.uptime = Duration::new(sysinfo.uptime as u64, 0);
+    }
 }

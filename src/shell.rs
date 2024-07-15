@@ -92,6 +92,14 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         }
     };
 
+    #[cfg(not(feature = "android"))]
+    let path: String = format!("/proc/{}/exe", parent_pid);
+    #[cfg(not(feature = "android"))]
+    let shell_path: String = match fs::canonicalize(&path) {
+        Ok(r) => r.display().to_string(),
+        Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
+    };
+
     shell.shell_path = shell_path;
     shell.shell_name = shell.shell_path.split('/')
         .collect::<Vec<&str>>()

@@ -63,10 +63,15 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
     // Credit goes to FastFetch for this detection method - another tidbit of linux knowledge I was
     // unaware of
     let parent_pid: u32 = process::parent_id();
-    let path: String = format!("/proc/{}/exe", parent_pid);
-    let shell_path: String = match fs::canonicalize(&path) {
-        Ok(r) => r.display().to_string(),
-        Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
+    #[cfg(feature = "android")]
+    let shell_path: String = if env::consts::OS == "android" {
+        format!("/proc/{}/cmdline", parent_pid)
+    } else {
+        let path: String = format!("/proc/{}/exe", parent_pid);
+        match fs::canonicalize(&path) {
+            Ok(r) => r.display().to_string(),
+            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
+        }
     };
 
     shell.shell_path = shell_path;

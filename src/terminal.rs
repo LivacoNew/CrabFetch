@@ -137,7 +137,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
     }
 
-    contents = contents.split(' ').collect::<Vec<&str>>()[0].to_string();
+    contents = contents.split('\0').collect::<Vec<&str>>()[0].to_string();
     // Fix for this happening; https://cdn.discordapp.com/attachments/1011301373482115163/1221945908250280096/image.png?ex=66146ccf&is=6601f7cf&hm=2045e0d8150ff468c84ee0fe10ca9105dd4793df05c599715bd1bd7c74d4dc9d&
     contents = contents.split("--").next().unwrap().to_string();
     contents = contents.split('/').last().unwrap().to_string();

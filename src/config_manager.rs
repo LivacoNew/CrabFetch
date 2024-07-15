@@ -121,7 +121,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
             });
         }
 
-        builder = builder.add_source(config::File::with_name(&config_path_str.as_ref().unwrap()).required(false));
+        builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
     }
     // Set the defaults here
     // General

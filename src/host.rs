@@ -66,7 +66,7 @@ pub fn get_host() -> Result<HostInfo, ModuleError> {
         // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
         if let Some(model) = props.get("ro.product.model") {
             if let Some(manufacturer) = props.get("ro.product.manufacturer") {
-                host.host = format!("{} {}", manufacturer.trim().to_string(), model.trim().to_string());
+                host.host = format!("{} {}", manufacturer.trim(), model.trim());
                 return Ok(host);
             }
         }

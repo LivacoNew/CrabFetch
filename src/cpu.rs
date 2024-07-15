@@ -160,6 +160,21 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     }
     if cpu.cores == 0 {
         cpu.cores = cores;
+        // Backup to /sys/devices/system/cpu/present for threads too
+        // Thanks to https://stackoverflow.com/a/30150409
+        let mut file: File = match File::open("/sys/devices/system/cpu/present") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu/present - {}", e))),
+        };
+        let mut contents: String = String::new();
+        match file.read_to_string(&mut contents) {
+            Ok(_) => {},
+            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu/present - {}", e))),
+        }
+        cpu.threads = match contents.trim().split('-').last().unwrap().parse::<u16>() {
+            Ok(r) => r + 1,
+            Err(e) => return Err(ModuleError::new("CPU", format!("Failed to parse thread count from /sys/devices/system/cpu/present - {}", e))),
+        };
     }
 
     // Android 

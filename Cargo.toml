@@ -11,6 +11,7 @@ license = "Apache-2.0"
 [features]
 music = ["dep:dbus"]
 android = ["dep:android_system_properties"]
+rpm_packages = ["dep:sqlite"]
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }
@@ -18,11 +19,12 @@ shellexpand = "2.1.0"
 colored = "2.1.0"
 config = "0.14.0"
 serde = "1.0.197"
-sqlite = "0.34.0"
 libc = "0.2.153"
 humantime = "2.1.0"
-x11rb = { version = "0.13.1", features = ["randr"] }
 wayland-client = "0.31.3"
+
+x11rb = { version = "0.13.1", features = ["randr"] }
 dbus = { version = "0.9.7", optional = true }
 chrono = { version = "0.4.38", features = ["alloc", "android-tzdata", "clock", "iana-time-zone", "now", "std"] }
 android_system_properties = { version = "0.1.5", optional = true }
+sqlite = { version = "0.34.0", optional = true }

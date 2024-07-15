@@ -113,6 +113,7 @@ pub fn get_packages() -> PackagesInfo {
     if let Some(r) = process_dpkg_packages() {
         packages.packages.push(ManagerInfo::fill("dpkg", r));
     }
+    #[cfg(feature = "rpm_packages")]
     if let Some(r) = process_rpm_packages() {
         packages.packages.push(ManagerInfo::fill("rpm", r));
     }
@@ -223,6 +224,7 @@ fn _process_dpkg_packages_legacy() -> Option<u64> {
     Some(result)
 }
 
+#[cfg(feature = "rpm_packages")]
 fn process_rpm_packages() -> Option<u64> {
     let mut result: u64 = 0;
 

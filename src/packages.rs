@@ -1,6 +1,9 @@
 use core::str;
 use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
 
+#[cfg(feature = "android")]
+use std::env;
+
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
@@ -156,7 +159,18 @@ fn process_dpkg_packages() -> Option<u64> {
     // to strings or whatever as the file is so large I need as much raw performance as possible
     // All of this took the legacy function (down below) from 7ms to 3ms in this new function
     let mut result: u64 = 0;
-    let file_bytes: Vec<u8> = match fs::read("/var/lib/dpkg/status") {
+
+
+    #[cfg(not(feature = "android"))]
+    let path: &str = "/var/lib/dpkg/status";
+    #[cfg(feature = "android")]
+    let mut path: &str = "/var/lib/dpkg/status";
+    // Android 
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        path = "/data/data/com.termux/files/usr/var/lib/dpkg/status";
+    }
+    let file_bytes: Vec<u8> = match fs::read(path) {
         Ok(r) => r,
         Err(_) => return None,
     };

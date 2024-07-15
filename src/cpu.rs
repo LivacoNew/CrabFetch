@@ -101,6 +101,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     let buffer: BufReader<File> = BufReader::new(file);
     let mut cpu_mhz_count: u8 = 0;
     let mut first_entry: bool = true;
+    let mut cores: u16 = 0; // This acts as a backup for the "cpu cores" being missing
     for line in buffer.lines() {
         if line.is_err() {
             continue;
@@ -108,6 +109,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         let line = line.unwrap();
         if line.is_empty() {
             first_entry = false;
+            cores += 1;
         }
 
         if first_entry {
@@ -145,6 +147,9 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                     }
                 }
             }
+        }
+        if cpu.cores == 0 {
+            cpu.cores = cores;
         }
         if line.starts_with("cpu MHz") {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {

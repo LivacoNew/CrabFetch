@@ -1,5 +1,8 @@
 use std::{env, fs::{self, File}, io::Read, os::unix::process};
 
+#[cfg(feature = "android")]
+use std::path::Path;
+
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
@@ -51,6 +54,12 @@ impl Module for TerminalInfo {
 
 pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
+
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" && Path::new("/data/data/com.termux/files/").exists() { // TODO: Does this still work in other emulators?
+        terminal.terminal_name = "Termux".to_string();
+        return Ok(terminal);
+    }
 
     // This is just the rust-ified solution from https://askubuntu.com/a/508047
     // Not sure how well it works in all terminals, but it works fine for my tests in Kitty and

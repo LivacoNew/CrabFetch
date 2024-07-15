@@ -148,9 +148,6 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                 }
             }
         }
-        if cpu.cores == 0 {
-            cpu.cores = cores;
-        }
         if line.starts_with("cpu MHz") {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
@@ -160,6 +157,9 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             };
             cpu_mhz_count += 1;
         }
+    }
+    if cpu.cores == 0 {
+        cpu.cores = cores;
     }
 
     // Android 

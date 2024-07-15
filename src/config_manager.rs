@@ -153,6 +153,33 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                                   "colors".to_string(),
                                   "bright_colors".to_string(),
                                   ]).unwrap();
+
+    // Android only module
+    #[cfg(feature = "android")]
+    if env::consts::OS == "android" {
+        builder = builder.set_default("modules", vec![
+                                  "hostname".to_string(),
+                                  "underline:16".to_string(),
+
+                                  "cpu".to_string(),
+                                  "memory".to_string(),
+                                  "swap".to_string(),
+                                  "mounts".to_string(),
+                                  "host".to_string(),
+
+                                  "os".to_string(),
+                                  "packages".to_string(),
+                                  "terminal".to_string(),
+                                  "shell".to_string(),
+                                  "editor".to_string(),
+                                  "uptime".to_string(),
+                                  "locale".to_string(),
+
+                                  "space".to_string(),
+                                  "colors".to_string(),
+                                  "bright_colors".to_string(),
+                                  ]).unwrap();
+    }
     builder = builder.set_default("unknown_as_text", false).unwrap();
     builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();

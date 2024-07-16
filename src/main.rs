@@ -376,10 +376,8 @@ fn main() {
     print_bench_time(args.benchmark, "Parsing Config", bench);
     let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
 
-    // Define our module outputs, and figure out which modules need pre-calculated 
-    let bench: Option<Instant> = benchmark_point(args.benchmark); 
+    // Define our module outputs, and figure out the max title length
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
-
     let max_title_length: u64 = calc_max_title_length(&config, &mut known_outputs, args.benchmark);
 
     // 
@@ -873,12 +871,14 @@ fn main() {
     // 
     //  Display
     //
+    let ascii_bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut ascii: (String, u16) = (String::new(), 0);
     if config.ascii.display {
-        let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-        let os: Result<OSInfo, ModuleError> = os::get_os();
-        print_bench_time(args.benchmark, "OS Pre-Module", os_bench);
-        known_outputs.os = Some(os);
+        if known_outputs.os.is_none() {
+            let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
+            known_outputs.os = Some(os::get_os());
+            print_bench_time(args.benchmark, "OS (for ASCII)", os_bench);
+        }
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
             if args.distro_override.is_some() {
@@ -896,7 +896,7 @@ fn main() {
         ascii_length = ascii_split.len();
         ascii_target_length = ascii.1 + config.ascii.margin;
     }
-    print_bench_time(args.benchmark, "Display ASCII Pre-Calc (Includes OS if not already ran)", bench);
+    print_bench_time(args.benchmark, "Display ASCII Pre-Calc", ascii_bench);
 
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut current_line: usize = 0;

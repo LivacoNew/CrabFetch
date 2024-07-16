@@ -54,7 +54,7 @@ mod processes;
 mod datetime;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(about, long_about = None)]
 pub struct Args {
     #[arg(short, long)]
     /// Sets a custom config file. This file MUST be a .toml file.
@@ -92,7 +92,11 @@ pub struct Args {
     #[arg(long)]
     /// Runs CrabFetch in a "benchmark" mode, showing the total times it takes between each stage
     /// and module detection times.
-    benchmark: bool
+    benchmark: bool,
+
+    #[arg(long, short)]
+    /// Displays the version of CrabFetch, as well as the current features enabled in this build.
+    version: bool
 }
 
 // Figures out the max title length for when we're using inline value display
@@ -330,7 +334,31 @@ fn main() {
     let args_bench: Option<Instant> = benchmark_point(true); // Just true as it's before we parse it
     let args: Args = Args::parse();
     print_bench_time(args.benchmark, "Args Parsing", args_bench);
+    
+    if args.version {
+        let version = env!("CARGO_PKG_VERSION");
+        println!("CrabFetch {}", version);
+        println!();
+        println!("Build containts feature flags:");
 
+        // likely messy 
+        #[cfg(feature = "android")]
+        println!(" + android");
+        #[cfg(not(feature = "android"))]
+        println!(" - android");
+
+        #[cfg(feature = "music")]
+        println!(" + music");
+        #[cfg(not(feature = "music"))]
+        println!(" - music");
+
+        #[cfg(feature = "rpm_packages")]
+        println!(" + rpm_packages");
+        #[cfg(not(feature = "rpm_packages"))]
+        println!(" - rpm_packages");
+
+        exit(0);
+    }
     if args.generate_config_file {
         let bench: Option<Instant> = benchmark_point(args.benchmark); 
         config_manager::generate_config_file(args.config.clone());

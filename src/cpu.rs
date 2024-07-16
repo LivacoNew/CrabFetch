@@ -91,11 +91,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
-        Err(e) => {
-            // Best guess I've got is that we're not on Linux
-            // In which case, L
-            return Err(ModuleError::new("CPU", format!("Can't read from /proc/cpuinfo - {}", e)));
-        },
+        Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /proc/cpuinfo - {}", e))),
     };
 
     let buffer: BufReader<File> = BufReader::new(file);
@@ -119,17 +115,13 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             if line.starts_with("cpu cores") {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
-                    Err(e) => {
-                        return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e)));
-                    },
+                    Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e))),
                 }
             }
             if line.starts_with("siblings") {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
-                    Err(e) => {
-                        return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e)));
-                    },
+                    Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e))),
                 }
             }
             if line.starts_with("flags") {
@@ -151,9 +143,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         if line.starts_with("cpu MHz") {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
-                Err(e) => {
-                    return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e)));
-                },
+                Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e))),
             };
             cpu_mhz_count += 1;
         }
@@ -248,16 +238,12 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         // Now I need to scan this dir for each entry
         let mut file: File = match File::open(freq_path) {
             Ok(r) => r,
-            Err(e) => {
-                return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e)));
-            },
+            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e))),
         };
         let mut contents: String = String::new();
         match file.read_to_string(&mut contents) {
             Ok(_) => {},
-            Err(e) => {
-                return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e)));
-            },
+            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e))),
         }
 
         match contents.trim().parse::<f32>() {

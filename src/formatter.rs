@@ -96,9 +96,7 @@ pub fn replace_color_placeholders(str: &str) -> String { // out of place here?
         let color_str: String = s[..len].to_string();
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
-            Err(_) => {
-                continue;
-            },
+            Err(_) => continue,
         };
         new_string.push_str(&color.color_string(&s[len + 1..]).to_string());
     }

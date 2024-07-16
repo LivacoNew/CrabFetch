@@ -55,9 +55,7 @@ pub fn get_desktop() -> Result<DesktopInfo, ModuleError> {
 
     desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)));
-        }
+        Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
     };
 
     desktop.display_type = match env::var("XDG_SESSION_TYPE") {

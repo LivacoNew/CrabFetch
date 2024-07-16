@@ -86,16 +86,12 @@ pub fn get_host() -> Result<HostInfo, ModuleError> {
 
     let mut file: File = match File::open(chosen_path) {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e)));
-        },
+        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e))),
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e)));
-        },
+        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e))),
     }
 
     host.host = contents.trim().to_string();

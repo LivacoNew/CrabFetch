@@ -71,17 +71,12 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         let path: String = format!("/proc/{}/cmdline", parent_pid);
         let mut file: File = match File::open(&path) {
             Ok(r) => r,
-            Err(e) => {
-                // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
-                return Err(ModuleError::new("OS", format!("Can't read from {} - {}", path, e)))
-            },
+            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} - {}", path, e))),
         };
         let mut contents: String = String::new();
         match file.read_to_string(&mut contents) {
             Ok(_) => {},
-            Err(e) => {
-                return Err(ModuleError::new("Shell", format!("Can't read from {} - {}", path, e)));
-            },
+            Err(e) => return Err(ModuleError::new("Shell", format!("Can't read from {} - {}", path, e))),
         }
         contents
     } else {

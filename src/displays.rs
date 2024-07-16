@@ -281,9 +281,7 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
     while !data.complete {
         match event_queue.roundtrip(&mut data) {
             Ok(r) => r,
-            Err(e) => {
-                return Err(ModuleError::new("Display", format!("Compositor roundtrip returned error: {}", e)));
-            }
+            Err(e) => return Err(ModuleError::new("Display", format!("Compositor roundtrip returned error: {}", e)))
         };
         loops += 1;
         if loops > 1000 {

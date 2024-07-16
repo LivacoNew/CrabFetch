@@ -74,23 +74,17 @@ pub fn get_battery(battery_path: &str) -> Result<BatteryInfo, ModuleError> {
     let path: String = format!("/sys/class/power_supply/{}/capacity", battery_path).to_string();
     let mut file: File = match File::open(&path) {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e)));
-        },
+        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e)));
-        },
+        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
     }
 
     battery.percentage = match contents.trim().parse() {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e)));
-        },
+        Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
     };
 
     Ok(battery)

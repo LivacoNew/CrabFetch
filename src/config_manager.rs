@@ -113,7 +113,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                     // Let's try the home directory
                     let mut home_dir: String = match env::var("HOME") {
                         Ok(r) => r,
-                        Err(e) => panic!("Unable to find config folder; {}", e) // WHYYYY???
+                        Err(e) => panic!("Unable to find config folder; {}", e)
                     };
                     home_dir.push_str("/.config/CrabFetch/config.toml");
                     home_dir
@@ -354,13 +354,8 @@ pub fn generate_config_file(location_override: Option<String>) {
             Err(_) => {
                 // Let's try the home directory
                 let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => {
-                        r
-                    },
-                    Err(e) => {
-                        // why tf would you unset home lmao
-                        panic!("Unable to find suitable config folder; {}", e);
-                    }
+                    Ok(r) => r,
+                    Err(e) => panic!("Unable to find suitable config folder; {}", e)
                 };
                 home_dir.push_str("/.config/CrabFetch/config.toml");
                 home_dir

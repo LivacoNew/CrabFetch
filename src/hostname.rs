@@ -143,17 +143,12 @@ fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleE
     let output: Vec<u8> = match Command::new("hostname")
         .output() {
             Ok(r) => r.stdout,
-            Err(_) => {
-                // fuck it
-                return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string()));
-            },
+            Err(_) => return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string())),
         };
 
     hostname.hostname = match String::from_utf8(output) {
         Ok(r) => r.trim().to_string(),
-        Err(_) => {
-            return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string()));
-        },
+        Err(_) => return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string())),
     };
 
     Ok(())

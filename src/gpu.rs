@@ -272,9 +272,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
             let mut vram_str: String = String::new();
             match r.read_to_string(&mut vram_str) {
                 Ok(_) => {},
-                Err(e) => {
-                    return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e)));
-                },
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
             }
             gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
         }
@@ -300,9 +298,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
 
     let file: File = match File::open(ids_path.unwrap()) {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e)));
-        },
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 
@@ -360,9 +356,7 @@ fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
 
     let file: File = match File::open(ids_path.unwrap()) {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e)));
-        },
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 

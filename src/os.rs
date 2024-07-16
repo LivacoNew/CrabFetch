@@ -91,16 +91,12 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
         let output: Vec<u8> = match Command::new("uname").arg("-r")
             .output() {
                 Ok(r) => r.stdout,
-                Err(_) => {
-                    return Err(ModuleError::new("OS", "Can't find kernel version.".to_string()));
-                },
+                Err(_) => return Err(ModuleError::new("OS", "Can't find kernel version.".to_string())),
             };
 
         os.kernel = match String::from_utf8(output) {
             Ok(r) => r.trim().to_string(),
-            Err(_) => {
-                return Err(ModuleError::new("OS", "Can't find kernel version.".to_string()));
-            },
+            Err(_) => return Err(ModuleError::new("OS", "Can't find kernel version.".to_string())),
         };
 
         return Ok(os);
@@ -112,17 +108,12 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
     // Distro
     let mut file: File = match File::open("/etc/os-release") {
         Ok(r) => r,
-        Err(e) => {
-            // log_error("OS", format!("Can't read from /etc/os-release - {}", e));
-            return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e)))
-        },
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e)));
-        },
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
     }
     for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {
@@ -138,16 +129,12 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
     // Kernel
     let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
         Ok(r) => r,
-        Err(e) => {
-            return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e)));
-        },
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
     };
     let mut contents: String = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => {},
-        Err(e) => {
-            return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e)));
-        },
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
     }
     os.kernel = contents.trim().to_string();
 

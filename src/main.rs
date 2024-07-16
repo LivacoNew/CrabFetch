@@ -428,9 +428,7 @@ fn main() {
                     known_outputs.hostname = Some(hostname::get_hostname());
                 }
                 match known_outputs.hostname.as_ref().unwrap() {
-                    Ok(hostname) => {
-                        output.push(hostname.style(&config, max_title_length))
-                    },
+                    Ok(hostname) => output.push(hostname.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -447,9 +445,7 @@ fn main() {
                     known_outputs.cpu = Some(cpu::get_cpu());
                 }
                 match known_outputs.cpu.as_ref().unwrap() {
-                    Ok(cpu) => {
-                        output.push(cpu.style(&config, max_title_length))
-                    },
+                    Ok(cpu) => output.push(cpu.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -500,9 +496,7 @@ fn main() {
                     known_outputs.memory = Some(memory::get_memory());
                 }
                 match known_outputs.memory.as_ref().unwrap() {
-                    Ok(memory) => {
-                        output.push(memory.style(&config, max_title_length))
-                    },
+                    Ok(memory) => output.push(memory.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -519,9 +513,7 @@ fn main() {
                     known_outputs.swap = Some(swap::get_swap());
                 }
                 match known_outputs.swap.as_ref().unwrap() {
-                    Ok(swap) => {
-                        output.push(swap.style(&config, max_title_length))
-                    },
+                    Ok(swap) => output.push(swap.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -562,9 +554,7 @@ fn main() {
                     known_outputs.host = Some(host::get_host());
                 }
                 match known_outputs.host.as_ref().unwrap() {
-                    Ok(host) => {
-                        output.push(host.style(&config, max_title_length))
-                    },
+                    Ok(host) => output.push(host.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -632,9 +622,7 @@ fn main() {
                     known_outputs.desktop = Some(desktop::get_desktop());
                 }
                 match known_outputs.desktop.as_ref().unwrap() {
-                    Ok(desktop) => {
-                        output.push(desktop.style(&config, max_title_length))
-                    },
+                    Ok(desktop) => output.push(desktop.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -651,9 +639,7 @@ fn main() {
                     known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts));
                 }
                 match known_outputs.terminal.as_ref().unwrap() {
-                    Ok(terminal) => {
-                        output.push(terminal.style(&config, max_title_length))
-                    },
+                    Ok(terminal) => output.push(terminal.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -670,9 +656,7 @@ fn main() {
                     known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell));
                 }
                 match known_outputs.shell.as_ref().unwrap() {
-                    Ok(shell) => {
-                        output.push(shell.style(&config, max_title_length))
-                    },
+                    Ok(shell) => output.push(shell.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -689,9 +673,7 @@ fn main() {
                     known_outputs.battery = Some(battery::get_battery(&config.battery.path));
                 }
                 match known_outputs.battery.as_ref().unwrap() {
-                    Ok(battery) => {
-                        output.push(battery.style(&config, max_title_length))
-                    },
+                    Ok(battery) => output.push(battery.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -708,9 +690,7 @@ fn main() {
                     known_outputs.uptime = Some(uptime::get_uptime());
                 }
                 match known_outputs.uptime.as_ref().unwrap() {
-                    Ok(uptime) => {
-                        output.push(uptime.style(&config, max_title_length))
-                    },
+                    Ok(uptime) => output.push(uptime.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -727,9 +707,7 @@ fn main() {
                     known_outputs.locale = Some(locale::get_locale());
                 }
                 match known_outputs.locale.as_ref().unwrap() {
-                    Ok(locale) => {
-                        output.push(locale.style(&config, max_title_length))
-                    },
+                    Ok(locale) => output.push(locale.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -747,9 +725,7 @@ fn main() {
                     known_outputs.music = Some(music::get_music(&config.music.player));
                 }
                 match known_outputs.music.as_ref().unwrap() {
-                    Ok(music) => {
-                        output.push(music.style(&config, max_title_length))
-                    },
+                    Ok(music) => output.push(music.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -766,9 +742,7 @@ fn main() {
                     known_outputs.editor = Some(editor::get_editor(config.editor.fancy));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
-                    Ok(editor) => {
-                        output.push(editor.style(&config, max_title_length))
-                    },
+                    Ok(editor) => output.push(editor.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -785,9 +759,7 @@ fn main() {
                     known_outputs.initsys = Some(initsys::get_init_system());
                 }
                 match known_outputs.initsys.as_ref().unwrap() {
-                    Ok(init) => {
-                        output.push(init.style(&config, max_title_length))
-                    },
+                    Ok(init) => output.push(init.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());
@@ -804,9 +776,7 @@ fn main() {
                     known_outputs.processes = Some(processes::get_process_count());
                 }
                 match known_outputs.processes.as_ref().unwrap() {
-                    Ok(processes) => {
-                        output.push(processes.style(&config, max_title_length))
-                    },
+                    Ok(processes) => output.push(processes.style(&config, max_title_length)),
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());

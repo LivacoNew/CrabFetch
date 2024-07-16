@@ -135,11 +135,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
     let file: File = match File::open(path) {
         Ok(r) => r,
-        Err(e) => {
-            // Best guess I've got is that we're not on Linux
-            // In which case, L
-            return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {}", e)));
-        },
+        Err(e) => return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {}", e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
     for line in buffer.lines() {

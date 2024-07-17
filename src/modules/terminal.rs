@@ -61,15 +61,10 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         return Ok(terminal);
     }
 
-    // This is just the rust-ified solution from https://askubuntu.com/a/508047
-    // Not sure how well it works in all terminals, but it works fine for my tests in Kitty and
-    // Allacritty, so idm.
-    //
-    // basename "/"$(ps -o cmd -f -p $(cat /proc/$(echo $$)/stat | cut -d \  -f 4) | tail -1 | sed 's/ .*$//')
-    // Essentially, it grabs the parent process, grabs the parent of that pid from /proc/x/stat and
-    // gets the name of it from ps
+    // This is just a rust-ified & slightly more robust solution from https://askubuntu.com/a/508047
 
-    // println!("Starting terminal:");
+
+    // Find the terminal's PID by going up through every shell level
     let mut terminal_pid: Option<u32> = None;
 
     let mut loops = 0; // always use protection against infinite loops kids
@@ -117,9 +112,8 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         shell_level -= 1;
     }
 
-    // And credit to https://superuser.com/a/632984 for the file based solution, as ps and
-    // sysinfo were too slow
-    // println!("{}", terminal_pid);
+    // And credit to https://superuser.com/a/632984 for letting me know how to use /proc correctly
+    // Go into /cmdline and find the name
     if terminal_pid.is_none() {
         return Err(ModuleError::new("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid)));
     }
@@ -138,16 +132,13 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     }
 
     contents = contents.split('\0').collect::<Vec<&str>>()[0].to_string();
-    // Fix for this happening; https://cdn.discordapp.com/attachments/1011301373482115163/1221945908250280096/image.png?ex=66146ccf&is=6601f7cf&hm=2045e0d8150ff468c84ee0fe10ca9105dd4793df05c599715bd1bd7c74d4dc9d&
-    contents = contents.split("--").next().unwrap().to_string();
-    contents = contents.split('/').last().unwrap().to_string();
 
     // Fix for gnome terminal coming out as gnome-terminal-server
-    if contents.trim().replace('\0', "") == "gnome-terminal-server" {
+    if contents.trim() == "gnome-terminal-server" {
         contents = "GNOME Terminal".to_string();
     }
     // Fix for elementaryos terminal being shitty
-    if contents.trim().replace('\0', "") == "io.elementary.terminal" {
+    if contents.trim() == "io.elementary.terminal" {
         contents = "Elementary Terminal".to_string();
     }
 

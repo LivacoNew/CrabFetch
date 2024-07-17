@@ -56,6 +56,13 @@ inline_values = false
 # The character to use in the underline module
 underline_character = '―'
 
+# The character for each color in the colors module
+color_character = "   "
+# Margin between each character
+color_margin = 0
+# And if to set the color to the background instead of on the character
+color_use_background = true
+
 # Format of segments
 # Segments can be defined in the modules array
 segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"

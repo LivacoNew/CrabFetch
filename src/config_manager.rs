@@ -19,6 +19,9 @@ pub struct Configuration {
     pub decimal_places: u32,
     pub inline_values: bool,
     pub underline_character: char,
+    pub color_character: String,
+    pub color_margin: u8,
+    pub color_use_background: bool,
     pub segment_top: String,
     pub segment_bottom: String,
     pub progress_left_border: String,
@@ -181,22 +184,31 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         ]).unwrap();
     }
     builder = builder.set_default("unknown_as_text", false).unwrap();
+
     builder = builder.set_default("seperator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
+
     builder = builder.set_default("decimal_places", 2).unwrap();
     builder = builder.set_default("inline_values", false).unwrap();
     builder = builder.set_default("underline_character", "―").unwrap();
+    builder = builder.set_default("color_character", "   ").unwrap();
+    builder = builder.set_default("color_margin", 0).unwrap();
+    builder = builder.set_default("color_use_background", true).unwrap();
+
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
     builder = builder.set_default("segment_bottom", "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]").unwrap();
+
     builder = builder.set_default("progress_left_border", "[").unwrap();
     builder = builder.set_default("progress_right_border", "]").unwrap();
     builder = builder.set_default("progress_progress", "=").unwrap();
     builder = builder.set_default("progress_empty", " ").unwrap();
     builder = builder.set_default("progress_target_length", 20).unwrap();
+
     builder = builder.set_default("use_ibis", false).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
+
     builder = builder.set_default("percentage_color_thresholds", vec!["75:brightgreen", "85:brightyellow", "90:brightred"]).unwrap();
 
     // ASCII
@@ -485,6 +497,13 @@ inline_values = false
 
 # The character to use in the underline module
 underline_character = '―'
+
+# The character for each color in the colors module
+color_character = "   "
+# Margin between each character
+color_margin = 0
+# And if to set the color to the background instead of on the character
+color_use_background = true
 
 # Format of segments
 # Segments can be defined in the modules array

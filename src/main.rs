@@ -774,33 +774,89 @@ fn main() {
                 output.push(known_outputs.datetime.as_ref().unwrap().style(&config, max_title_length));
                 print_bench_time(args.benchmark, "Datetime Module", bench);
             },
+
+            // i hate what's below as well, don't worry
             "colors" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                let gap: &str = "   ";
+                let char: &str = &config.color_character;
+                let gap: &str = &(" ".repeat(config.color_margin as usize));
+
                 let mut str: String = String::new();
-                str.push_str(&gap.on_black().to_string());
-                str.push_str(&gap.on_red().to_string());
-                str.push_str(&gap.on_green().to_string());
-                str.push_str(&gap.on_yellow().to_string());
-                str.push_str(&gap.on_blue().to_string());
-                str.push_str(&gap.on_magenta().to_string());
-                str.push_str(&gap.on_cyan().to_string());
-                str.push_str(&gap.on_white().to_string());
+                if config.color_use_background {
+                    str.push_str(&char.on_black().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_red().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_green().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_yellow().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_blue().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_magenta().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_cyan().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_white().to_string());
+                } else {
+                    str.push_str(&char.black().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.red().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.green().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.yellow().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.blue().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.magenta().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.cyan().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.white().to_string());
+                }
                 output.push(str);
                 print_bench_time(args.benchmark, "Colors Module", bench);
             }
             "bright_colors" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                let gap: &str = "   ";
+                let char: &str = &config.color_character;
+                let gap: &str = &(" ".repeat(config.color_margin as usize));
+
                 let mut str: String = String::new();
-                str.push_str(&gap.on_bright_black().to_string());
-                str.push_str(&gap.on_bright_red().to_string());
-                str.push_str(&gap.on_bright_green().to_string());
-                str.push_str(&gap.on_bright_yellow().to_string());
-                str.push_str(&gap.on_bright_blue().to_string());
-                str.push_str(&gap.on_bright_magenta().to_string());
-                str.push_str(&gap.on_bright_cyan().to_string());
-                str.push_str(&gap.on_bright_white().to_string());
+                if config.color_use_background {
+                    str.push_str(&char.on_bright_black().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_red().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_green().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_yellow().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_blue().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_magenta().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_cyan().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.on_bright_white().to_string());
+                } else {
+                    str.push_str(&char.bright_black().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_red().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_green().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_yellow().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_blue().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_magenta().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_cyan().to_string());
+                    str.push_str(gap);
+                    str.push_str(&char.bright_white().to_string());
+                }
                 output.push(str);
                 print_bench_time(args.benchmark, "Bright Colors Module", bench);
             }

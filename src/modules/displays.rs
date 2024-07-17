@@ -10,6 +10,8 @@ use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, Mo
 #[derive(Clone)]
 pub struct DisplayInfo {
     name: String,
+    make: String,
+    model: String,
     width: u16,
     height: u16,
     refresh_rate: Option<u16>,
@@ -71,6 +73,8 @@ impl Module for DisplayInfo {
     fn new() -> DisplayInfo {
         DisplayInfo {
             name: "".to_string(),
+            make: "".to_string(),
+            model: "".to_string(),
             width: 0,
             height: 0,
             refresh_rate: None,
@@ -106,6 +110,8 @@ impl Module for DisplayInfo {
             None => "N/A".to_string(),
         };
         config.displays.format.replace("{name}", &self.name)
+            .replace("{make}", &self.make)
+            .replace("{model}", &self.model)
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
             .replace("{refresh_rate}", &refresh_rate)
@@ -174,6 +180,8 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
     for monitor in monitors {
         let display = DisplayInfo {
             name: monitor.name.to_string(),
+            make: "".to_string(),
+            model: "".to_string(),
             width: monitor.width,
             height: monitor.height,
             refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
@@ -219,12 +227,15 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Name {name} = &event {
             display.name = name.to_string();
         }
-        if let wl_output::Event::Geometry {transform, ..} = &event {
+        if let wl_output::Event::Geometry {make, model, transform, ..} = &event {
             display.wl_transform = Some(*transform);
             if display.width != 0 || display.height != 0 {
                 // Will reset wl_transform to None for us
                 display.wl_calc_transform();
             } 
+
+            display.make = make.to_string();
+            display.model = model.to_string();
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = width.to_string().parse::<u16>().unwrap_or(0);

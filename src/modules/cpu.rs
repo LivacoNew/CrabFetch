@@ -5,7 +5,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::P
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -63,10 +63,10 @@ impl Module for CPUInfo {
         config.cpu.format.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
-            .replace("{current_clock_mhz}", &CPUInfo::round(self.current_clock_mhz, dec_places).to_string())
-            .replace("{current_clock_ghz}", &CPUInfo::round(self.current_clock_mhz / 1000.0, dec_places).to_string())
-            .replace("{max_clock_mhz}", &CPUInfo::round(self.max_clock_mhz, dec_places).to_string())
-            .replace("{max_clock_ghz}", &CPUInfo::round(self.max_clock_mhz / 1000.0, dec_places).to_string())
+            .replace("{current_clock_mhz}", &formatter::round(self.current_clock_mhz as f64, dec_places).to_string())
+            .replace("{current_clock_ghz}", &formatter::round((self.current_clock_mhz / 1000.0) as f64, dec_places).to_string())
+            .replace("{max_clock_mhz}", &formatter::round(self.max_clock_mhz as f64, dec_places).to_string())
+            .replace("{max_clock_ghz}", &formatter::round((self.max_clock_mhz / 1000.0) as f64, dec_places).to_string())
             .replace("{arch}", &self.arch.to_string())
     }
 }

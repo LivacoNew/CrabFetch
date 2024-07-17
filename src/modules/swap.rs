@@ -68,7 +68,7 @@ impl Module for SwapInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        formatter::process_percentage_placeholder(&config.swap.format, SwapInfo::round(self.percent, dec_places), config)
+        formatter::process_percentage_placeholder(&config.swap.format, formatter::round(self.percent as f64, dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)

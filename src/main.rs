@@ -171,11 +171,6 @@ trait Module {
     fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
     fn replace_placeholders(&self, config: &Configuration) -> String;
 
-    // TODO: Move impls to use the formatter::round pub function
-    fn round(number: f32, places: u32) -> f32 {
-        let power: f32 = 10_u32.pow(places) as f32;
-        (number * power).round() / power
-    }
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
     fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str, value: &str) -> String {
         let mut str: String = String::new();

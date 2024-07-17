@@ -90,7 +90,7 @@ impl Module for MountInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        formatter::process_percentage_placeholder(&config.mounts.format, MountInfo::round(self.percent, dec_places), config)
+        formatter::process_percentage_placeholder(&config.mounts.format, formatter::round(self.percent as f64, dec_places) as f32, config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{filesystem}", &self.filesystem)

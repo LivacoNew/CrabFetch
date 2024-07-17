@@ -62,7 +62,7 @@ impl Module for BatteryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
-        formatter::process_percentage_placeholder(&config.battery.format, BatteryInfo::round(self.percentage, dec_places), config)
+        formatter::process_percentage_placeholder(&config.battery.format, formatter::round(self.percentage as f64, dec_places) as f32, config)
             .replace("{bar}", &bar)
     }
 }

@@ -327,11 +327,6 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         }
         if let wl_output::Event::Geometry {make, model, transform, ..} = &event {
             display.wl_transform = Some(*transform);
-            if display.width != 0 || display.height != 0 {
-                // Will reset wl_transform to None for us
-                display.wl_calc_transform();
-            } 
-
             display.make = make.to_string();
             display.model = model.to_string();
         }
@@ -344,14 +339,9 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
                 // Clearly your compositor is very very very dumb
                 Err(_) => Some(0)
             };
-
-            if display.wl_transform.is_some() {
-                // Will reset wl_transform to None for us
-                display.wl_calc_transform();
-            }
         }
 
-        if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate.is_some() {
+        if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate.is_some() && display.wl_transform.is_some() {
             // We're done, release it 
             output.release();
             if state.num_outputs == 0 {
@@ -398,7 +388,11 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
         }
     }
 
-    let mut displays: Vec<DisplayInfo> = data.outputs.into_iter().map(|x| x.1.clone()).collect();
+    let mut displays: Vec<DisplayInfo> = data.outputs.into_iter()
+        .map(|x| x.1.clone())
+        .collect();
+    displays.iter_mut().for_each(|x| x.wl_calc_transform());
+
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)
 }

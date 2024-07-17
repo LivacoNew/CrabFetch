@@ -1,57 +1,36 @@
 use std::{cmp::{max, min}, env, fmt::{Debug, Display}, process::exit, time::Instant};
 
-use battery::BatteryInfo;
-use cpu::CPUInfo;
+use modules::battery::{self, BatteryInfo};
+use modules::cpu::{self, CPUInfo};
 use clap::{ArgAction, Parser};
 use colored::{ColoredString, Colorize};
-use datetime::DateTimeInfo;
-use desktop::DesktopInfo;
-use displays::DisplayInfo;
-use editor::EditorInfo;
+use modules::datetime::{self, DateTimeInfo};
+use modules::desktop::{self, DesktopInfo};
+use modules::displays::{self, DisplayInfo};
+use modules::editor::{self, EditorInfo};
 use formatter::CrabFetchColor;
-use gpu::{GPUInfo, GPUMethod};
-use host::HostInfo;
-use initsys::InitSystemInfo;
-use locale::LocaleInfo;
-use memory::MemoryInfo;
-use mounts::MountInfo;
+use modules::host::{self, HostInfo};
+use modules::initsys::{self, InitSystemInfo};
+use modules::locale::{self, LocaleInfo};
+use modules::memory::{self, MemoryInfo};
+use modules::gpu::{self, GPUInfo, GPUMethod};
+use modules::mounts::{self, MountInfo};
 #[cfg(feature = "music")]
-use music::MusicInfo;
-use os::OSInfo;
-use packages::PackagesInfo;
-use processes::ProcessesInfo;
-use shell::ShellInfo;
-use swap::SwapInfo;
-use terminal::TerminalInfo;
-use uptime::UptimeInfo;
+use modules::music::{self, MusicInfo};
+use modules::os::{self, OSInfo};
+use modules::packages::{self, PackagesInfo};
+use modules::processes::{self, ProcessesInfo};
+use modules::shell::{self, ShellInfo};
+use modules::swap::{self, SwapInfo};
+use modules::terminal::{self, TerminalInfo};
+use modules::uptime::{self, UptimeInfo};
+use modules::hostname::{self, HostnameInfo};
+use config_manager::Configuration;
 
-use crate::{config_manager::Configuration, hostname::HostnameInfo};
-
-mod cpu;
+mod modules;
 mod config_manager;
 mod ascii;
-mod os;
-mod hostname;
-mod gpu;
-mod memory;
-mod swap;
-mod mounts;
-mod host;
-mod displays;
-mod packages;
-mod desktop;
-mod terminal;
-mod shell;
-mod uptime;
-mod editor;
-mod locale;
-mod battery;
 mod formatter;
-#[cfg(feature = "music")]
-mod music;
-mod initsys;
-mod processes;
-mod datetime;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]

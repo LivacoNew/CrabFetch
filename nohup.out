@@ -1,0 +1,8 @@
+
+(nemo:2844594): Nemo-WARNING **: 15:43:24.723: Current gtk theme is not known to have nemo support (Adwaita-dark) - checking...
+
+(nemo:2844594): Nemo-WARNING **: 15:43:24.745: The theme appears to have no nemo support.  Adding some...
+
+(nemo:2844594): Nemo-WARNING **: 15:43:24.803: Action '90_new-launcher.nemo_action' is missing dependency: cinnamon-desktop-editor
+
+(nemo:2844594): Nemo-WARNING **: 15:43:42.470: Could not inhibit power management: GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Destination does not exist

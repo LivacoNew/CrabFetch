@@ -1,5 +1,5 @@
 use core::str;
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, fs::{self, read_dir, ReadDir}};
 
 use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
@@ -186,11 +186,16 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
             },
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
         };
+        // Find the make/model from the EDID
+        let (make, model): (String, String) = match get_edid_makemodel(&drm_name) {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get make/model for monitor {}: {}", monitor.name, e))),
+        };
 
         let display = DisplayInfo {
             name: drm_name,
-            make: "".to_string(),
-            model: "".to_string(),
+            make,
+            model,
             width: monitor.width,
             height: monitor.height,
             refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
@@ -204,6 +209,84 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
     let _ = conn.destroy_window(win_id);
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)
+}
+
+fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
+    // Relative to /sys/class/drm
+    // Scans the dir until it finds the first directory ending in that drm name
+    // This is because we don't know the GPU device index, and from my (limited) knowledge, no 2
+    // DRM names should be repeated. If they can, I'll need to revisit this func.
+    let dir: ReadDir = match read_dir("/sys/class/drm") {
+        Ok(r) => r,
+        Err(e) => return Err(format!("Unable to open /sys/class/drm: {}", e)),
+    };
+
+    let mut make: String = "Unknown".to_string();
+    let mut model: String = "Unknown".to_string();
+    for x in dir {
+        if x.is_err() {
+            continue;
+        }
+        let x = x.unwrap();
+        let dir_name = x.file_name();
+        let dir_name = dir_name.to_str().unwrap();
+        if !dir_name.ends_with(drm_name) {
+            continue;
+        }
+
+        // Found it
+        // Get the EDID now
+        let edid_bytes: Vec<u8> = match fs::read(format!("/sys/class/drm/{}/edid", dir_name)) {
+            Ok(r) => r,
+            Err(e) => return Err(format!("Unable to open /sys/class/drm/{}/edid: {}", dir_name, e)),
+        };
+        // Thanks to these wonderful sources;
+        // - https://glenwing.github.io/docs/VESA-EEDID-A2.pdf 
+        // - https://github.com/tuomas56/edid-rs/tree/master?tab=readme-ov-file
+        //
+        // From what I can tell, manufacturer ID is at byte 8+2 
+        // Display model name itself is somewhere buried within a display descriptor, which I have
+        // to go through and find
+        
+        let manuid: u16 = ((edid_bytes[8] as u16) << 8) | (edid_bytes[9] as u16);
+        // + 64 to convert em to uppercase ascii
+        let char1: char = (((manuid & 0b011111_00000000) >> 10) as u8 + 64) as char;
+        let char2: char = (((manuid & 0b00000011_11100000) >> 5) as u8 + 64) as char;
+        let char3: char = ((manuid & 0b00000000_00011111) as u8 + 64) as char;
+        make = format!("{char1}{char2}{char3}");
+
+        // Now to scower the display descriptors
+        // Byte 48 is where this starts
+        let mut starting_byte: usize = 54;
+        for _ in 0..3 {
+            let is_display: u16 = ((edid_bytes[starting_byte] as u16) << 8) | edid_bytes[starting_byte + 1] as u16;
+            if is_display != 0 {
+                starting_byte += 18;
+                continue;
+            }
+
+            // Check the tag
+            let tag: u8 = edid_bytes[starting_byte + 3];
+            if tag != 252 {
+                starting_byte += 18;
+                continue;
+            }
+
+            model = "".to_string();
+            // Read from byte 5+13 to find the full name
+            for byte in edid_bytes.iter().take(starting_byte + 13).skip(starting_byte + 5) {
+                model.push(*byte as char);
+            }
+            model = model.trim().to_string();
+
+            break;
+        }
+
+
+        break;
+    }
+    
+    Ok((make, model))
 }
 
 

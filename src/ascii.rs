@@ -23,28 +23,31 @@ pub fn get_ascii(os: &str) -> (String, u16) {
     }
     let os: &str = &os.replace('"', "");
 
-    match os {
-        "arch" => arch(),
-        "debian" => debian(),
-        "ubuntu" => ubuntu(),
-        "fedora" => fedora(),
-        "void" => void(),
-        "endeavouros" => endeavour(),
-        "linuxmint" => mint(),
-        "elementary" => elementary(),
-        "zorin" => zorin(),
-        "manjaro" => manjaro(),
-        "pop" => popos(),
-        "android" => android(),
-        _ => ("".to_string(), 0)
-    }
+    let ascii: (&str, u16) = match os {
+        "arch" => ARCH,
+        "debian" => DEBIAN,
+        "ubuntu" => UBUNTU,
+        "fedora" => FEDORA,
+        "void" => VOID,
+        "endeavouros" => ENDEAVOUR,
+        "linuxmint" => MINT,
+        "elementary" => ELEMENTARY,
+        "zorin" => ZORIN,
+        "manjaro" => MANJARO,
+        "pop" => POPOS,
+        "android" => ANDROID,
+        _ => ("", 0)
+    };
+    // I blame rust not letting me make const strings
+    let ascii_string: String = ascii.0.to_string();
+    (ascii_string, ascii.1)
 }
 
 // Define art down below here
 // All distro ASCII's are generated from here; https://www.text-image.com/convert/ascii.html
 // I suck at ASCII art, and want to use smaller ones than the other fetch defaults.
-fn arch() -> (String, u16) { 
-("             ~!
+const ARCH: (&str, u16) =  (
+"             ~!
             ^YY^
            :JYYY^
           :JYYYYY^
@@ -56,11 +59,10 @@ fn arch() -> (String, u16) {
    .7YYYYYJ      ?YYYYY?.
   .?YYYYYJ7      7JJYYYYJ:
  ^JY?7~^..        ..^~7?YY^
-^7~:                    :~7^"
- .to_string(), 28)
-}
-fn debian() -> (String, u16) { 
-("         .^!7!~~~^:
+^7~:                    :~7^", 28);
+
+const DEBIAN: (&str, u16) = (
+"         .^!7!~~~^:
       :!JPPP55YY5555Y?!:
     ^YPG5?!:.    .:~?PGPJ:
    7G57^.            .7PG5~
@@ -75,11 +77,9 @@ fn debian() -> (String, u16) {
    :YP^
      !Y?^
        ~??~^.
-         .^~~:..            "
- .to_string(), 28)
-}
-fn ubuntu() -> (String, u16) { 
-("           .^~7?JJYYYYJJ?7~^.
+         .^~~:..            ", 28);
+const UBUNTU: (&str, u16) = (
+"           .^~7?JJYYYYJJ?7~^.
         :!?JYYYYYYYYYYYYY55YY?!:
      .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
     ~JYYYYYYYYYYYYYJJYYY^   .?YYYYJ~
@@ -97,10 +97,9 @@ JYYY7^:^7~  ~5YYYYYYYYYYYY5~   7YYYYYYYJ
     ~JYYYYYYYYYYYYYJJYYY^   .?YYYYJ~
      .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
         :!?JYYYYYYYYYYYYY55YY?!:
-           .^~7?JJYYYYJJ?7~^.           ".to_string(), 40) // fatty
-}
-fn fedora() -> (String, u16) { 
-("      .^7J5PGGGGGPY7~.
+           .^~7?JJYYYYJJ?7~^.           ", 40);
+const FEDORA: (&str, u16) = ( 
+"      .^7J5PGGGGGPY7~.
     ^JPGGGGGGGP5J??J5PJ^
   ^YGBGGGGGGP!.   . ^5PGY^
  !GGGGGGGGGP:  !5PPPP5Y5GG!
@@ -112,10 +111,10 @@ GP5Y5PGGBGB?  ~BGGGGGGGGGGG~
 GPY55GGGGGB!  !BGGGGGGGGGG!
 GG5Y55Y55J~  :5GGGGGGGBGY^
 PGGP5!     :7PGGGGGGGPJ^
-~YGGGPYJJY5GGGGGP5J7^.      ".to_string(), 28)
-}
-fn void() -> (String, u16) {
-("             ..::::::::::..             
+~YGGGPYJJY5GGGGGP5J7^.      ", 28);
+
+const VOID: (&str, u16) = (
+"             ..::::::::::..             
            ::::::::::::::::::.          
             .:::::....::::::::::.       
       !^      .          ..::::::.      
@@ -130,10 +129,10 @@ J555B5YYY:.~7!7Y5YY5PP?::Y557^5PP5YY55Y!
       !Y5YY5J!:.        .:.     ..      
        :?Y5555YY?7!!!!7?YYY!.           
          :!JY55555555555555Y?.          
-            :~!?JYYYYYYJ?!^:            ".to_string(), 40)
-}
-fn endeavour() -> (String, u16) {
-("                            
+            :~!?JYYYYYYJ?!^:            ", 40);
+
+const ENDEAVOUR: (&str, u16) = (
+"                            
               .!J^          
              ^J555J^        
            :755555557:      
@@ -144,10 +143,10 @@ fn endeavour() -> (String, u16) {
   ^!77Y555555555555555555??!
 :!77?5555555555555555555Y???
 ..:7JJJYYYYYYYYY55555YYJ??7^
-  ~777777777777!!!!!~~~^:.  ".to_string(), 28)
-}
-fn mint() -> (String, u16) {
-("              .::^^^^^^::.              
+  ~777777777777!!!!!~~~^:.  ", 28);
+
+const MINT: (&str, u16) = (
+"              .::^^^^^^::.              
           .^!7????????????7!^.          
         ^!????????????????????!^        
       :7?!!!7???????????????????7:      
@@ -163,10 +162,10 @@ fn mint() -> (String, u16) {
       :7????77!!!!!!!!!!!!77????7:      
         ^!????????????????????!^        
           .^!7????????????7!^.          
-              .::^^^^^^::.              ".to_string(), 40)
-}
-fn elementary() -> (String, u16) {
-("         :!J5PPP555PPPP5?~.         
+              .::^^^^^^::.              ", 40);
+
+const ELEMENTARY: (&str, u16) = (
+"         :!J5PPP555PPPP5?~.         
       :JPPY!^.:^~~~~^::~?5P5!.      
     ^PGJ^  .7YY?!!!7JPY.  .!5BJ.    
   .5#?   .YBJ:       .5&^    :5#!   
@@ -182,10 +181,10 @@ Y&:   ~@#.            J@^        B@^
    7&#7.    .~7?J??!~:       !BG^   
     .?G5!:                ^JGP!     
       .!YPPJ7~^:....:^!?YPP?^       
-          ^!JY5PPPPPP5Y?~.          ".to_string(), 36)
-}
-fn zorin() -> (String, u16) {
-("        !JJJJJJJJJJJJJJJJJJ!        
+          ^!JY5PPPPPP5Y?~.          ", 36);
+
+const ZORIN: (&str, u16) = (
+"        !JJJJJJJJJJJJJJJJJJ!        
       .!JJJJJJJJJJJJJJJJJJJJ!.      
        ......................       
                                     
@@ -199,10 +198,10 @@ fn zorin() -> (String, u16) {
                                     
       .^::::::::::::::::::::^.      
       .7JJJJJJJJJJJJJJJJJJJJ7.      
-        !JJJJJJJJJJJJJJJJJJ!        ".to_string(), 36)
-}
-fn manjaro() -> (String, u16) {
-("???????????????????????. :J?????????
+        !JJJJJJJJJJJJJJJJJJ!        ", 36);
+
+const MANJARO: (&str, u16) = (
+"???????????????????????. :J?????????
 ???????????????????????. :J?????????
 ???????????????????????. :J?????????
 ???????????JJJJJJJJJJJ?. :J?????????
@@ -218,10 +217,10 @@ fn manjaro() -> (String, u16) {
 ?????????J: .??????????. :J?????????
 ?????????J: .??????????. :J?????????
 ?????????J: .??????????. :J?????????
-?????????J: .??????????. :J?????????".to_string(), 36)
-}
-fn popos() -> (String, u16) {
-("           .:~!!77777777!!~:.           
+?????????J: .??????????. :J?????????", 36);
+
+const POPOS: (&str, u16) = (
+"           .:~!!77777777!!~:.           
         :~!7????????7777????7!~:        
      .^7???7!~^::^~!7?7777777???7^.     
     ^7??7~:.        .~?777777777??7^    
@@ -239,10 +238,10 @@ fn popos() -> (String, u16) {
     ^7???~                    ~???7^    
      .^7??7!!!!!!!!!!!!!!!!!!7??7^.     
         :~!7????????????????7!~:        
-           .:~!!77777777!!~:.           ".to_string(), 40)
-}
-fn android() -> (String, u16) {
-("          .^^  ........  ^:  
+           .:~!!77777777!!~:.           ", 40);
+
+const ANDROID: (&str, u16) = (
+"          .^^  ........  ^:  
            .~~~!!!!!!!!~~~.   
           :~!!77!!!!!!!!7!!!~:  
       .~!7!!^  !!!!!!!  ^77!^. 
@@ -262,5 +261,4 @@ fn android() -> (String, u16) {
            ^7!!!!.  .!!!!7:     
            ^7!!!!.  .!!!!7:  
            ^7!!!!.  .!!!!7: 
-           .~!!!^   .^!!!^. ".to_string(), 38)
-}
+           .~!!!^   .^!!!^. ", 38);

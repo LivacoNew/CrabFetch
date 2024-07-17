@@ -3,7 +3,7 @@ use std::{collections::HashMap, env};
 
 use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
-use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
+use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{self, ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
 
@@ -178,8 +178,17 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
     };
     let mut displays: Vec<DisplayInfo> = Vec::new();
     for monitor in monitors {
+        // Get the DRM name 
+        let drm_name: String = match xproto::get_atom_name(&conn, monitor.name) {
+            Ok(r) => match r.reply() {
+                Ok(r) => String::from_utf8(r.name).unwrap(),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
+            },
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
+        };
+
         let display = DisplayInfo {
-            name: monitor.name.to_string(),
+            name: drm_name,
             make: "".to_string(),
             model: "".to_string(),
             width: monitor.width,
@@ -187,6 +196,7 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
             refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
             wl_transform: None
         };
+
         displays.push(display);
     }
 
@@ -195,7 +205,6 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)
 }
-
 
 
 //

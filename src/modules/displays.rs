@@ -14,6 +14,7 @@ pub struct DisplayInfo {
     model: String,
     width: u16,
     height: u16,
+    scale: i32,
     refresh_rate: Option<u16>,
     // Tempararily holds the transform for wayland while the rest of the data comes in
     // Should never be accessed otherwise
@@ -58,6 +59,10 @@ impl DisplayInfo {
         // So if another event comes in it doesn't try to parse again
         self.wl_transform = None; 
     }
+    fn scale_resolution(&mut self) {
+        self.width /= self.scale as u16;
+        self.height /= self.scale as u16;
+    }
 }
 
 #[derive(Deserialize)]
@@ -77,6 +82,7 @@ impl Module for DisplayInfo {
             model: "".to_string(),
             width: 0,
             height: 0,
+            scale: 0,
             refresh_rate: None,
             wl_transform: None
         }
@@ -204,6 +210,7 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
             model,
             width: monitor.width,
             height: monitor.height,
+            scale: 1,
             refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
             wl_transform: None
         };
@@ -325,6 +332,9 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Name {name} = &event {
             display.name = name.to_string();
         }
+        if let wl_output::Event::Scale {factor} = &event { 
+            display.scale = *factor;
+        }
         if let wl_output::Event::Geometry {make, model, transform, ..} = &event {
             display.wl_transform = Some(*transform);
             display.make = make.to_string();
@@ -392,6 +402,7 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
         .map(|x| x.1.clone())
         .collect();
     displays.iter_mut().for_each(|x| x.wl_calc_transform());
+    displays.iter_mut().for_each(|x| x.scale_resolution());
 
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)

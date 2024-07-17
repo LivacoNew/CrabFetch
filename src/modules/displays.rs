@@ -88,7 +88,9 @@ impl Module for DisplayInfo {
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
         let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let title: String = config.displays.title.clone().replace("{name}", &self.name);
+        let title: String = config.displays.title.clone().replace("{name}", &self.name)
+            .replace("{make}", &self.make)
+            .replace("{model}", &self.model);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, &value)
@@ -99,7 +101,9 @@ impl Module for DisplayInfo {
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
         let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
 
-        let title: String = config.displays.title.clone().replace("{name}", "Unknown");
+        let title: String = config.displays.title.clone().replace("{name}", "Unknown")
+            .replace("{make}", "Unknown")
+            .replace("{model}", "Unknown");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
     }
@@ -122,6 +126,8 @@ impl DisplayInfo {
     pub fn get_title_size(&self, config: &Configuration) -> u64 {
         config.displays.title.clone()
             .replace("{name}", &self.name)
+            .replace("{make}", &self.make)
+            .replace("{model}", &self.model)
             .chars().count() as u64
     }
 }

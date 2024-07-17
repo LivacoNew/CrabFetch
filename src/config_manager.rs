@@ -223,8 +223,6 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("cpu.title", "CPU").unwrap();
     builder = builder.set_default("cpu.format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
 
-    builder = builder.set_default("gpu.method", "pcisysfile").unwrap();
-    builder = builder.set_default("gpu.cache", false).unwrap();
     builder = builder.set_default("gpu.amd_accuracy", true).unwrap();
     builder = builder.set_default("gpu.ignore_disabled_gpus", true).unwrap();
     builder = builder.set_default("gpu.title", "GPU").unwrap();
@@ -578,19 +576,7 @@ format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 [gpu]
-# The method for getting GPU info
-# Getting accurate GPU info can be really slow. Because of this CrabFetch gives you two options
-# - "pcisysfile" which searches the /sys/bus/pci/devices directory to find your GPU. This is fast but can be inaccurate due to decoding the vendor/product IDs
-# - "glxinfo" which uses the glxinfo command to get the primary GPU. This is more accurate but REALLY slow!
-# These methods may give be the exact same info, but if not you can swap to one or the other.
-method = "pcisysfile"
-
-# On top of the above, this allows you to choose to cache the GPU info.
-# It's reccomended to use this with "glxinfo" to give you full speed while retaining accurate GPU info.
-cache = false
-
 # Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
-# Only does anything with pcisysfile method 
 amd_accuracy = true
 
 # Ignore any GPU's that are marked as "disabled" by Linux

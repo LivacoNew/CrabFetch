@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Error, ErrorKind::NotFound, Read, Write}, path::Path, process::Command};
+use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path};
 
 use serde::Deserialize;
 
@@ -12,23 +12,8 @@ pub struct GPUInfo {
     model: String,
     vram_mb: u32,
 }
-#[derive(Deserialize, Clone)]
-pub enum GPUMethod {
-    GLXInfo,
-    PCISysFile
-}
-impl ToString for GPUMethod {
-    fn to_string(&self) -> String {
-        match &self {
-            GPUMethod::GLXInfo => "glxinfo".to_string(),
-            GPUMethod::PCISysFile => "pcisysfile".to_string()
-       }
-    }
-}
 #[derive(Deserialize)]
 pub struct GPUConfiguration {
-    pub method: GPUMethod,
-    pub cache: bool,
     pub amd_accuracy: bool,
     pub ignore_disabled_gpus: bool,
 
@@ -90,79 +75,12 @@ impl GPUInfo {
     }
 }
 
-pub fn get_gpus(method: GPUMethod, use_cache: bool, amd_accuracy: bool, ignore_disabled_gpus: bool) -> Result<Vec<GPUInfo>, ModuleError> {
-    // Unlike other modules, GPU is cached!
-    // This is because glxinfo takes ages to run, and users aren't going to be hot swapping GPUs
-    // It caches into /tmp/crabfetch-gpu
+pub fn get_gpus(amd_accuracy: bool, ignore_disabled_gpus: bool) -> Result<Vec<GPUInfo>, ModuleError> {
     let mut gpus: Vec<GPUInfo> = Vec::new();
 
-    // Get the GPU info via the selected method
-    if use_cache {
-        let cache_path: &Path = Path::new("/tmp/crabfetch-gpu");
-        if cache_path.exists() {
-            let cache_file: Result<File, Error> = File::open("/tmp/crabfetch-gpu");
-            let file: Option<File> = match cache_file {
-                Ok(r) => Some(r),
-                Err(_) => None, // Assume the file is somehow corrupt
-            };
-
-            if file.is_some() {
-                let mut contents: String = String::new();
-                match file.as_ref().unwrap().read_to_string(&mut contents) {
-                    Ok(_) => {
-                        let gpu_entry: Vec<&str> = contents.split("\n\n").collect();
-                        for entry in gpu_entry {
-                            if entry.is_empty() {
-                                continue;
-                            }
-                            let mut gpu: GPUInfo = GPUInfo::new();
-                            let split: Vec<&str> = entry.split('\n').collect();
-                            if split[0] == method.to_string() {
-                                gpu.vendor = split[1].to_string();
-                                gpu.model = split[2].to_string();
-                                gpu.vram_mb = split[3].parse::<u32>().unwrap();
-                            }
-                            gpus.push(gpu);
-                        }
-                        return Ok(gpus);
-                    },
-                    Err(e) => return Err(ModuleError::new("GPU", format!("GPU Cache exists, but cannot read from it - {}", e))),
-                }
-            }
-            // We've not returned yet so we can only assume it's fucked
-            // Spooky but this time the spook won't delete your home directory (in theory) :)
-            drop(file);
-            fs::remove_file("/tmp/crabfetch-gpu").expect("Unable to delete potentially corrupt GPU cache file.");
-        }
-    }
-
-
-    let filled: Result<(), ModuleError> = match method {
-        GPUMethod::PCISysFile => fill_from_pcisysfile(&mut gpus, amd_accuracy, ignore_disabled_gpus),
-        GPUMethod::GLXInfo => {
-            let mut gpu: GPUInfo = GPUInfo::new();
-            fill_from_glxinfo(&mut gpu)
-        },
-    };
-    match filled {
+    match fill_from_pcisysfile(&mut gpus, amd_accuracy, ignore_disabled_gpus) {
         Ok(_) => {},
         Err(e) => return Err(e)
-    }
-
-    // Cache
-    if use_cache {
-        let mut file: File = match File::create("/tmp/crabfetch-gpu") {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Unable to cache GPU info: {}", e)))
-        };
-        let mut write: String = String::new();
-        for gpu in &gpus {
-            write.push_str(&format!("{}\n{}\n{}\n{}\n\n", method.to_string(), gpu.vendor, gpu.model, gpu.vram_mb));
-        }
-        match file.write(write.as_bytes()) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("GPU", format!("Error writing to GPU cache: {}", e)))
-        }
     }
 
     Ok(gpus)
@@ -383,52 +301,4 @@ fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
     }
 
     Ok(Some(device_result.to_string()))
-}
-
-
-fn fill_from_glxinfo(gpu: &mut GPUInfo) -> Result<(), ModuleError> {
-    let output: Vec<u8> = match Command::new("glxinfo")
-        .args(["-B"])
-        .output() {
-            Ok(r) => r.stdout,
-            Err(e) => {
-                if NotFound == e.kind() {
-                    return Err(ModuleError::new("GPU", "GPU requires the 'glxinfo' command, which is not present!".to_string()));
-                } else {
-                    return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e)));
-                }
-            },
-        };
-
-    let contents: String = match String::from_utf8(output) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e))),
-    };
-
-    // Vendor is got from whatever line starts with "OpenGL vendor string"
-    // Model is from line starting with "OpenGL renderer string", this will automatically search
-    // for the vendor and remove it from the output
-    // VRam is from line starting "Dedicated video memory"
-
-    for line in contents.split('\n').collect::<Vec<&str>>() {
-        let line: &str = line.trim();
-        if line.starts_with("OpenGL vendor string:") {
-            // E.g OpenGL vendor string: AMD
-            gpu.vendor = line[22..line.len()].to_string()
-        }
-        if line.starts_with("OpenGL renderer string:") {
-            // E.g OpenGL renderer string: AMD Radeon RX 7800 XT (radeonsi, navi32, LLVM 17.0.6, DRM 3.57, 6.8.1-arch1-1)
-            // Looks for the first ( and takes from there back
-            gpu.model = line[24..line.find('(').unwrap()].replace(&gpu.vendor, "").trim().to_string()
-        }
-        if line.starts_with("Dedicated video memory:") {
-            // E.g Dedicated video memory: 16384 MB
-            gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
-                Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("GPU", format!("Unable to parse GPU memory: {}", e))),
-            };
-        }
-    }
-
-    Ok(())
 }

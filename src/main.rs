@@ -13,7 +13,7 @@ use modules::host::{self, HostInfo};
 use modules::initsys::{self, InitSystemInfo};
 use modules::locale::{self, LocaleInfo};
 use modules::memory::{self, MemoryInfo};
-use modules::gpu::{self, GPUInfo, GPUMethod};
+use modules::gpu::{self, GPUInfo};
 use modules::mounts::{self, MountInfo};
 #[cfg(feature = "music")]
 use modules::music::{self, MusicInfo};
@@ -46,14 +46,6 @@ pub struct Args {
     #[arg(short, long)]
     /// Generates a default config file
     generate_config_file: bool,
-
-    #[arg(long)]
-    /// Ignores the GPU Info cache at /tmp/crabfetch-gpu
-    ignore_cache: bool,
-
-    #[arg(long)]
-    /// Sets the GPU method to use. Can either be "glxinfo" or "pcisysfile"
-    gpu_method: Option<String>,
 
     #[arg(short, long)]
     /// Overrides the distro ASCII to another distro.
@@ -438,16 +430,7 @@ fn main() {
             "gpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.gpu.is_none() {
-                    let mut method: GPUMethod = config.gpu.method.clone();
-                    if args.gpu_method.is_some() {
-                        method = match args.gpu_method.clone().unwrap().as_str() {
-                            "pcisysfile" => GPUMethod::PCISysFile,
-                            "glxinfo" => GPUMethod::GLXInfo,
-                            _ => GPUMethod::PCISysFile
-                        }
-                    }
-                    let use_cache: bool = !args.ignore_cache && config.gpu.cache;
-                    known_outputs.gpu = Some(gpu::get_gpus(method, use_cache, config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus));
+                    known_outputs.gpu = Some(gpu::get_gpus(config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus));
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
                     Ok(gpus) => {

@@ -1,6 +1,7 @@
+use colored::ColoredString;
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager};
+use crate::{config_manager::{self, Configuration}, formatter::CrabFetchColor};
 
 #[derive(Deserialize)]
 pub struct AsciiConfiguration {
@@ -41,6 +42,26 @@ pub fn get_ascii(os: &str) -> (String, u16) {
     // I blame rust not letting me make const strings
     let ascii_string: String = ascii.0.to_string();
     (ascii_string, ascii.1)
+}
+
+pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: &u16, config: &Configuration) -> String {
+    let percentage: f32 = current_line as f32 / ascii_split.len() as f32;
+    let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
+
+    let mut line = String::new();
+    if ascii_split.len() > current_line {
+        line = ascii_split[current_line].to_string();
+    }
+    let remainder: u16 = target_length - (line.chars().count() as u16);
+    for _ in 0..remainder {
+        line.push(' ');
+    }
+
+    if current_line < ascii_split.len() {
+        let colored: ColoredString = config.ascii.colors.get(index as usize).unwrap().color_string(&line);
+        return colored.to_string();
+    }
+    line
 }
 
 // Define art down below here

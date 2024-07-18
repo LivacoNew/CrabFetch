@@ -256,6 +256,9 @@ struct ModuleOutputs {
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
     processes: Option<Result<ProcessesInfo, ModuleError>>,
     datetime: Option<DateTimeInfo>,
+
+    // Any other potentially duplicated work can be put here and passed into modules
+    syscall_sysinfo: Option<libc::sysinfo>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -282,6 +285,7 @@ impl ModuleOutputs {
             initsys: None,
             processes: None,
             datetime: None,
+            syscall_sysinfo: None,
         }
     }
 }
@@ -469,7 +473,7 @@ fn main() {
             "swap" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.swap.is_none() {
-                    known_outputs.swap = Some(swap::get_swap());
+                    known_outputs.swap = Some(swap::get_swap(&mut known_outputs.syscall_sysinfo));
                 }
                 match known_outputs.swap.as_ref().unwrap() {
                     Ok(swap) => output.push(swap.style(&config, max_title_length)),
@@ -646,7 +650,7 @@ fn main() {
             "uptime" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.uptime.is_none() {
-                    known_outputs.uptime = Some(uptime::get_uptime());
+                    known_outputs.uptime = Some(uptime::get_uptime(&mut known_outputs.syscall_sysinfo));
                 }
                 match known_outputs.uptime.as_ref().unwrap() {
                     Ok(uptime) => output.push(uptime.style(&config, max_title_length)),

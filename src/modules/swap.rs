@@ -75,15 +75,20 @@ impl Module for SwapInfo {
     }
 }
 
-pub fn get_swap() -> Result<SwapInfo, ModuleError> {
+pub fn get_swap(sysinfo: &mut Option<libc::sysinfo>) -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
 
-    unsafe {
-        let mut sysinfo: libc::sysinfo = mem::zeroed();
-        libc::sysinfo(&mut sysinfo);
-        swap.total_kb = (sysinfo.totalswap * sysinfo.mem_unit as u64) / 1000;
-        swap.used_kb = swap.total_kb - ((sysinfo.freeswap * sysinfo.mem_unit as u64) / 1000);
-    }
+    let sysinfo_unwrap: libc::sysinfo = sysinfo.unwrap_or_else(|| {
+        unsafe {
+            let mut infobuf: libc::sysinfo = mem::zeroed();
+            libc::sysinfo(&mut infobuf);
+            *sysinfo = Some(infobuf);
+            infobuf
+        }
+    });
+
+    swap.total_kb = (sysinfo_unwrap.totalswap * sysinfo_unwrap.mem_unit as u64) / 1000;
+    swap.used_kb = swap.total_kb - ((sysinfo_unwrap.freeswap * sysinfo_unwrap.mem_unit as u64) / 1000);
 
     if swap.total_kb != 0 {
         swap.percent = (swap.used_kb as f32 / swap.total_kb as f32) * 100.0;

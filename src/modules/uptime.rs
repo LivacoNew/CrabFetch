@@ -49,7 +49,7 @@ impl Module for UptimeInfo {
     }
 }
 
-pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
+pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, ModuleError> {
     let mut uptime: UptimeInfo = UptimeInfo::new();
 
     // Grabs from /proc/uptime
@@ -57,7 +57,7 @@ pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
         Ok(r) => r,
         Err(_) => {
             // Backup to the sysinfo call
-            use_syscall(&mut uptime);
+            use_syscall(sysinfo, &mut uptime);
             return Ok(uptime);
         },
     };
@@ -74,11 +74,14 @@ pub fn get_uptime() -> Result<UptimeInfo, ModuleError> {
     Ok(uptime)
 }
 
-fn use_syscall(uptime: &mut UptimeInfo) {
-    unsafe {
-        // TODO: Prevent this dupe syscall from going off, only run it once pls
-        let mut sysinfo: libc::sysinfo = mem::zeroed();
-        libc::sysinfo(&mut sysinfo);
-        uptime.uptime = Duration::new(sysinfo.uptime as u64, 0);
-    }
+fn use_syscall(sysinfo: &mut Option<libc::sysinfo>, uptime: &mut UptimeInfo) {
+    let sysinfo_unwrap: libc::sysinfo = sysinfo.unwrap_or_else(|| {
+        unsafe {
+            let mut infobuf: libc::sysinfo = mem::zeroed();
+            libc::sysinfo(&mut infobuf);
+            *sysinfo = Some(infobuf);
+            infobuf
+        }
+    });
+    uptime.uptime = Duration::new(sysinfo_unwrap.uptime as u64, 0);
 }

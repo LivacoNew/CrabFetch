@@ -309,7 +309,9 @@ fn main() {
     
     if args.version {
         let version = env!("CARGO_PKG_VERSION");
-        println!("CrabFetch {}", version);
+        let hash = env!("GIT_HASH");
+        println!("CrabFetch {version}");
+        println!("Built from commit {hash}");
         println!();
         println!("Build containts feature flags:");
 

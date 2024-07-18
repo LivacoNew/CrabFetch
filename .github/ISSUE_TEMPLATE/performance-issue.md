@@ -21,11 +21,23 @@ crabfetch --benchmark
 **Expected Performance**
 What were you expecting, screenshot another output if needed.
 
+**Relevant Information**
+Such as but not limited to Distribution, what you would expect a module to output, etc.
 
-**System Info**
- - Distro / Kernel Version: 
- - Terminal:
- - Desktop Environment:
+**Config File**
+<details>
+<summary>Config File</summary>
+
+```toml
+Configuration file here please.
+```
+
+</details>
+
+**Version**
+```
+crabfetch -v
+```
 
 **Additional Comments**
-Add any other context about the problem here.
+Any additional comments you may have.

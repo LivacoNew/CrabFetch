@@ -132,6 +132,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
     }
 
     contents = contents.split('\0').collect::<Vec<&str>>()[0].to_string();
+    contents = contents.split('/').last().unwrap().to_string();
 
     // Fix for gnome terminal coming out as gnome-terminal-server
     if contents.trim() == "gnome-terminal-server" {

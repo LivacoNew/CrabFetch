@@ -295,6 +295,13 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
             break;
         }
 
+        if model == "Unknown" {
+            // Now we go for the ID Product Code as a final grasp
+            // This appends the manufacturer on the front as this seems to be the common strategy
+            // for these, tested by my laptop as well as well as this issue's laptop screen
+            // https://github.com/LivacoNew/CrabFetch/issues/21
+            model = format!("{}{:X}", make, edid_bytes[10] as u16 | (edid_bytes[11] as u16) << 8);
+        }
 
         break;
     }
@@ -335,10 +342,8 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Scale {factor} = &event { 
             display.scale = *factor;
         }
-        if let wl_output::Event::Geometry {make, model, transform, ..} = &event {
+        if let wl_output::Event::Geometry {transform, ..} = &event {
             display.wl_transform = Some(*transform);
-            display.make = make.to_string();
-            display.model = model.to_string();
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = width.to_string().parse::<u16>().unwrap_or(0);
@@ -401,8 +406,16 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
     let mut displays: Vec<DisplayInfo> = data.outputs.into_iter()
         .map(|x| x.1.clone())
         .collect();
-    displays.iter_mut().for_each(|x| x.wl_calc_transform());
-    displays.iter_mut().for_each(|x| x.scale_resolution());
+
+    displays.iter_mut().for_each(|x| {
+        x.wl_calc_transform();
+        x.scale_resolution();
+        
+        (x.make, x.model) = match get_edid_makemodel(&x.name) {
+            Ok(r) => r,
+            Err(_) => return, // We're in a closure, can't return an error
+        };
+    });
 
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)

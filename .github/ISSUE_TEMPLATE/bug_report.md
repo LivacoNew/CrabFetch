@@ -19,9 +19,23 @@ Steps to reproduce the behavior:
 **Screenshots**
 Optional, but suggested if the bug is visual.
 
-**Desktop (please complete the following information):**
- - Distribution: 
- - CrabFetch Version (crabfetch -V):
+**Relevant Information**
+Such as but not limited to Distribution, what you would expect a module to output, etc.
+
+**Config File**
+<details>
+<summary>Config File</summary>
+
+```toml
+Configuration file here please.
+```
+
+</details>
+
+**Version**
+```
+crabfetch -v
+```
 
 **Additional Comments**
 Any additional comments you may have.

@@ -73,6 +73,7 @@ pub struct DisplayConfiguration {
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
     pub format: String,
+    pub scale_size: bool,
 }
 impl Module for DisplayInfo {
     fn new() -> DisplayInfo {
@@ -138,14 +139,14 @@ impl DisplayInfo {
     }
 }
 
-pub fn get_displays() -> Result<Vec<DisplayInfo>, ModuleError> {
+pub fn get_displays(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError> {
     // Good news, during my college final deadline hell over the past 2 months, I learned how to
     // use a display server connection!
     
     // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
     // can report any string and break if someone's dumb enough to do that
     if env::var("WAYLAND_DISPLAY").is_ok() {
-        fetch_wayland()
+        fetch_wayland(config)
     } else if env::var("DISPLAY").is_ok() {
         fetch_xorg()
     } else {
@@ -367,7 +368,7 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         }
     }
 }
-fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
+fn fetch_wayland(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError> {
     let conn: Connection = match Connection::connect_to_env() {
         Ok(r) => r,
         Err(e) => {
@@ -409,7 +410,9 @@ fn fetch_wayland() -> Result<Vec<DisplayInfo>, ModuleError> {
 
     displays.iter_mut().for_each(|x| {
         x.wl_calc_transform();
-        x.scale_resolution();
+        if config.displays.scale_size {
+            x.scale_resolution();
+        }
         
         (x.make, x.model) = match get_edid_makemodel(&x.name) {
             Ok(r) => r,

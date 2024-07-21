@@ -242,6 +242,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("displays.title", "Display ({make} {model})").unwrap();
     builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz ({name})").unwrap();
+    builder = builder.set_default("displays.scale_size", false).unwrap();
 
     builder = builder.set_default("os.title", "Operating System").unwrap();
     builder = builder.set_default("os.format", "{distro} ({kernel})").unwrap();
@@ -697,6 +698,10 @@ title = "Display ({make} {model})"
 # {height} -> The monitor's height
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
 format = "{width}x{height} @ {refresh_rate}Hz ({name})"
+
+# Whether to scale the width/height according to the screen's scale. Only availabe on Wayland.
+# This will output wrong with fractional scaling, as the library used to interact with Wayland doesn't support fractional scaling yet.
+scale_size = false
 
 
 [os]

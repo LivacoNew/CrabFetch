@@ -258,6 +258,10 @@ title = "Display ({make} {model})"
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
 format = "{width}x{height} @ {refresh_rate}Hz ({name})"
 
+# Whether to scale the width/height according to the screen's scale. Only availabe on Wayland.
+# This will output wrong with fractional scaling, as the library used to interact with Wayland doesn't support fractional scaling yet.
+scale_size = false
+
 
 [os]
 title = "Operating System"

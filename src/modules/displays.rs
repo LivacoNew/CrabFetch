@@ -254,6 +254,10 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
             Ok(r) => r,
             Err(e) => return Err(format!("Unable to open /sys/class/drm/{}/edid: {}", dir_name, e)),
         };
+        if edid_bytes.is_empty() {
+            continue; // Can happen with VM's, ignore it
+        }
+
         // Thanks to these wonderful sources;
         // - https://glenwing.github.io/docs/VESA-EEDID-A2.pdf 
         // - https://github.com/tuomas56/edid-rs/tree/master?tab=readme-ov-file

@@ -36,9 +36,13 @@ fn match_checksum(path: &str) -> Option<String> {
 }
 fn parse_command(path: &str, name: &str) -> Option<String> {
     // uhoh, expect shitty performance
-    let output: Vec<u8> = match Command::new(path)
-        .arg("--version")
-        .output() {
+    let mut command: Command = Command::new(path);
+    if name == "xterm" {
+        command.arg("-version");
+    } else {
+        command.arg("--version");
+    }
+    let output: Vec<u8> = match command.output() {
             Ok(r) => r.stdout,
             Err(_) => return None,
         };
@@ -50,6 +54,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
 
     // Fixes for different terminals outputs
     match name {
+        "xterm" => Some(raw.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
         _ => Some(raw.split(' ').collect::<Vec<&str>>()[1].to_string()),
     }
 }

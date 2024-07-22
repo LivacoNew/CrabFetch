@@ -133,6 +133,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
 
     let contents_split: Vec<&str> = contents.split('\0').collect::<Vec<&str>>();
     let mut contents = contents_split[0].to_string();
+    // fix for terminator
     if contents_split.get(1).is_some() && contents_split[1].contains("terminator") {
         contents = contents_split[1].to_string();
     }

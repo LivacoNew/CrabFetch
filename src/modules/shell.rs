@@ -5,11 +5,12 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError, versions};
 
 pub struct ShellInfo {
     name: String,
     path: String,
+    version: String,
 }
 #[derive(Deserialize)]
 pub struct ShellConfiguration {
@@ -26,6 +27,7 @@ impl Module for ShellInfo {
         ShellInfo {
             name: "".to_string(),
             path: "".to_string(),
+            version: "".to_string()
         }
     }
 
@@ -51,6 +53,7 @@ impl Module for ShellInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.shell.format.replace("{name}", &self.name)
             .replace("{path}", &self.path)
+            .replace("{version}", &self.version)
     }
 }
 
@@ -99,6 +102,8 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         }
     }
 
+    shell.version = versions::find_version(&shell.shell_path, Some(&shell.shell_name)).unwrap_or("Unknown".to_string());
+
     Ok(shell)
 }
 
@@ -117,6 +122,8 @@ fn get_default_shell() -> Result<ShellInfo, ModuleError> {
         .last()
         .unwrap()
         .to_string();
+
+    shell.version = versions::find_version(&shell.shell_path, Some(&shell.shell_name)).unwrap_or("Unknown".to_string());
 
     Ok(shell)
 }

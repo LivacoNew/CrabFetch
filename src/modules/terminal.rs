@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, versions, Module, ModuleError};
 
 pub struct TerminalInfo {
     name: String,
@@ -144,6 +144,9 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
     };
+
+    let x = versions::find_version(&terminal.name, Some(&terminal.path));
+    terminal.version = x.unwrap_or("Unknown".to_string());
 
     Ok(terminal)
 }

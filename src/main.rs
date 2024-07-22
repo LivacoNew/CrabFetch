@@ -34,6 +34,7 @@ mod config_manager;
 mod ascii;
 mod formatter;
 mod proccess_info;
+mod versions;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]

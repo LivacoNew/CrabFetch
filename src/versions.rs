@@ -37,7 +37,7 @@ fn match_checksum(path: &str) -> Option<String> {
 fn parse_command(path: &str, name: &str) -> Option<String> {
     // uhoh, expect shitty performance
     let mut command: Command = Command::new(path);
-    if name == "xterm" {
+    if name == "xterm" || name == "elvish" {
         command.arg("-version");
     } else {
         command.arg("--version");
@@ -59,6 +59,8 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         "foot" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
         // Shells
         "bash" => Some(raw.split(' ').collect::<Vec<&str>>()[3].split('(').next().unwrap().trim().to_string()),
+        "fish" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
+        "elvish" => Some(raw.split('+').collect::<Vec<&str>>()[0].trim().to_string()),
         // Editors
         "nvim" => Some(raw.split(' ').collect::<Vec<&str>>()[1].split('\n').next().unwrap()[1..].to_string()),
 

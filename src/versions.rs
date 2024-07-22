@@ -55,6 +55,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
     // Fixes for different terminals outputs
     match name {
         "xterm" => Some(raw.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
+        "foot" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
         _ => Some(raw.split(' ').collect::<Vec<&str>>()[1].to_string()),
     }
 }

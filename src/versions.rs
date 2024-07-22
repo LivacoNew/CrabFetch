@@ -1,6 +1,6 @@
 // Purely handles version detection
 
-fn get_version(exe_path: &str) {
+pub fn find_version(exe_path: &str) -> String {
     // Steps;
     // If it's located in /usr/bin, go to the package manager caches and search for it
     // If not (or not found), check the known checksums 
@@ -10,6 +10,8 @@ fn get_version(exe_path: &str) {
         // Consult the package manager
 
     }
+
+    todo!()
 }
 
 fn use_package_manager(name: &str) {

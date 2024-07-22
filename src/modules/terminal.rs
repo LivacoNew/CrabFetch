@@ -10,6 +10,7 @@ use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_i
 pub struct TerminalInfo {
     name: String,
     path: String,
+    version: String
 }
 #[derive(Deserialize)]
 pub struct TerminalConfiguration {
@@ -26,6 +27,7 @@ impl Module for TerminalInfo {
         TerminalInfo {
             name: "Unknown".to_string(),
             path: "Unknown".to_string(),
+            version: "Unknown".to_string(),
         }
     }
 
@@ -51,6 +53,7 @@ impl Module for TerminalInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.terminal.format.replace("{name}", &self.name)
             .replace("{path}", &self.path)
+            .replace("{version}", &self.version)
     }
 }
 
@@ -113,6 +116,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
     };
+
     // Fix for gnome terminal coming out as gnome-terminal-server
     if terminal.name.trim() == "gnome-terminal-server" {
         terminal.name = "GNOME Terminal".to_string();

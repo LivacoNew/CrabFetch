@@ -50,7 +50,6 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
 
     // Fixes for different terminals outputs
     match name {
-        "kitty" => Some(raw.split(' ').collect::<Vec<&str>>()[1].to_string()),
-        _ => Some(raw)
+        _ => Some(raw.split(' ').collect::<Vec<&str>>()[1].to_string()),
     }
 }

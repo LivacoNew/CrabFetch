@@ -1,6 +1,6 @@
 // Purely handles version detection
 
-use std::process::Command;
+use std::{fs::{read_dir, ReadDir}, process::Command};
 
 pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
     // Steps;
@@ -29,7 +29,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 }
 
 fn use_package_manager(name: &str) -> Option<String> {
-    None
+    find_pacman_package(name)
 }
 fn match_checksum(path: &str) -> Option<String> {
     None
@@ -66,4 +66,26 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
 
         _ => Some(raw.split(' ').collect::<Vec<&str>>()[1].to_string()),
     }
+}
+
+// Package Managers 
+fn find_pacman_package(name: &str) -> Option<String> {
+    let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+
+    for x in dir {
+        let d = x.unwrap();
+        if !d.metadata().unwrap().is_dir() {
+            continue;
+        }
+        if !d.file_name().to_str().unwrap().starts_with(name) {
+            continue
+        }
+
+        return Some(d.file_name().to_str().unwrap().to_string());
+    }
+
+    None
 }

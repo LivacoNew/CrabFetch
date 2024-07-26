@@ -1,4 +1,4 @@
-use std::env::{self, VarError};
+use std::env;
 
 use serde::Deserialize;
 
@@ -54,31 +54,21 @@ impl Module for EditorInfo {
 pub fn get_editor(fancy: bool) -> Result<EditorInfo, ModuleError> {
     let mut editor: EditorInfo = EditorInfo::new();
 
-    editor.path = match env::var("EDITOR") {
-        Ok(r) => {
-            editor.name = r.split('/').last().unwrap().to_string();
-            r
-        },
-        Err(e) => {
-            if e == VarError::NotPresent {
-                match env::var("VISUAL") {
-                    Ok(r) => {
-                        editor.name = r.split('/').last().unwrap().to_string();
-                        r
-                    },
-                    Err(e) => {
-                        if e == VarError::NotPresent {
-                            "None".to_string()
-                        } else {
-                            return Err(ModuleError::new("Editor", format!("Could not parse $VISUAL env variable: {}", e)));
-                        }
-                    }
-                }
-            } else {
-                return Err(ModuleError::new("Editor", format!("Could not parse $EDITOR env variable: {}", e)));
+    let env_value: String = match env::var("EDITOR") {
+        Ok(r) => r,
+        Err(_) => {
+            match env::var("VISUAL") {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Editor", format!("Could not parse $EDITOR or $VISUAL variable: {}", e)))
             }
-        }
+        },
     };
+
+    editor.path = match which::which(&env_value) {
+        Ok(r) => r.display().to_string(),
+        Err(e) => return Err(ModuleError::new("Editor", format!("Could not find 'which' for {}: {}", env_value, e)))
+    };
+    editor.name = editor.path.split('/').last().unwrap().to_string();
 
     // Convert the name to a fancy variant
     // I don't like hardcoding like this, but otherwise the result looks dumb

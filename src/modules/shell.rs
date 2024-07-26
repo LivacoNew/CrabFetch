@@ -102,7 +102,7 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         }
     }
 
-    shell.version = versions::find_version(&shell.shell_path, Some(&shell.shell_name)).unwrap_or("Unknown".to_string());
+    shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
 
     Ok(shell)
 }
@@ -123,7 +123,7 @@ fn get_default_shell() -> Result<ShellInfo, ModuleError> {
         .unwrap()
         .to_string();
 
-    shell.version = versions::find_version(&shell.shell_path, Some(&shell.shell_name)).unwrap_or("Unknown".to_string());
+    shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
 
     Ok(shell)
 }

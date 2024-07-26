@@ -259,10 +259,11 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();
 
     builder = builder.set_default("terminal.title", "Terminal").unwrap();
+    builder = builder.set_default("terminal.format", "{name}").unwrap();
     builder = builder.set_default("terminal.chase_ssh_pts", false).unwrap();
 
     builder = builder.set_default("shell.title", "Shell").unwrap();
-    builder = builder.set_default("shell.format", "{shell}").unwrap();
+    builder = builder.set_default("shell.format", "{name}").unwrap();
     builder = builder.set_default("shell.show_default_shell", "false").unwrap();
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
@@ -739,6 +740,10 @@ format = "{desktop} ({display_type})"
 
 [terminal]
 title = "Terminal"
+# Placeholders;
+# {name} -> The name of the terminal, e.g kitty
+# {path} -> The path of the terminal, e.g /usr/bin/kitty
+format = "{name}"
 # Whether to find the name of the current PTS if SSH is being used. This is a togglable option as most people probably won't care to go hunting for it.
 chase_ssh_pts = false
 
@@ -746,8 +751,9 @@ chase_ssh_pts = false
 [shell]
 title = "Shell"
 # Placeholders;
-# {shell} -> The name of the shell, e.g zsh
-format = "{shell}"
+# {name} -> The name of the shell, e.g zsh
+# {path} -> The path of the shell, e.g /usr/bin/zsh
+format = "{name}"
 
 # Whether to show your default shell, instead of your current shell.
 show_default_shell = false

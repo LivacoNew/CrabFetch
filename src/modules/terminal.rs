@@ -14,11 +14,11 @@ pub struct TerminalInfo {
 #[derive(Deserialize)]
 pub struct TerminalConfiguration {
     pub title: String,
+    pub format: String,
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub seperator: Option<String>,
-    pub format: Option<String>,
     pub chase_ssh_pts: bool
 }
 impl Module for TerminalInfo {
@@ -49,8 +49,7 @@ impl Module for TerminalInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let format: String = config.terminal.format.clone().unwrap_or("{name}".to_string());
-        format.replace("{name}", &self.name)
+        config.terminal.format.replace("{name}", &self.name)
             .replace("{path}", &self.path)
     }
 }

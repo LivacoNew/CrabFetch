@@ -298,6 +298,10 @@ format = "{desktop} ({display_type})"
 
 [terminal]
 title = "Terminal"
+# Placeholders;
+# {name} -> The name of the terminal, e.g kitty
+# {path} -> The path of the terminal, e.g /usr/bin/kitty
+format = "{name}"
 # Whether to find the name of the current PTS if SSH is being used. This is a togglable option as most people probably won't care to go hunting for it.
 chase_ssh_pts = false
 
@@ -305,8 +309,9 @@ chase_ssh_pts = false
 [shell]
 title = "Shell"
 # Placeholders;
-# {shell} -> The name of the shell, e.g zsh
-format = "{shell}"
+# {name} -> The name of the shell, e.g zsh
+# {path} -> The path of the shell, e.g /usr/bin/zsh
+format = "{name}"
 
 # Whether to show your default shell, instead of your current shell.
 show_default_shell = false

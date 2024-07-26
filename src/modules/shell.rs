@@ -1,4 +1,4 @@
-use std::{env, fs, os::unix::process};
+use std::{env, os::unix::process};
 
 #[cfg(feature = "android")]
 use std::{fs::File, io::Read};

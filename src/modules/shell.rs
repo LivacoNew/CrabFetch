@@ -5,11 +5,11 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError};
 
 pub struct ShellInfo {
-    shell_name: String,
-    shell_path: String,
+    name: String,
+    path: String,
 }
 #[derive(Deserialize)]
 pub struct ShellConfiguration {
@@ -24,8 +24,8 @@ pub struct ShellConfiguration {
 impl Module for ShellInfo {
     fn new() -> ShellInfo {
         ShellInfo {
-            shell_name: "".to_string(),
-            shell_path: "".to_string(),
+            name: "".to_string(),
+            path: "".to_string(),
         }
     }
 
@@ -49,8 +49,8 @@ impl Module for ShellInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.shell.format.replace("{shell}", &self.shell_name)
-            .replace("{path}", &self.shell_path)
+        config.shell.format.replace("{name}", &self.name)
+            .replace("{path}", &self.path)
     }
 }
 
@@ -61,11 +61,11 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         return get_default_shell();
     }
 
-    // Grabs the parent process and uses that
-    // Goes into the /exe file and checks the symlink path, and uses that
-    // Credit goes to FastFetch for this detection method - another tidbit of linux knowledge I was
-    // unaware of
+    // Just assumes the parent process
     let parent_pid: u32 = process::parent_id();
+    let mut parent_process: ProcessInfo = ProcessInfo::new(parent_pid);
+
+    // TODO Rewrite me!
     #[cfg(feature = "android")]
     let shell_path: String = if env::consts::OS == "android" {
         let path: String = format!("/proc/{}/cmdline", parent_pid);
@@ -88,22 +88,16 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
     };
 
     #[cfg(not(feature = "android"))]
-    let path: String = format!("/proc/{}/exe", parent_pid);
-    #[cfg(not(feature = "android"))]
-    let shell_path: String = match fs::canonicalize(&path) {
-        Ok(r) => r.display().to_string(),
-        Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
-    };
-
-    shell.shell_path = shell_path.split('\0')
-        .next()
-        .unwrap()
-        .to_string();
-    shell.shell_name = shell.shell_path.split('/')
-        .collect::<Vec<&str>>()
-        .last()
-        .unwrap()
-        .to_string();
+    {
+        shell.path = match parent_process.get_exe(true) {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {}", e)))
+        };
+        shell.name = match parent_process.get_process_name() {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {}", e)))
+        }
+    }
 
     Ok(shell)
 }
@@ -114,11 +108,11 @@ fn get_default_shell() -> Result<ShellInfo, ModuleError> {
     // This is mostly here for terminal detection, but there's a config option to use this instead
     // too :)
     // This definitely isn't the old $SHELL grabbing code, no sir.
-    shell.shell_path = match env::var("SHELL") {
+    shell.path = match env::var("SHELL") {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
     };
-    shell.shell_name = shell.shell_path.split('/')
+    shell.name = shell.path.split('/')
         .collect::<Vec<&str>>()
         .last()
         .unwrap()

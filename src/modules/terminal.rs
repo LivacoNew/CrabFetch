@@ -1,14 +1,15 @@
-use std::{env, fs::{self, File}, io::Read, os::unix::process};
+use std::{env, fs, os::unix::process};
 
 #[cfg(feature = "android")]
 use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError};
 
 pub struct TerminalInfo {
-    terminal_name: String
+    name: String,
+    path: String,
 }
 #[derive(Deserialize)]
 pub struct TerminalConfiguration {
@@ -23,7 +24,8 @@ pub struct TerminalConfiguration {
 impl Module for TerminalInfo {
     fn new() -> TerminalInfo {
         TerminalInfo {
-            terminal_name: "Unknown".to_string(),
+            name: "Unknown".to_string(),
+            path: "Unknown".to_string(),
         }
     }
 
@@ -47,8 +49,9 @@ impl Module for TerminalInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let format: String = config.terminal.format.clone().unwrap_or("{terminal_name}".to_string());
-        format.replace("{terminal_name}", &self.terminal_name)
+        let format: String = config.terminal.format.clone().unwrap_or("{name}".to_string());
+        format.replace("{name}", &self.name)
+            .replace("{path}", &self.path)
     }
 }
 
@@ -57,13 +60,11 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
 
     #[cfg(feature = "android")]
     if env::consts::OS == "android" && Path::new("/data/data/com.termux/files/").exists() { // TODO: Does this still work in other emulators?
-        terminal.terminal_name = "Termux".to_string();
+        terminal.name = "Termux".to_string();
         return Ok(terminal);
     }
 
     // This is just a rust-ified & slightly more robust solution from https://askubuntu.com/a/508047
-
-
     // Find the terminal's PID by going up through every shell level
     let mut terminal_pid: Option<u32> = None;
 
@@ -82,28 +83,16 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         }
         loops += 1;
 
-        let path: String = format!("/proc/{}/stat", parent_pid);
-
-        let mut parent_stat: File = match File::open(&path) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
-        };
-        let mut stat_contents: String = String::new();
-        match parent_stat.read_to_string(&mut stat_contents) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
-        }
-
-        let content_split: Vec<&str> = stat_contents.split(' ').collect::<Vec<&str>>();
+        let mut process: ProcessInfo = ProcessInfo::new(parent_pid);
 
         if shell_level == 1 {
-            terminal_pid = Some(match content_split[3].parse() {
+            terminal_pid = Some(match process.get_parent_pid() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse terminal pid: {}", e))),
             });
         } else {
             // go up a level
-            parent_pid = match content_split[3].parse() {
+            parent_pid = match process.get_parent_pid() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse parent pid: {}", e))),
             };
@@ -112,57 +101,46 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         shell_level -= 1;
     }
 
-    // And credit to https://superuser.com/a/632984 for letting me know how to use /proc correctly
-    // Go into /cmdline and find the name
+
     if terminal_pid.is_none() {
         return Err(ModuleError::new("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid)));
     }
-
     let terminal_pid: u32 = terminal_pid.unwrap();
-    let path: String = format!("/proc/{}/cmdline", terminal_pid);
-
-    let mut terminal_cmdline: File = match File::open(&path) {
+    let mut terminal_process: ProcessInfo = ProcessInfo::new(terminal_pid);
+    if !terminal_process.is_valid() {
+        return Err(ModuleError::new("Terminal", "Unable to find terminal process".to_string()));
+    }
+    terminal.name = match terminal_process.get_process_name() {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
     };
-    let mut contents: String = String::new();
-    match terminal_cmdline.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't open from {} - {}", path, e))),
-    }
-
-    let contents_split: Vec<&str> = contents.split('\0').collect::<Vec<&str>>();
-    let mut contents = contents_split[0].to_string();
-    // fix for terminator
-    if contents_split.get(1).is_some() && contents_split[1].contains("terminator") {
-        contents = contents_split[1].to_string();
-    }
-    contents = contents.split('/').last().unwrap().to_string();
-
     // Fix for gnome terminal coming out as gnome-terminal-server
-    if contents.trim() == "gnome-terminal-server" {
-        contents = "GNOME Terminal".to_string();
+    if terminal.name.trim() == "gnome-terminal-server" {
+        terminal.name = "GNOME Terminal".to_string();
     }
     // Fix for elementaryos terminal being shitty
-    if contents.trim() == "io.elementary.terminal" {
-        contents = "Elementary Terminal".to_string();
+    if terminal.name.trim() == "io.elementary.terminal" {
+        terminal.name = "Elementary Terminal".to_string();
     }
-
-
-    if contents.trim().replace('\0', "") == "sshd:" {
+ 
+    if terminal.name.trim().replace('\0', "") == "sshd:" {
         if !chase_ssh_tty {
-            contents = "SSH Terminal".to_string();
+            terminal.name = "SSH Terminal".to_string();
         } else {
             // Find the tty number in the current /stat and just construct it from that
             // Taken from the comment on https://unix.stackexchange.com/a/77797 by "user723" ...
             // get a more creative username man
-            contents = match fs::canonicalize("/proc/self/fd/0") {
+            terminal.name = match fs::canonicalize("/proc/self/fd/0") {
                 Ok(r) => r.display().to_string(),
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize /proc/self/fd/0 symlink: {}", e)))
             };
         }
     }
-    terminal.terminal_name = contents;
+
+    terminal.path = match terminal_process.get_exe(true) {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
+    };
 
     Ok(terminal)
 }

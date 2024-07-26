@@ -33,6 +33,7 @@ mod modules;
 mod config_manager;
 mod ascii;
 mod formatter;
+mod proccess_info;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]

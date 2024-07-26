@@ -145,7 +145,7 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
     };
 
-    let x = versions::find_version(&terminal.name, Some(&terminal.path));
+    let x = versions::find_version(&terminal.path, Some(&terminal.name));
     terminal.version = x.unwrap_or("Unknown".to_string());
 
     Ok(terminal)

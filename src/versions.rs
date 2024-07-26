@@ -12,7 +12,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 
     if exe_path.starts_with("/usr/bin") {
         // Consult the package manager
-        let package_manager: Option<String> = use_package_manager(name);
+        let package_manager: Option<String> = use_package_manager(substitite_package_name(name));
         if package_manager.is_some() {
             return package_manager;
         }
@@ -80,12 +80,27 @@ fn find_pacman_package(name: &str) -> Option<String> {
         if !d.metadata().unwrap().is_dir() {
             continue;
         }
-        if !d.file_name().to_str().unwrap().starts_with(name) {
-            continue
-        }
 
-        return Some(d.file_name().to_str().unwrap().to_string());
+        let file_name = d.file_name();
+        let package_split: Vec<&str> = file_name.to_str().unwrap().split('-').collect();
+        let package_name: String = package_split[0..package_split.len() - 2].join("-");
+        
+        if package_name != name {
+            continue;
+        }
+        let package_version: String = package_split[package_split.len() - 2].to_string();
+
+        return Some(package_version);
     }
 
     None
+}
+
+fn substitite_package_name(name: &str) -> &str {
+    // Substitutes a executable name for the package's name
+    // E.g turns nvim to neovim 
+    match name {
+        "nvim" => "neovim",
+        _ => name
+    }
 }

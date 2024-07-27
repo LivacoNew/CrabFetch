@@ -123,6 +123,13 @@ fn substitite_package_name(name: &str) -> &str {
 
 
 // Known Hashes
+// Please contribute these so I'm not mind-numbingly doing these
+// 
+// Oh, and to the nerds who want to critisize this detection method in issues; this is a last ditch
+// resort to running {program} --version, as running commands like that is likely to cause really
+// really fuckin bad performance, but if we already know the hashes, we don't even have to do that. 
+// I'm sorry if it upsets you that this isn't going to catch every package's binary with every
+// build paramater and difference.
 fn compare_hash(hash: &str) -> Option<String> {
     match hash {
         // Kitty

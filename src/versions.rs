@@ -135,6 +135,18 @@ fn compare_hash(hash: &str) -> Option<String> {
         // Kitty
         "bfc1a826895089928bd40eb09a340c6f3b6eb22d51589ca32c032761ff44843b" => Some("0.35.2".to_string()),
 
+        // Alacritty
+        "da793f342a25fd9cb017154bc960d7e6a93d1d9d87a5bfdaf46738d7356fce13" => Some("0.13.2".to_string()),
+
+        // Foot
+        "2806412806ca7289f0f9fe1d73cd28c050f53204e46d9d5610acb0bac9f347ff" => Some("1.17.2".to_string()),
+
+        // Terminator
+        "8735bed0720a0f5ed8297fcf870a091199044a762dd360d439cfbb6b9871a7b1" => Some("2.1.4".to_string()),
+
+        // ZSH
+        "7ac8cc89b75b595955ec56d8e4b6047c2fc233a6a10c81a137c8417d17a9a970" => Some("5.9".to_string()),
+
         _ => None
     }
 }

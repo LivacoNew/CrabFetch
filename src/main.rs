@@ -34,6 +34,7 @@ mod config_manager;
 mod ascii;
 mod formatter;
 mod proccess_info;
+mod versions;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -602,7 +603,7 @@ fn main() {
             "terminal" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.terminal.is_none() {
-                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts));
+                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts, config.terminal.format.contains("{version}")));
                 }
                 match known_outputs.terminal.as_ref().unwrap() {
                     Ok(terminal) => output.push(terminal.style(&config, max_title_length)),
@@ -619,7 +620,7 @@ fn main() {
             "shell" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.shell.is_none() {
-                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell));
+                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell, config.shell.format.contains("{version}")));
                 }
                 match known_outputs.shell.as_ref().unwrap() {
                     Ok(shell) => output.push(shell.style(&config, max_title_length)),
@@ -705,7 +706,7 @@ fn main() {
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy));
+                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy, config.editor.format.contains("{version}")));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
                     Ok(editor) => output.push(editor.style(&config, max_title_length)),

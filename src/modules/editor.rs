@@ -2,11 +2,12 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, versions, Module, ModuleError};
 
 pub struct EditorInfo {
     name: String,
     path: String,
+    version: String
 }
 #[derive(Deserialize)]
 pub struct EditorConfiguration {
@@ -23,6 +24,7 @@ impl Module for EditorInfo {
         EditorInfo {
             name: "".to_string(),
             path: "".to_string(),
+            version: "".to_string()
         }
     }
 
@@ -48,10 +50,11 @@ impl Module for EditorInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.editor.format.replace("{name}", &self.name)
             .replace("{path}", &self.path)
+            .replace("{version}", &self.version)
     }
 }
 
-pub fn get_editor(fancy: bool) -> Result<EditorInfo, ModuleError> {
+pub fn get_editor(fancy: bool, fetch_version: bool) -> Result<EditorInfo, ModuleError> {
     let mut editor: EditorInfo = EditorInfo::new();
 
     let env_value: String = match env::var("EDITOR") {
@@ -69,6 +72,9 @@ pub fn get_editor(fancy: bool) -> Result<EditorInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Editor", format!("Could not find 'which' for {}: {}", env_value, e)))
     };
     editor.name = editor.path.split('/').last().unwrap().to_string();
+    if fetch_version {
+        editor.version = versions::find_version(&editor.path, Some(&editor.name)).unwrap_or("Unknown".to_string());
+    }
 
     // Convert the name to a fancy variant
     // I don't like hardcoding like this, but otherwise the result looks dumb
@@ -83,6 +89,7 @@ pub fn get_editor(fancy: bool) -> Result<EditorInfo, ModuleError> {
             _ => editor.name
         };
     }
+
 
     Ok(editor)
 }

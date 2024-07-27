@@ -33,6 +33,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 fn use_package_manager(name: &str) -> Option<String> {
     find_pacman_package(name)
         .or(find_dpkg_package(name))
+        .or(find_xbps_package(name))
 }
 fn match_checksum(path: &str) -> Option<String> {
     // Read all the byte of that file
@@ -146,6 +147,61 @@ fn find_dpkg_package(name: &str) -> Option<String> {
                 let final_version: String = version.split('-').next().unwrap().to_string();
 
                 return Some(final_version);
+            }
+        }
+    }
+
+    None
+}
+fn find_xbps_package(name: &str) -> Option<String> {
+    let file: File = match File::open("/var/db/xbps/pkgdb-0.38.plist") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+
+    let buffer: BufReader<File> = BufReader::new(file);
+    let target_key: String = format!("<key>{name}</key>");
+    let mut in_package: bool = false;
+    let mut dict_level: u8 = 0;
+    let mut parse_str: bool = false;
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue;
+        }
+        let line = line.unwrap();
+        if line.is_empty() {
+            continue;
+        }
+        let line = line.trim();
+
+        if line == "<dict>" && in_package { 
+            dict_level += 1;
+        }
+        if line == "</dict>" && in_package { 
+            dict_level -= 1;
+            if dict_level == 0 {
+                continue;
+            }
+        }
+        if line == target_key {
+            in_package = true;
+            dict_level += 1;
+            continue;
+        }
+        
+        if in_package {
+            if line == "<key>pkgver</key>" {
+                // Next line is the version
+                parse_str = true;
+                continue;
+            }
+            if parse_str {
+                let string: String = line[8..line.len() - 9].to_string();
+                // {package-name}-{ver}_{rev} 
+                let no_rev: &str = string.split('_').next().unwrap();
+                let version: &str = no_rev.split('-').last().unwrap();
+
+                return Some(version.to_string());
             }
         }
     }

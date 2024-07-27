@@ -312,10 +312,14 @@ fn main() {
     if args.version {
         let version = env!("CARGO_PKG_VERSION");
         let hash = env!("GIT_HASH");
+        let date = env!("GIT_DATE");
+        let message = env!("GIT_MESSAGE");
         println!("CrabFetch {version}");
-        println!("Built from commit {hash}");
         println!();
-        println!("Build containts feature flags:");
+        println!("Built From: {hash} ({date})");
+        println!("Message: {message}");
+        println!();
+        println!("Build contains feature flags:");
 
         // likely messy 
         #[cfg(feature = "android")]

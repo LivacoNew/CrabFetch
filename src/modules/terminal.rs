@@ -57,7 +57,7 @@ impl Module for TerminalInfo {
     }
 }
 
-pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
+pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
 
     #[cfg(feature = "android")]
@@ -145,8 +145,9 @@ pub fn get_terminal(chase_ssh_tty: bool) -> Result<TerminalInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
     };
 
-    let x = versions::find_version(&terminal.path, Some(&terminal.name));
-    terminal.version = x.unwrap_or("Unknown".to_string());
+    if fetch_version {
+        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name)).unwrap_or("Unknown".to_string());
+    }
 
     Ok(terminal)
 }

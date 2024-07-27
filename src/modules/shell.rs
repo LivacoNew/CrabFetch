@@ -57,7 +57,7 @@ impl Module for ShellInfo {
     }
 }
 
-pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
+pub fn get_shell(show_default_shell: bool, fetch_version: bool) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     if show_default_shell {
@@ -102,7 +102,9 @@ pub fn get_shell(show_default_shell: bool) -> Result<ShellInfo, ModuleError> {
         }
     }
 
-    shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
+    if fetch_version {
+        shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
+    }
 
     Ok(shell)
 }

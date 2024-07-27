@@ -29,3 +29,5 @@ chrono = { version = "0.4.38", features = ["alloc", "android-tzdata", "clock", "
 android_system_properties = { version = "0.1.5", optional = true }
 sqlite = { version = "0.34.0", optional = true }
 which = "6.0.1"
+sha2 = "0.10.8"
+hex = "0.4.3"

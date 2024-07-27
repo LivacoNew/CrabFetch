@@ -1,6 +1,8 @@
 // Purely handles version detection
 
-use std::{fs::{read_dir, ReadDir}, process::Command};
+use std::{fs::{self, read_dir, ReadDir}, process::Command};
+
+use sha2::{Sha256, Digest};
 
 pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
     // Steps;
@@ -10,13 +12,13 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 
     let name: &str = name.unwrap_or(exe_path.split('/').last().unwrap());
 
-    if exe_path.starts_with("/usr/bin") {
-        // Consult the package manager
-        let package_manager: Option<String> = use_package_manager(substitite_package_name(name));
-        if package_manager.is_some() {
-            return package_manager;
-        }
-    }
+    // if exe_path.starts_with("/usr/bin") {
+    //     // Consult the package manager
+    //     let package_manager: Option<String> = use_package_manager(substitite_package_name(name));
+    //     if package_manager.is_some() {
+    //         return package_manager;
+    //     }
+    // }
 
     // Match the checksum
     let checksum: Option<String> = match_checksum(exe_path);
@@ -32,7 +34,16 @@ fn use_package_manager(name: &str) -> Option<String> {
     find_pacman_package(name)
 }
 fn match_checksum(path: &str) -> Option<String> {
-    None
+    // Read all the byte of that file
+    let file_bytes: Vec<u8> = match fs::read(path) {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+
+    let mut hasher = Sha256::new();
+    hasher.update(file_bytes);
+    
+    compare_hash(&hex::encode(hasher.finalize()))
 }
 fn parse_command(path: &str, name: &str) -> Option<String> {
     // uhoh, expect shitty performance
@@ -68,6 +79,10 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
     }
 }
 
+
+
+
+
 // Package Managers 
 fn find_pacman_package(name: &str) -> Option<String> {
     let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
@@ -102,5 +117,17 @@ fn substitite_package_name(name: &str) -> &str {
     match name {
         "nvim" => "neovim",
         _ => name
+    }
+}
+
+
+
+// Known Hashes
+fn compare_hash(hash: &str) -> Option<String> {
+    match hash {
+        // Kitty
+        "bfc1a826895089928bd40eb09a340c6f3b6eb22d51589ca32c032761ff44843b" => Some("0.35.2".to_string()),
+
+        _ => None
     }
 }

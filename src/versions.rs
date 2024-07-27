@@ -1,6 +1,6 @@
 // Purely handles version detection
 
-use std::{fs::{self, read_dir, ReadDir}, process::Command};
+use std::{fs::{self, read_dir, File, ReadDir}, io::{BufRead, BufReader}, process::Command};
 
 use sha2::{Sha256, Digest};
 
@@ -32,6 +32,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 
 fn use_package_manager(name: &str) -> Option<String> {
     find_pacman_package(name)
+        .or(find_dpkg_package(name))
 }
 fn match_checksum(path: &str) -> Option<String> {
     // Read all the byte of that file
@@ -106,6 +107,47 @@ fn find_pacman_package(name: &str) -> Option<String> {
         let package_version: String = package_split[package_split.len() - 2].to_string();
 
         return Some(package_version);
+    }
+
+    None
+}
+fn find_dpkg_package(name: &str) -> Option<String> {
+    let file: File = match File::open("/var/lib/dpkg/status") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+
+    let buffer: BufReader<File> = BufReader::new(file);
+    let mut in_package: bool = false;
+    for line in buffer.lines() {
+        if line.is_err() {
+            continue;
+        }
+        let line = line.unwrap();
+        if line.is_empty() {
+            continue;
+        }
+
+        if let Some(package_name) = line.strip_prefix("Package: ") {
+            if in_package {
+                break;
+            }
+
+            in_package = package_name == name;
+        }
+        if in_package {
+            if let Some(version) = line.strip_prefix("Version: ") {
+                // https://developer.bigfix.com/relevance/reference/debian-package-version.html
+                let split: Vec<&str> = version.split(':').collect();
+                let version = match split.get(1) {
+                    Some(r) => r.to_string(),
+                    None => split[0].to_string()
+                };
+                let final_version: String = version.split('-').next().unwrap().to_string();
+
+                return Some(final_version);
+            }
+        }
     }
 
     None

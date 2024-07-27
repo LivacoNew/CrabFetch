@@ -259,11 +259,11 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();
 
     builder = builder.set_default("terminal.title", "Terminal").unwrap();
-    builder = builder.set_default("terminal.format", "{name}").unwrap();
+    builder = builder.set_default("terminal.format", "{name} {version}").unwrap();
     builder = builder.set_default("terminal.chase_ssh_pts", false).unwrap();
 
     builder = builder.set_default("shell.title", "Shell").unwrap();
-    builder = builder.set_default("shell.format", "{name}").unwrap();
+    builder = builder.set_default("shell.format", "{name} {version}").unwrap();
     builder = builder.set_default("shell.show_default_shell", "false").unwrap();
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
@@ -273,7 +273,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("battery.path", "BAT0").unwrap();
 
     builder = builder.set_default("editor.title", "Editor").unwrap();
-    builder = builder.set_default("editor.format", "{name}").unwrap();
+    builder = builder.set_default("editor.format", "{name} {version}").unwrap();
     builder = builder.set_default("editor.fancy", true).unwrap();
 
     builder = builder.set_default("locale.title", "Locale").unwrap();
@@ -743,7 +743,9 @@ title = "Terminal"
 # Placeholders;
 # {name} -> The name of the terminal, e.g kitty
 # {path} -> The path of the terminal, e.g /usr/bin/kitty
-format = "{name}"
+# {version} -> The version of the terminal
+format = "{name} {version}"
+
 # Whether to find the name of the current PTS if SSH is being used. This is a togglable option as most people probably won't care to go hunting for it.
 chase_ssh_pts = false
 
@@ -753,7 +755,8 @@ title = "Shell"
 # Placeholders;
 # {name} -> The name of the shell, e.g zsh
 # {path} -> The path of the shell, e.g /usr/bin/zsh
-format = "{name}"
+# {version} -> The version of the shell.
+format = "{name} {version}"
 
 # Whether to show your default shell, instead of your current shell.
 show_default_shell = false
@@ -766,9 +769,10 @@ title = "Uptime"
 [editor]
 title = "Editor"
 # Placeholders;
-# {name} - The name of the editor
-# {path} - The path the editor is at
-format = "{name}"
+# {name} -> The name of the editor
+# {path} -> The path the editor is at
+# {version} -> The version of the editor.
+format = "{name} {version}"
 
 # Whether to turn the name into a "fancy" variant. E.g "nvim" gets turned into "NeoVim"
 fancy = true

@@ -12,13 +12,13 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
 
     let name: &str = name.unwrap_or(exe_path.split('/').last().unwrap());
 
-    // if exe_path.starts_with("/usr/bin") {
-    //     // Consult the package manager
-    //     let package_manager: Option<String> = use_package_manager(substitite_package_name(name));
-    //     if package_manager.is_some() {
-    //         return package_manager;
-    //     }
-    // }
+    if exe_path.starts_with("/usr/bin") {
+        // Consult the package manager
+        let package_manager: Option<String> = use_package_manager(substitite_package_name(name));
+        if package_manager.is_some() {
+            return package_manager;
+        }
+    }
 
     // Match the checksum
     let checksum: Option<String> = match_checksum(exe_path);

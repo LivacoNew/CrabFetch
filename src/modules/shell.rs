@@ -57,11 +57,11 @@ impl Module for ShellInfo {
     }
 }
 
-pub fn get_shell(show_default_shell: bool, fetch_version: bool) -> Result<ShellInfo, ModuleError> {
+pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: bool) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     if show_default_shell {
-        return get_default_shell();
+        return get_default_shell(fetch_version, use_checksums);
     }
 
     // Just assumes the parent process
@@ -103,13 +103,13 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool) -> Result<ShellI
     }
 
     if fetch_version {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)
 }
 
-fn get_default_shell() -> Result<ShellInfo, ModuleError> {
+fn get_default_shell(fetch_version: bool, use_checksums: bool) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead
@@ -125,7 +125,9 @@ fn get_default_shell() -> Result<ShellInfo, ModuleError> {
         .unwrap()
         .to_string();
 
-    shell.version = versions::find_version(&shell.path, Some(&shell.name)).unwrap_or("Unknown".to_string());
+    if fetch_version {
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums).unwrap_or("Unknown".to_string());
+    }
 
     Ok(shell)
 }

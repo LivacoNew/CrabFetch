@@ -4,7 +4,7 @@ use std::{fs::{self, read_dir, File, ReadDir}, io::{BufRead, BufReader}, process
 
 use sha2::{Sha256, Digest};
 
-pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
+pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool) -> Option<String> {
     // Steps;
     // If it's located in /usr/bin, go to the package manager caches and search for it
     // If not (or not found), check the known checksums 
@@ -20,10 +20,12 @@ pub fn find_version(exe_path: &str, name: Option<&str>) -> Option<String> {
         }
     }
 
-    // Match the checksum
-    let checksum: Option<String> = match_checksum(exe_path);
-    if checksum.is_some() {
-        return checksum;
+    if use_checksums {
+        // Match the checksum
+        let checksum: Option<String> = match_checksum(exe_path);
+        if checksum.is_some() {
+            return checksum;
+        }
     }
     
     // Failing the above, we run {command} --version and parse it

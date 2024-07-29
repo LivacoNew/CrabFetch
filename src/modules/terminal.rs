@@ -63,6 +63,10 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
     #[cfg(feature = "android")]
     if env::consts::OS == "android" && Path::new("/data/data/com.termux/files/").exists() { // TODO: Does this still work in other emulators?
         terminal.name = "Termux".to_string();
+        terminal.version = match env::var("TERMUX_VERSION") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Could not parse $TERMUX_VERSION env variable: {}", e)))
+        };
         return Ok(terminal);
     }
 

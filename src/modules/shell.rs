@@ -68,28 +68,15 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
     let parent_pid: u32 = process::parent_id();
     let mut parent_process: ProcessInfo = ProcessInfo::new(parent_pid);
 
-    // TODO Rewrite me!
     #[cfg(feature = "android")]
-    let shell_path: String = if env::consts::OS == "android" {
-        let path: String = format!("/proc/{}/cmdline", parent_pid);
-        let mut file: File = match File::open(&path) {
+    {
+        let cmdline: Vec<String> = match parent_process.get_cmdline() {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} - {}", path, e))),
+            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} cmdline - {}", parent_pid, e))),
         };
-        let mut contents: String = String::new();
-        match file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("Shell", format!("Can't read from {} - {}", path, e))),
-        }
-        contents
-    } else {
-        let path: String = format!("/proc/{}/exe", parent_pid);
-        match fs::canonicalize(&path) {
-            Ok(r) => r.display().to_string(),
-            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to canonicalize {} symlink: {}", path, e)))
-        }
-    };
-
+        shell.path = cmdline[1].to_string();
+        shell.name = shell.path.split('/').last().unwrap().to_string();
+    }
     #[cfg(not(feature = "android"))]
     {
         shell.path = match parent_process.get_exe(true) {
@@ -99,7 +86,7 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
         shell.name = match parent_process.get_process_name() {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {}", e)))
-        }
+        };
     }
 
     if fetch_version {

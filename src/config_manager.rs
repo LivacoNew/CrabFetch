@@ -12,7 +12,7 @@ use crate::music::MusicConfiguration;
 pub struct Configuration {
     pub modules: Vec<String>,
     pub unknown_as_text: bool,
-    pub seperator: String,
+    pub separator: String,
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
     pub title_italic: bool,
@@ -186,7 +186,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     }
     builder = builder.set_default("unknown_as_text", false).unwrap();
 
-    builder = builder.set_default("seperator", " > ").unwrap();
+    builder = builder.set_default("separator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
     builder = builder.set_default("title_italic", true).unwrap();
@@ -417,7 +417,7 @@ mod tests {
     
     // Tests that the default-config.toml file is the same as the DEFAULT_CONFIG_CONTENTS string in
     // here 
-    // In case anyone's wondering why they're seperated; it's so that package maintainers or people
+    // In case anyone's wondering why they're separated; it's so that package maintainers or people
     // who want a copy of the default config without re-genning it can have it without digging in
     // CrabFetch's source code
     // This test's just to make sure I keep it up to date and don't forget to update one or the
@@ -480,8 +480,8 @@ modules = [
 # Yes, these support color placeholders.
 unknown_as_text = false
 
-# The default seperator between a modules title and it's value
-seperator = " > "
+# The default separator between a modules title and it's value
+separator = " > "
 # The default color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
@@ -494,7 +494,7 @@ title_italic = false
 decimal_places = 2
 
 # Whether to have all module values as inline, e.g; https://i.imgur.com/UNyq2zj.png
-# To add padding use the "seperator" and add some spaces
+# To add padding use the "separator" and add some spaces
 inline_values = false
 
 # The character to use in the underline module
@@ -585,7 +585,7 @@ format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 [gpu]
-# Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
+# Whether to try to search a separate AMD specific file to try to improve accuracy on AMD GPU's 
 amd_accuracy = true
 
 # Ignore any GPU's that are marked as "disabled" by Linux
@@ -728,7 +728,7 @@ kernel_format = "Linux {kernel}"
 
 [packages]
 title = "Packages"
-# This format is for each entry, with all entries being combined into a single string seperated by a comma. Placeholders;
+# This format is for each entry, with all entries being combined into a single string separated by a comma. Placeholders;
 # {manager} -> The name of the manager
 # {count} -> The amount of packages that manager reports
 format = "{count} ({manager})"

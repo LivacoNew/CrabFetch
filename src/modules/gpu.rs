@@ -21,7 +21,7 @@ pub struct GPUConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
-    pub seperator: Option<String>,
+    pub separator: Option<String>,
     pub use_ibis: Option<bool>,
     pub format: String
 }
@@ -40,25 +40,25 @@ impl Module for GPUInfo {
         let title_color: &CrabFetchColor = config.gpu.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.gpu.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.gpu.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.gpu.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = config.gpu.title.clone()
             .replace("{index}", &self.index.unwrap_or(0).to_string());
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
 
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.gpu.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.gpu.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.gpu.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.gpu.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = config.gpu.title.clone()
             .replace("{index}", "0").to_string();
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

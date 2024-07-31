@@ -36,8 +36,8 @@ modules = [
 # Yes, these support color placeholders.
 unknown_as_text = false
 
-# The default seperator between a modules title and it's value
-seperator = " > "
+# The default separator between a modules title and it's value
+separator = " > "
 # The default color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
@@ -50,7 +50,7 @@ title_italic = false
 decimal_places = 2
 
 # Whether to have all module values as inline, e.g; https://i.imgur.com/UNyq2zj.png
-# To add padding use the "seperator" and add some spaces
+# To add padding use the "separator" and add some spaces
 inline_values = false
 
 # The character to use in the underline module
@@ -141,7 +141,7 @@ format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 
 [gpu]
-# Whether to try to search a seperate AMD specific file to try to improve accuracy on AMD GPU's 
+# Whether to try to search a separate AMD specific file to try to improve accuracy on AMD GPU's 
 amd_accuracy = true
 
 # Ignore any GPU's that are marked as "disabled" by Linux
@@ -284,7 +284,7 @@ kernel_format = "Linux {kernel}"
 
 [packages]
 title = "Packages"
-# This format is for each entry, with all entries being combined into a single string seperated by a comma. Placeholders;
+# This format is for each entry, with all entries being combined into a single string separated by a comma. Placeholders;
 # {manager} -> The name of the manager
 # {count} -> The amount of packages that manager reports
 format = "{count} ({manager})"

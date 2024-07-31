@@ -19,7 +19,7 @@ pub struct OSConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
-    pub seperator: Option<String>,
+    pub separator: Option<String>,
     pub format: String,
     pub newline_kernel: bool,
     pub kernel_title: String,
@@ -38,19 +38,19 @@ impl Module for OSInfo {
         let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, seperator, &value)
+        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String {
         let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, seperator, "Unknown")
+        Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -64,11 +64,11 @@ impl OSInfo {
         let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.os.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
         let value: String = self.replace_color_placeholders(&config.os.kernel_format.replace("{kernel}", &self.kernel));
 
-        Self::default_style(config, max_title_size, &config.os.kernel_title, title_color, title_bold, title_italic, seperator, &value)
+        Self::default_style(config, max_title_size, &config.os.kernel_title, title_color, title_bold, title_italic, separator, &value)
     }
 }
 

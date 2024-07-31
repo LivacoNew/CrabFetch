@@ -60,7 +60,7 @@ pub struct Args {
     suppress_errors: bool,
 
     #[arg(long)]
-    /// Overrides the modules set in your config file. This should be a comma seperated list of
+    /// Overrides the modules set in your config file. This should be a comma separated list of
     /// modules. E.g cpu,gpu,underline:16,title
     module_override: Option<String>,
 
@@ -176,7 +176,7 @@ trait Module {
     fn replace_placeholders(&self, config: &Configuration) -> String;
 
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
-    fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, seperator: &str, value: &str) -> String {
+    fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, separator: &str, value: &str) -> String {
         let mut str: String = String::new();
 
         // Title
@@ -196,7 +196,7 @@ trait Module {
                     str.push(' ');
                 }
             }
-            str.push_str(seperator);
+            str.push_str(separator);
         }
 
         str.push_str(value);

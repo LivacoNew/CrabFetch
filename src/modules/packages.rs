@@ -18,7 +18,7 @@ pub struct PackagesConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
-    pub seperator: Option<String>,
+    pub separator: Option<String>,
     pub ignore: Vec<String>,
     pub format: String
 }
@@ -33,7 +33,7 @@ impl Module for PackagesInfo {
         let title_color: &CrabFetchColor = config.packages.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.packages.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.packages.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.packages.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.packages.separator.as_ref().unwrap_or(&config.separator);
 
         // Full style
         let mut str: String = String::new();
@@ -55,7 +55,7 @@ impl Module for PackagesInfo {
                     str.push(' ');
                 }
             }
-            str.push_str(seperator);
+            str.push_str(separator);
         }
 
         let mut value: String = String::new();

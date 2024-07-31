@@ -71,7 +71,7 @@ pub struct DisplayConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
-    pub seperator: Option<String>,
+    pub separator: Option<String>,
     pub format: String,
     pub scale_size: bool,
 }
@@ -93,26 +93,26 @@ impl Module for DisplayInfo {
         let title_color: &CrabFetchColor = config.displays.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.displays.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.displays.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = config.displays.title.clone().replace("{name}", &self.name)
             .replace("{make}", &self.make)
             .replace("{model}", &self.model);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.displays.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.displays.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
-        let seperator: &str = config.displays.seperator.as_ref().unwrap_or(&config.seperator);
+        let separator: &str = config.displays.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = config.displays.title.clone().replace("{name}", "Unknown")
             .replace("{make}", "Unknown")
             .replace("{model}", "Unknown");
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, seperator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {

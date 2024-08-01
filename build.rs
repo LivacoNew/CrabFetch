@@ -8,9 +8,18 @@ fn main() {
             Err(e) => {
                 println!("Warning: Unable to find git information, version commmand may be mangled: {e}");
                 println!("cargo:rustc-env=GIT_HASH=Unknown");
+                println!("cargo:rustc-env=GIT_DATE=Unknown");
+                println!("cargo:rustc-env=GIT_MESSAGE=Unknown");
                 return
             },
         };
+    if !command.status.success() {
+        println!("Warning: Unable to find git information, version commmand may be mangled.");
+        println!("cargo:rustc-env=GIT_HASH=Unknown");
+        println!("cargo:rustc-env=GIT_DATE=Unknown");
+        println!("cargo:rustc-env=GIT_MESSAGE=Unknown");
+        return
+    }
     
     let output: String = String::from_utf8(command.stdout).expect("Unable to parse git output to a string.");
     let output_lines: Vec<&str> = output.split('\n').collect();

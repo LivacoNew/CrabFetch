@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, versions, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, proccess_info::ProcessInfo, versions, Module, ModuleError};
 
 pub struct TerminalInfo {
     name: String,
@@ -57,7 +57,7 @@ impl Module for TerminalInfo {
     }
 }
 
-pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool) -> Result<TerminalInfo, ModuleError> {
+pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
 
     #[cfg(feature = "android")]
@@ -150,7 +150,7 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
     };
 
     if fetch_version {
-        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), use_checksums).unwrap_or("Unknown".to_string());
+        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(terminal)

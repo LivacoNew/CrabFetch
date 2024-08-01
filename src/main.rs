@@ -26,6 +26,7 @@ use modules::terminal::{self, TerminalInfo};
 use modules::uptime::{self, UptimeInfo};
 use modules::hostname::{self, HostnameInfo};
 use config_manager::Configuration;
+use package_managers::ManagerInfo;
 
 use crate::ascii::get_ascii_line;
 
@@ -35,6 +36,7 @@ mod ascii;
 mod formatter;
 mod proccess_info;
 mod versions;
+mod package_managers;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -299,7 +301,6 @@ fn main() {
         exit(-1);
     }
 
-
     // 
     //  Parse 
     //
@@ -359,6 +360,12 @@ fn main() {
     // Define our module outputs, and figure out the max title length
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
     let max_title_length: u64 = calc_max_title_length(&config, &mut known_outputs, args.benchmark);
+
+    // Pre-Process any package manager info we may need
+    let bench: Option<Instant> = benchmark_point(args.benchmark);
+    let mut package_managers: ManagerInfo = ManagerInfo::new();
+    package_managers.probe_and_cache();
+    print_bench_time(args.benchmark, "Pre-Process and Cache Package Managers", bench);
 
     // 
     //  Detect
@@ -582,7 +589,7 @@ fn main() {
             "packages" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.packages.is_none() {
-                    known_outputs.packages = Some(packages::get_packages());
+                    known_outputs.packages = Some(packages::get_packages(&package_managers));
                 }
                 output.push(known_outputs.packages.as_ref().unwrap().style(&config, max_title_length));
                 print_bench_time(args.benchmark, "Packages Module", bench);
@@ -607,7 +614,7 @@ fn main() {
             "terminal" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.terminal.is_none() {
-                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts, config.terminal.format.contains("{version}"), config.use_version_checksums));
+                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts, config.terminal.format.contains("{version}"), config.use_version_checksums, &package_managers));
                 }
                 match known_outputs.terminal.as_ref().unwrap() {
                     Ok(terminal) => output.push(terminal.style(&config, max_title_length)),
@@ -624,7 +631,7 @@ fn main() {
             "shell" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.shell.is_none() {
-                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell, config.shell.format.contains("{version}"), config.use_version_checksums));
+                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell, config.shell.format.contains("{version}"), config.use_version_checksums, &package_managers));
                 }
                 match known_outputs.shell.as_ref().unwrap() {
                     Ok(shell) => output.push(shell.style(&config, max_title_length)),
@@ -710,7 +717,7 @@ fn main() {
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy, config.editor.format.contains("{version}"), config.use_version_checksums));
+                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy, config.editor.format.contains("{version}"), config.use_version_checksums, &package_managers));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
                     Ok(editor) => output.push(editor.style(&config, max_title_length)),

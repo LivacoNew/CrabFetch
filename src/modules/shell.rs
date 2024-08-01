@@ -5,7 +5,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, proccess_info::ProcessInfo, Module, ModuleError, versions};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, proccess_info::ProcessInfo, versions, Module, ModuleError};
 
 pub struct ShellInfo {
     name: String,
@@ -57,11 +57,11 @@ impl Module for ShellInfo {
     }
 }
 
-pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: bool) -> Result<ShellInfo, ModuleError> {
+pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     if show_default_shell {
-        return get_default_shell(fetch_version, use_checksums);
+        return get_default_shell(fetch_version, use_checksums, package_managers);
     }
 
     // Just assumes the parent process
@@ -90,13 +90,13 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
     }
 
     if fetch_version {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums).unwrap_or("Unknown".to_string());
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)
 }
 
-fn get_default_shell(fetch_version: bool, use_checksums: bool) -> Result<ShellInfo, ModuleError> {
+fn get_default_shell(fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead
@@ -113,7 +113,7 @@ fn get_default_shell(fetch_version: bool, use_checksums: bool) -> Result<ShellIn
         .to_string();
 
     if fetch_version {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums).unwrap_or("Unknown".to_string());
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)

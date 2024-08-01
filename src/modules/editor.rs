@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, versions, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, versions, Module, ModuleError};
 
 pub struct EditorInfo {
     name: String,
@@ -54,7 +54,7 @@ impl Module for EditorInfo {
     }
 }
 
-pub fn get_editor(fancy: bool, fetch_version: bool, use_checksums: bool) -> Result<EditorInfo, ModuleError> {
+pub fn get_editor(fancy: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<EditorInfo, ModuleError> {
     let mut editor: EditorInfo = EditorInfo::new();
 
     let env_value: String = match env::var("EDITOR") {
@@ -73,7 +73,7 @@ pub fn get_editor(fancy: bool, fetch_version: bool, use_checksums: bool) -> Resu
     };
     editor.name = editor.path.split('/').last().unwrap().to_string();
     if fetch_version {
-        editor.version = versions::find_version(&editor.path, Some(&editor.name), use_checksums).unwrap_or("Unknown".to_string());
+        editor.version = versions::find_version(&editor.path, Some(&editor.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     // Convert the name to a fancy variant

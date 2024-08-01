@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{self, read_dir, File, ReadDir}, io::Read, path::Path};
+use std::fs;
 
 #[cfg(feature = "android")]
 use std::env;
@@ -7,7 +7,7 @@ use std::env;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN}, Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -63,6 +63,9 @@ impl Module for PackagesInfo {
             if config.packages.ignore.contains(&manager.manager_name) {
                 continue
             }
+            if manager.package_count == 0 {
+                continue
+            }
 
             if !value.is_empty() {
                 value.push_str(", ");
@@ -101,17 +104,17 @@ impl ManagerInfo {
     }
 }
 
-pub fn get_packages() -> PackagesInfo {
+pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
-    if let Some(r) = process_pacman_packages() {
-        packages.packages.push(ManagerInfo::fill("pacman", r));
-    }
-    if let Some(r) = process_flatpak_packages() {
+    // if let Some(r) = process_pacman_packages() {
+    //     packages.packages.push(ManagerInfo::fill("pacman", r));
+    // }
+    packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
+    packages.packages.push(ManagerInfo::fill("dpkg", package_managers.find_all_packages_from(MANAGER_DPKG).values().len() as u64));
+
+    if let Some(r) = package_managers.process_flatpak_packages_count() {
         packages.packages.push(ManagerInfo::fill("flatpak", r));
-    }
-    if let Some(r) = process_dpkg_packages() {
-        packages.packages.push(ManagerInfo::fill("dpkg", r));
     }
     #[cfg(feature = "rpm_packages")]
     if let Some(r) = process_rpm_packages() {
@@ -122,106 +125,6 @@ pub fn get_packages() -> PackagesInfo {
     }
 
     packages
-}
-
-// Credit for Pacman, Flatpak and dpkg detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
-fn process_pacman_packages() -> Option<u64> {
-    let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-
-    // -1 to account for the db file sitting there 
-    // tried doing it properly with the loops and directory shit yada yada it took 2 milliseconds,
-    // fuck that
-    Some(dir.count() as u64 - 1)
-}
-fn process_flatpak_packages() -> Option<u64> {
-    // This counts everything in /app and /runtime
-    let mut result: usize = 0;
-
-    let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-    result += flatpak_apps_dir.count();
-
-    let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-    result += flatpak_runtime_dir.count();
-
-    Some(result as u64)
-}
-fn process_dpkg_packages() -> Option<u64> {
-    // This counts all the ok entries in /var/lib/dpkg/status
-    // This is extremely highly over-optimised, I'm comparing the raw bytes opposed to converting
-    // to strings or whatever as the file is so large I need as much raw performance as possible
-    // All of this took the legacy function (down below) from 7ms to 3ms in this new function
-    let mut result: u64 = 0;
-
-
-    #[cfg(not(feature = "android"))]
-    let path: &str = "/var/lib/dpkg/status";
-    #[cfg(feature = "android")]
-    let mut path: &str = "/var/lib/dpkg/status";
-    // Android 
-    #[cfg(feature = "android")]
-    if env::consts::OS == "android" {
-        path = "/data/data/com.termux/files/usr/var/lib/dpkg/status";
-    }
-    let file_bytes: Vec<u8> = match fs::read(path) {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-    let target_bytes: Vec<u8> = vec![83, 116, 97, 116, 117, 115, 58, 32, 105, 110, 115, 116, 97, 108, 108, 32, 111, 107, 32, 105, 110, 115, 116, 97, 108, 108, 101, 100];
-
-    let mut count = 0;
-    for y in file_bytes {
-        if y == target_bytes[count] {
-            count += 1;
-            if count == (target_bytes.len() - 1) {
-                result += 1;
-                count = 0;
-            }
-        } else {
-            count = 0;
-        }
-    }
-
-    // Some(_process_dpkg_packages_legacy().unwrap())
-    Some(result)
-}
-// This does the same as above, but in a more sensible way
-// This is just for me checking if any changes I've done to the above are valid, as I don't trust
-// myself nevermind my code
-fn _process_dpkg_packages_legacy() -> Option<u64> {
-    // This counts all the ok entries in /var/lib/dpkg/status
-    let dpkg_status_path: &Path = Path::new("/var/lib/dpkg/status");
-    if !dpkg_status_path.exists() {
-        return None
-    }
-
-    let mut file: File = match File::open(dpkg_status_path) {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(_) => return None,
-    }
-
-    let mut result: u64 = 0;
-    for entry in contents.split('\n') {
-        if !entry.contains("Status: install ok installed") {
-            continue
-        }
-        result += 1;
-    }
-
-    Some(result)
 }
 
 #[cfg(feature = "rpm_packages")]

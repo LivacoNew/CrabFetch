@@ -860,11 +860,13 @@ fn main() {
                 print_bench_time(args.benchmark, "Bright Colors Module", bench);
             }
             _ => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if config.unknown_as_text {
                     output.push(formatter::replace_color_placeholders(module_name));
                 } else {
                     output.push(format!("Unknown module: {}", module_name));
                 }
+                print_bench_time(args.benchmark, "Unknown Module / Custom Text", bench);
             }
         }
         print_bench_time(args.benchmark, "  Entire Module Parse/Detection", module_parse_bench);

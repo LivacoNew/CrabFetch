@@ -6,7 +6,7 @@ use std::env;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN, MANAGER_XBPS}, Module};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN, MANAGER_XBPS}, module::Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>

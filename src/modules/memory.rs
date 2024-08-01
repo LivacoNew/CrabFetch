@@ -3,7 +3,7 @@ use std::io::{BufRead, BufReader};
 
 use serde::Deserialize;
 
-use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct MemoryInfo {
     used_kb: u64,

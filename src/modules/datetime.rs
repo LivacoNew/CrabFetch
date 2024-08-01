@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module};
 
 pub struct DateTimeInfo {
     datetime: DateTime<Local>,

@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path}
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
 
 #[derive(Clone)]
 pub struct GPUInfo {

@@ -5,7 +5,7 @@ use std::{fs::File, io::Read, path::Path};
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct HostInfo {
     host: String,

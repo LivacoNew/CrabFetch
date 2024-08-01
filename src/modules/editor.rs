@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, versions, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, versions, ModuleError};
 
 pub struct EditorInfo {
     name: String,

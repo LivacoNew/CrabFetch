@@ -3,7 +3,7 @@ use std::mem;
 
 use serde::Deserialize;
 
-use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct SwapInfo {
     used_kb: u64,

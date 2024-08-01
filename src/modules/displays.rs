@@ -5,7 +5,7 @@ use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
 use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{self, ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
 
 #[derive(Clone)]
 pub struct DisplayInfo {

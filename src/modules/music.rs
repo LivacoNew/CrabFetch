@@ -3,7 +3,7 @@ use std::time::Duration;
 use dbus::{arg, blocking::{stdintf::org_freedesktop_dbus::Properties, Connection, Proxy}};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
 
 pub struct MusicInfo {
     album: String,

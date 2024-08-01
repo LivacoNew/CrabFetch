@@ -5,7 +5,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::P
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
 
 pub struct CPUInfo {
     name: String,

@@ -2,7 +2,7 @@ use std::fs::{read_dir, ReadDir};
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct ProcessesInfo {
     count: u32 // god forbid someone manages to hit this limit

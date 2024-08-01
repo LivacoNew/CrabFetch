@@ -7,7 +7,7 @@ use std::env;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct MountInfo {
     device: String,     // /dev/sda

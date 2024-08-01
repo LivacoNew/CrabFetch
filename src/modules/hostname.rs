@@ -4,7 +4,7 @@ use std::{env, ffi::CStr, fs::File, io::Read, mem, process::Command};
 use libc::{geteuid, getpwuid, uname};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, Module, ModuleError};
+use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
 
 pub struct HostnameInfo {
     username: String,

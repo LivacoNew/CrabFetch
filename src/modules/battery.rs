@@ -2,7 +2,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
 
 pub struct BatteryInfo {
     percentage: f32,

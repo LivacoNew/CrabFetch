@@ -1,5 +1,4 @@
 use core::str;
-use std::fs;
 
 #[cfg(feature = "android")]
 use std::env;
@@ -7,7 +6,7 @@ use std::env;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN}, Module};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN, MANAGER_XBPS}, Module};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -112,6 +111,7 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     // }
     packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("dpkg", package_managers.find_all_packages_from(MANAGER_DPKG).values().len() as u64));
+    packages.packages.push(ManagerInfo::fill("xbps", package_managers.find_all_packages_from(MANAGER_XBPS).values().len() as u64));
 
     if let Some(r) = package_managers.process_flatpak_packages_count() {
         packages.packages.push(ManagerInfo::fill("flatpak", r));
@@ -119,9 +119,6 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     #[cfg(feature = "rpm_packages")]
     if let Some(r) = process_rpm_packages() {
         packages.packages.push(ManagerInfo::fill("rpm", r));
-    }
-    if let Some(r) = process_xbps_packages() {
-        packages.packages.push(ManagerInfo::fill("xbps", r));
     }
 
     packages
@@ -152,37 +149,4 @@ fn process_rpm_packages() -> Option<u64> {
         Ok(_) => Some(result),
         Err(_) => None,
     }
-}
-
-fn process_xbps_packages() -> Option<u64> {
-    // Same deal as dpkg, as it's a ginormous file
-    // I'm not sure if adding the database format version statically as 0.38 will cause issues, but
-    // considering their current docs as well as a reddit post from 4 years ago both use 0.38 I'm
-    // assuming it's safe to do this 
-    //
-    // https://man.voidlinux.org/xbps-pkgdb.1#FILES
-    // https://www.reddit.com/r/voidlinux/comments/ig6hur/comment/g2rz5pk/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-
-    let mut result: u64 = 0;
-    let file_bytes: Vec<u8> = match fs::read("/var/db/xbps/pkgdb-0.38.plist") {
-        Ok(r) => r,
-        Err(_) => return None,
-    };
-    // "<key>installed_size</key>"
-    let target_bytes: Vec<u8> = vec![60, 107, 101, 121, 62, 105, 110, 115, 116, 97, 108, 108, 101, 100, 95, 115, 105, 122, 101, 60, 47, 107, 101, 121, 62];
-
-    let mut count = 0;
-    for y in file_bytes {
-        if y == target_bytes[count] {
-            count += 1;
-            if count == (target_bytes.len() - 1) {
-                result += 1;
-                count = 0;
-            }
-        } else {
-            count = 0;
-        }
-    }
-
-    Some(result)
 }

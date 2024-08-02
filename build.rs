@@ -23,7 +23,8 @@ fn main() {
     
     let output: String = String::from_utf8(command.stdout).expect("Unable to parse git output to a string.");
     let output_lines: Vec<&str> = output.split('\n').collect();
-
+    let mut message: String = String::new();
+    let mut in_message: bool = false;
     for line in &output_lines {
         if let Some(commit_hash) = line.trim().strip_prefix("commit ") {
             println!("cargo:rustc-env=GIT_HASH={}", &commit_hash);
@@ -31,8 +32,16 @@ fn main() {
         if let Some(commit_date) = line.trim().strip_prefix("Date: ") {
             println!("cargo:rustc-env=GIT_DATE={}", &commit_date.trim());
         }
+
+        if line.is_empty() {
+            // Next lines are all part of the message
+            in_message = true;
+        }
+        if in_message {
+            message.push_str(line.trim());
+            message.push_str("<br>");
+        }
     }
 
-    let commit_message: &str = output_lines[output_lines.len() - 2].trim();
-    println!("cargo:rustc-env=GIT_MESSAGE={}", commit_message);
+    println!("cargo:rustc-env=GIT_MESSAGE={}", message);
 }

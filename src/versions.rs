@@ -3,7 +3,7 @@ use std::{fs, process::Command};
 
 use sha2::{Sha256, Digest};
 
-use crate::package_managers::ManagerInfo;
+use crate::{package_managers::ManagerInfo, proccess_info::ProcessInfo};
 
 pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, package_managers: &ManagerInfo) -> Option<String> {
     // Steps;
@@ -53,6 +53,19 @@ fn match_checksum(path: &str) -> Option<String> {
 }
 fn parse_command(path: &str, name: &str) -> Option<String> {
     // uhoh, expect shitty performance
+
+    // confirm this isn't a infinite loop situation where the parent process started us and we're
+    // away to call the parent process again... starting us again and causing a black hole to form
+    // and devour the universe... or worse, fill up your ram 
+    let mut parent_process: ProcessInfo = ProcessInfo::new_from_parent();
+    let parent_name: String = match parent_process.get_process_name() {
+        Ok(r) => r,
+        Err(_) => return None // Would rather play it safe
+    };
+    if parent_name == name {
+        panic!("DANGER: Parent process re-invoked for version checking. This has the possibility to create a mini-fork bomb! Stopping before I break something...");
+    }
+
     let mut command: Command = Command::new(path);
     if name == "xterm" || name == "elvish" {
         command.arg("-version");

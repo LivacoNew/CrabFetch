@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::fs;
 
 #[cfg(feature = "android")]
 use std::path::Path;
@@ -57,6 +57,27 @@ impl Module for TerminalInfo {
     }
 }
 
+// A list of known terminals, similar to shell we keep going up until we encouter one
+const KNOWN_TERMS: &[&str] = &[
+    "alacritty", 
+    "fbpad",
+    "fbterm",
+    "foot",
+    "guake",
+    "kitty",
+    "konsole", 
+    "rxvt",
+    "st",
+    "terminator",
+    "termite",
+    "tmuxp",
+    "xterm",
+    "yakuake",
+    "tilix",
+    "hyper",
+    "wezterm"
+];
+
 pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
 
@@ -76,33 +97,29 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
 
     let mut loops = 0; // always use protection against infinite loops kids
     let mut parent_process: ProcessInfo = ProcessInfo::new_from_parent();
-    let mut shell_level: u8 = match env::var("SHLVL") {
-        Ok(r) => match r.parse::<u8>() {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Could not parse $SHLVL env variable: {}", e)))
-        },
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Could not get $SHLVL env variable: {}", e)))
-    };
-    while shell_level > 0 {
+    let mut found: bool = false;
+    while !found {
         if loops > 10 {
             return Err(ModuleError::new("Terminal", "Terminal PID loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 shells deep, in which case you're a moron.".to_string()));
         }
         loops += 1;
 
-        if shell_level == 1 {
-            terminal_process = Some(match parent_process.get_parent_process() {
-                Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process for terminal: {}", e))),
-            });
-        } else {
+        terminal.name = match parent_process.get_process_name() {
+            Ok(r) => r.to_string(),
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
+        };
+        if !KNOWN_TERMS.contains(&terminal.name.as_str()) {
             // go up a level
             parent_process = match parent_process.get_parent_process() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get parent process: {}", e))),
             };
+
+            continue;
         }
 
-        shell_level -= 1;
+        terminal_process = Some(parent_process.clone());
+        found = true;
     }
 
 

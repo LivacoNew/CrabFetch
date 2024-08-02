@@ -2,6 +2,7 @@
 
 use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::parent_id};
 
+#[derive(Clone)]
 pub struct ProcessInfo {
     pub pid: u32,
     process_name: Option<String>,

@@ -57,6 +57,31 @@ impl Module for ShellInfo {
     }
 }
 
+// A list of known shells, the idea being that we keep going up in parent processes until we
+// encouter one
+// This prevents stuff like sudo, scripts or running crabfetch as a child process in any way messing us up
+// Compiled from info here https://wiki.archlinux.org/title/Command-line_shell
+const KNOWN_SHELLS: &[&str] = &[
+    "bash", 
+    "dash",
+    "ksh",
+    "nsh",
+    "oil",
+    "yash",
+    "zsh", 
+    "tcsh",
+    "closh",
+    "elvish",
+    "fish",
+    "ion",
+    "murex",
+    "nushell",
+    "oh",
+    "powershell",
+    "9base",
+    "xonsh"
+];
+
 pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
@@ -64,27 +89,54 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
         return get_default_shell(fetch_version, use_checksums, package_managers);
     }
 
-    // Just assumes the parent process
+    // Goes up until we hit one of our known shells
     let mut parent_process: ProcessInfo = ProcessInfo::new_from_parent();
+    let mut found: bool = false;
+    let mut loop_limit: u8 = 0;
+    while !found {
+        if loop_limit >= 10 {
+            return Err(ModuleError::new("Shell", "Shell parent process loop ran for more than 10 iterations! Either I'm in a infinite loop, or you're >10 subprocesses deep, in which case you're a moron.".to_string()));
+        }
+        loop_limit += 1;
 
-    #[cfg(feature = "android")]
-    {
-        let cmdline: Vec<String> = match parent_process.get_cmdline() {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} cmdline - {}", parent_pid, e))),
-        };
-        shell.path = cmdline[1].to_string();
-        shell.name = shell.path.split('/').last().unwrap().to_string();
+        // "attributes on expressions are experimental" 
+        // rust... the issue has been open since 2014... can you just fucking add it please because
+        // the random scope braces I have to add here are genuinely horrendous
+        #[cfg(feature = "android")]
+        {
+            let cmdline: Vec<String> = match parent_process.get_cmdline() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} cmdline - {}", parent_pid, e))),
+            };
+            shell.path = cmdline[1].to_string();
+            shell.name = shell.path.split('/').last().unwrap().to_string();
+        }
+        #[cfg(not(feature = "android"))]
+        {
+            shell.name = match parent_process.get_process_name() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {}", e)))
+            };
+        }
+
+        if !KNOWN_SHELLS.contains(&shell.name.to_lowercase().as_str()) {
+            parent_process = match parent_process.get_parent_process() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Shell", format!("Unable to get parent process: {}", e)))
+            };
+            continue;
+        }
+
+        found = true;
     }
+
+
+    // Android already has the path/name, regular people don't tho
     #[cfg(not(feature = "android"))]
     {
         shell.path = match parent_process.get_exe(true) {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {}", e)))
-        };
-        shell.name = match parent_process.get_process_name() {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {}", e)))
         };
     }
 

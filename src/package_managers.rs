@@ -51,7 +51,7 @@ impl ManagerInfo {
             .collect()
     }
 
-    // Credit for Pacman, Flatpak and dpkg detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
+    // Credit for Pacman, Flatpak and DPKG detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
     fn process_pacman_packages() -> Option<HashMap<String, PackageInfo>> {
         let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
             Ok(r) => r,

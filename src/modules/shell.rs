@@ -105,6 +105,10 @@ fn get_default_shell(fetch_version: bool, use_checksums: bool, package_managers:
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
     };
+    shell.path = match which::which(&shell.path) {
+        Ok(r) => r.display().to_string(),
+        Err(e) => return Err(ModuleError::new("Shell", format!("Could not find 'which' for {}: {}", shell.path, e)))
+    };
     shell.name = shell.path.split('/')
         .collect::<Vec<&str>>()
         .last()

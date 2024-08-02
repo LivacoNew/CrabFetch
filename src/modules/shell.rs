@@ -65,8 +65,7 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
     }
 
     // Just assumes the parent process
-    let parent_pid: u32 = process::parent_id();
-    let mut parent_process: ProcessInfo = ProcessInfo::new(parent_pid);
+    let mut parent_process: ProcessInfo = ProcessInfo::new_from_parent();
 
     #[cfg(feature = "android")]
     {

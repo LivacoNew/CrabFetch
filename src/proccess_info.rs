@@ -1,6 +1,6 @@
 // Fetch info from a process from /proc 
 
-use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}};
+use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::parent_id};
 
 pub struct ProcessInfo {
     pub pid: u32,
@@ -22,6 +22,9 @@ impl ProcessInfo {
 
             path: Path::new(&format!("/proc/{}", pid)).to_owned()
         }
+    }
+    pub fn new_from_parent() -> Self {
+        Self::new(parent_id())
     }
 
     pub fn is_valid(&self) -> bool {
@@ -113,5 +116,19 @@ impl ProcessInfo {
             Some(r) => Ok(r.parse().unwrap()),
             None => Err("Unable to find parent PID".to_string()),
         }
+    }
+
+    pub fn get_parent_process(&mut self) -> Result<ProcessInfo, String> {
+        let pid: u32 = match self.get_parent_pid() {
+            Ok(r) => r,
+            Err(e) => return Err(e),
+        };
+
+        let process: ProcessInfo = ProcessInfo::new(pid);
+        if !process.is_valid() {
+            return Err("Parent process was not valid.".to_string());
+        }
+
+        Ok(process)
     }
 }

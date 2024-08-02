@@ -1,4 +1,4 @@
-use std::{env, fs, os::unix::process};
+use std::{env, fs};
 
 #[cfg(feature = "android")]
 use std::path::Path;
@@ -72,10 +72,10 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
 
     // This is just a rust-ified & slightly more robust solution from https://askubuntu.com/a/508047
     // Find the terminal's PID by going up through every shell level
-    let mut terminal_pid: Option<u32> = None;
+    let mut terminal_process: Option<ProcessInfo> = None;
 
     let mut loops = 0; // always use protection against infinite loops kids
-    let mut parent_pid: u32 = process::parent_id();
+    let mut parent_process: ProcessInfo = ProcessInfo::new_from_parent();
     let mut shell_level: u8 = match env::var("SHLVL") {
         Ok(r) => match r.parse::<u8>() {
             Ok(r) => r,
@@ -89,18 +89,16 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
         }
         loops += 1;
 
-        let mut process: ProcessInfo = ProcessInfo::new(parent_pid);
-
         if shell_level == 1 {
-            terminal_pid = Some(match process.get_parent_pid() {
+            terminal_process = Some(match parent_process.get_parent_process() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse terminal pid: {}", e))),
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process for terminal: {}", e))),
             });
         } else {
             // go up a level
-            parent_pid = match process.get_parent_pid() {
+            parent_process = match parent_process.get_parent_process() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't parse parent pid: {}", e))),
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get parent process: {}", e))),
             };
         }
 
@@ -108,11 +106,10 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
     }
 
 
-    if terminal_pid.is_none() {
-        return Err(ModuleError::new("Terminal", format!("Was unsuccessfull in finding Terminal's PID, last checked; {}", parent_pid)));
+    if terminal_process.is_none() {
+        return Err(ModuleError::new("Terminal", "Was unsuccessfull in finding Terminal process.".to_string()));
     }
-    let terminal_pid: u32 = terminal_pid.unwrap();
-    let mut terminal_process: ProcessInfo = ProcessInfo::new(terminal_pid);
+    let mut terminal_process: ProcessInfo = terminal_process.unwrap();
     if !terminal_process.is_valid() {
         return Err(ModuleError::new("Terminal", "Unable to find terminal process".to_string()));
     }

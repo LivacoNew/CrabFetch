@@ -295,7 +295,9 @@ fn main() {
         },
     };
     print_bench_time(args.benchmark, "Parsing Config", bench);
-    let log_errors: bool = !(config.suppress_errors || args.suppress_errors);
+
+    // if config isn't supprsesing errors, make it go down to args
+    let log_errors: bool = { if !config.suppress_errors { !args.suppress_errors } else { !config.suppress_errors } };
 
     // Define our module outputs, and figure out the max title length
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();

@@ -81,6 +81,11 @@ impl ManagerInfo {
             // {name, may include -}-{version}-{rev}
             let package_split: Vec<&str> = file_name.split('-').collect();
             let package_name: &str = &package_split[0..package_split.len() - 2].join("-");
+            // Strip -git suffix for AUR packages
+            let package_name: &str = match package_name.strip_suffix("-git") {
+                Some(r) => r,
+                None => package_name,
+            };
             let package_version: &str = package_split[package_split.len() - 2];
             packages.insert(package_name.to_string(), PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
         }

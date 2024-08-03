@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path}
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
 
 #[derive(Clone)]
 pub struct GPUInfo {
@@ -116,84 +116,60 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
             Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {}", e))),
         };
         // println!("{}", d.path().to_str().unwrap());
-        let mut class_file: File = match File::open(d.path().join("class")) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("class").to_str().unwrap(), e))),
-        };
-        let mut contents: String = String::new();
-        match class_file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-        }
 
-        if !contents.starts_with("0x03") {
-            // Not a display device
-            // And yes, I'm doing this check with a string instead of parsing it w/ a AND fuck you.
-            continue
-        }
+
+        match util::file_read(&d.path().join("class")) {
+            Ok(r) => {
+                if !r.starts_with("0x03") {
+                    // Not a display device
+                    // And yes, I'm doing this check with a string instead of parsing it w/ a AND fuck you.
+                    continue
+                }
+            },
+            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+        };
 
         if ignore_disabled {
-            let mut enable_file: File = match File::open(d.path().join("enable")) {
-                Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("enable").to_str().unwrap(), e))),
-            };
-            let mut enable_str: String = String::new();
-            match enable_file.read_to_string(&mut enable_str) {
-                Ok(_) => {},
+            match util::file_read(&d.path().join("enable")) {
+                Ok(r) => {
+                    if r.trim() == "0" {
+                        continue;
+                    }
+                },
                 Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-            }
-            if enable_str.trim() == "0" {
-                continue;
-            }
+            };
         }
 
         // Vendor/Device
-        let mut vendor_file: File = match File::open(d.path().join("vendor")) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("vendor").to_str().unwrap(), e))),
-        };
-        let mut vendor_str: String = String::new();
-        match vendor_file.read_to_string(&mut vendor_str) {
-            Ok(_) => {},
+        let vendor: String = match util::file_read(&d.path().join("vendor")) {
+            Ok(r) => r[2..].trim().to_string(),
             Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-        }
-        let vendor: &str = vendor_str[2..].trim();
-
-        let mut device_file: File = match File::open(d.path().join("device")) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open file {}: {}", d.path().join("device").to_str().unwrap(), e))),
         };
-        let mut device_str: String = String::new();
-        match device_file.read_to_string(&mut device_str) {
-            Ok(_) => {},
+        let device: String = match util::file_read(&d.path().join("device")) {
+            Ok(r) => r[2..].trim().to_string(),
             Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-        }
-        let device: &str = device_str[2..].trim();
-        let dev_data: (String, String) = match search_pci_ids(vendor, device) {
+        };
+        let device_data: (String, String) = match search_pci_ids(&vendor, &device) {
             Ok(r) => r,
             Err(e) => return Err(e)
         };
 
         let mut gpu: GPUInfo = GPUInfo::new();
-        gpu.vendor = dev_data.0;
+        gpu.vendor = device_data.0;
         if vendor == "1002" && amd_accuracy { // AMD
-            gpu.model = match search_amd_model(device)? {
+            gpu.model = match search_amd_model(&device)? {
                 Some(r) => r,
-                None => dev_data.1,
+                None => device_data.1,
             };
         } else {
-            gpu.model = dev_data.1;
+            gpu.model = device_data.1;
         }
 
         // Finally, Vram
-        if let Ok(mut r) = File::open(d.path().join("mem_info_vram_total")) {
-            let mut vram_str: String = String::new();
-            match r.read_to_string(&mut vram_str) {
-                Ok(_) => {},
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-            }
-            gpu.vram_mb = (vram_str.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
-        }
+        match util::file_read(&d.path().join("mem_info_vram_total")) {
+            Ok(r) => gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32,
+            Err(_) => continue, // This one get's let go as it's AMD only... NVIDIA coming once I can actually get my hands on a system
+        };
 
         gpus.push(gpu);
     }
@@ -202,21 +178,17 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
 }
 fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), ModuleError> {
     // Search all known locations
-    // /usr/share/hwdata/pci.ids
-    let mut ids_path: Option<&str> = None;
-    if Path::new("/usr/share/hwdata/pci.ids").exists() {
-        ids_path = Some("/usr/share/hwdata/pci.ids");
-    } else if Path::new("/usr/share/misc/pci.ids").exists() {
-        ids_path = Some("/usr/share/misc/pci.ids");
-    }
+    let ids_path: &Path = match util::find_first_that_exists(vec![
+        Path::new("/usr/share/hwdata/pci.ids"),
+        Path::new("/usr/share/misc/pci.ids")
+    ]) {
+        Some(r) => r,
+        None => return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting PCI ID info.".to_string()))
+    };
 
-    if ids_path.is_none() {
-        return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting PCI ID info.".to_string()));
-    }
-
-    let file: File = match File::open(ids_path.unwrap()) {
+    let file: File = match File::open(ids_path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e))),
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.display(), e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 
@@ -227,7 +199,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
     let vendor_term: String = String::from(vendor);
     let dev_term: String = String::from('\t') + device;
     let mut in_vendor: bool = false;
-    for line in buffer.lines() { // NOTE: Looping here alone takes 1.7ms - This needs to be reduced
+    for line in buffer.lines() { 
         if line.is_err() {
             continue;
         }
@@ -264,17 +236,16 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
 }
 // TODO: Revision ID searching too
 fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
-    let mut ids_path: Option<&str> = None;
-    if Path::new("/usr/share/libdrm/amdgpu.ids").exists() {
-        ids_path = Some("/usr/share/libdrm/amdgpu.ids");
-    }
-    if ids_path.is_none() {
-        return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting AMD PCI ID info.".to_string()));
-    }
+    let ids_path: &Path = match util::find_first_that_exists(vec![
+        Path::new("/usr/share/libdrm/amdgpu.ids")
+    ]) {
+        Some(r) => r,
+        None => return Err(ModuleError::new("GPU", "Could not find an appropriate path for getting AMD PCI ID info.".to_string()))
+    };
 
-    let file: File = match File::open(ids_path.unwrap()) {
+    let file: File = match File::open(ids_path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.unwrap(), e))),
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.display(), e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 

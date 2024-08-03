@@ -1,8 +1,8 @@
-use std::{fs::File, io::Read};
+use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
 
 pub struct BatteryInfo {
     percentage: f32,
@@ -70,21 +70,16 @@ impl Module for BatteryInfo {
 pub fn get_battery(battery_path: &str) -> Result<BatteryInfo, ModuleError> {
     let mut battery: BatteryInfo = BatteryInfo::new();
 
-    // /sys/class/power_supply/{path}/capacity
-    let path: String = format!("/sys/class/power_supply/{}/capacity", battery_path).to_string();
-    let mut file: File = match File::open(&path) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
-    }
 
-    battery.percentage = match contents.trim().parse() {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
+    let path: String = format!("/sys/class/power_supply/{}/capacity", battery_path);
+    battery.percentage = match util::file_read(Path::new(&path)) {
+        Ok(r) => {
+            match r.trim().parse() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
+            }
+        },
+        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", path, e))),
     };
 
     Ok(battery)

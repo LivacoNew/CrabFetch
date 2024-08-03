@@ -38,6 +38,7 @@ mod proccess_info;
 mod versions;
 mod package_managers;
 mod module;
+mod util;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]

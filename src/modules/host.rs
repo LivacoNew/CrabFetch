@@ -1,11 +1,11 @@
 use core::str;
-use std::{fs::File, io::Read, path::Path};
+use std::path::Path;
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
 
 pub struct HostInfo {
     host: String,
@@ -73,28 +73,18 @@ pub fn get_host() -> Result<HostInfo, ModuleError> {
     }
 
     // Prioritises product_name for laptops, then goes to board_name
-    let mut chosen_path: Option<&str> = None;
-    if Path::new("/sys/devices/virtual/dmi/id/product_name").exists() {
-        chosen_path = Some("/sys/devices/virtual/dmi/id/product_name");
-    } else if Path::new("/sys/devices/virtual/dmi/id/board_name").exists() {
-        chosen_path = Some("/sys/devices/virtual/dmi/id/board_name");
-    }
-    if chosen_path.is_none() {
-        return Err(ModuleError::new("Host", "Can't find an appropriate path for host.".to_string()));
-    }
-    let chosen_path: &str = chosen_path.unwrap();
-
-    let mut file: File = match File::open(chosen_path) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e))),
+    let chosen_path: &Path = match util::find_first_that_exists(vec![
+        Path::new("/sys/devices/virtual/dmi/id/product_name"),
+        Path::new("/sys/devices/virtual/dmi/id/board_name")
+    ]) {
+        Some(r) => r,
+        None => return Err(ModuleError::new("Host", "Can't find an appropriate path for host.".to_string()))
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path, e))),
-    }
 
-    host.host = contents.trim().to_string();
+    host.host = match util::file_read(chosen_path) {
+        Ok(r) => r.trim().to_string(),
+        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", chosen_path.display(), e))),
+    };
 
     Ok(host)
 }

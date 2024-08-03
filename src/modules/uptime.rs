@@ -1,9 +1,9 @@
-use std::{fs::File, io::Read, mem, time::Duration};
+use std::{fs::File, io::Read, mem, path::Path, time::Duration};
 
 use humantime::format_duration;
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
 
 pub struct UptimeInfo {
     uptime: Duration,
@@ -53,7 +53,7 @@ pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, Mod
     let mut uptime: UptimeInfo = UptimeInfo::new();
 
     // Grabs from /proc/uptime
-    let mut file: File = match File::open("/proc/uptime") {
+    let contents = match util::file_read(Path::new("/proc/uptime")) {
         Ok(r) => r,
         Err(_) => {
             // Backup to the sysinfo call
@@ -61,11 +61,6 @@ pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, Mod
             return Ok(uptime);
         },
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Uptime", format!("Can't read from /proc/uptime - {}", e))),
-    }
     uptime.uptime = match contents.split(' ').collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
         Err(e) => return Err(ModuleError::new("Uptime", format!("Could not parse /proc/uptime: {}", e))),

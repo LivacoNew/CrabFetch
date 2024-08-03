@@ -1,11 +1,11 @@
 use core::str;
-use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::Path};
+use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{Component, Path}};
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -197,14 +197,11 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     //
     // Source: https://docs.kernel.org/admin-guide/pm/cpufreq.html
 
-    let mut freq_path: Option<&str> = None;
-    if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit").exists() {
-        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit");
-    } else if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq").exists() {
-        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq");
-    } else if Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").exists() {
-        freq_path = Some("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq");
-    }
+    let freq_path: Option<&Path> = util::find_first_that_exists(vec![
+        Path::new("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit"),
+        Path::new("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"),
+        Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
+    ]);
 
     if freq_path.is_none() {
         // Back up to the repoted value in /proc/cpuinfo
@@ -214,8 +211,14 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         cpu.max_clock_mhz = cpu.current_clock_mhz;
         return Ok(())
     }
-    freq_path = freq_path.unwrap().strip_prefix("/sys/devices/system/cpu/cpu0/");
-
+    let freq_path: &Path = freq_path.unwrap();
+    let mut freq_path_str: String = String::new();
+    // sheesh
+    for comp in freq_path.components().rev().take(2).collect::<Vec<Component<>>>().iter().rev() {
+        freq_path_str.push('/');
+        freq_path_str.push_str(comp.as_os_str().to_str().unwrap());
+    }
+    let freq_path: &str = &freq_path_str[1..];
     
     let dir: ReadDir = match read_dir("/sys/devices/system/cpu/") {
         Ok(r) => r,
@@ -229,26 +232,20 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                 if !file_name.starts_with("cpu") || file_name == "cpuidle" || file_name.starts_with("cpufreq") {
                     continue
                 }
-                r.path().join(freq_path.unwrap())
+                r.path().join(freq_path)
             },
             Err(_) => continue, // ?
         };
         let freq_path = freq_path.as_path();
 
-        // Now I need to scan this dir for each entry
-        let mut file: File = match File::open(freq_path) {
-            Ok(r) => r,
+        match util::file_read(freq_path) {
+            Ok(r) => {
+                match r.trim().parse::<f32>() {
+                    Ok(r) => cpu.max_clock_mhz = f32::max(r / 1000.0, cpu.max_clock_mhz),
+                    Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {}", freq_path.to_str().unwrap(), e)))
+                };
+            },
             Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e))),
-        };
-        let mut contents: String = String::new();
-        match file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from {} - {}", freq_path.to_str().unwrap(), e))),
-        }
-
-        match contents.trim().parse::<f32>() {
-            Ok(r) => cpu.max_clock_mhz = f32::max(r / 1000.0, cpu.max_clock_mhz),
-            Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {}", freq_path.to_str().unwrap(), e)))
         };
     }
 

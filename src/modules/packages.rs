@@ -106,9 +106,6 @@ impl ManagerInfo {
 pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
-    // if let Some(r) = process_pacman_packages() {
-    //     packages.packages.push(ManagerInfo::fill("pacman", r));
-    // }
     packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("dpkg", package_managers.find_all_packages_from(MANAGER_DPKG).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("xbps", package_managers.find_all_packages_from(MANAGER_XBPS).values().len() as u64));

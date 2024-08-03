@@ -1,12 +1,12 @@
 use core::str;
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, path::Path};
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::{process::Command, env}};
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
 
 pub struct OSInfo {
     distro: String,
@@ -106,15 +106,10 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
     // Grabs the kernel release from /proc/sys/kernel/osrelease
 
     // Distro
-    let mut file: File = match File::open("/etc/os-release") {
+    let contents = match util::file_read(Path::new("/etc/os-release")) {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
-    }
     for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {
             os.distro = line[13..line.len() - 1].to_string();
@@ -127,15 +122,10 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
     }
 
     // Kernel
-    let mut file: File = match File::open("/proc/sys/kernel/osrelease") {
+    let contents = match util::file_read(Path::new("/proc/sys/kernel/osrelease")) {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
     };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
-    }
     os.kernel = contents.trim().to_string();
 
     Ok(os)

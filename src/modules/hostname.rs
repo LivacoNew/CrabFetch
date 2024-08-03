@@ -1,10 +1,10 @@
 use core::str;
-use std::{env, ffi::CStr, fs::File, io::Read, mem, process::Command};
+use std::{env, ffi::CStr, fs::File, io::Read, mem, path::Path, process::Command};
 
 use libc::{geteuid, getpwuid, uname};
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
 
 pub struct HostnameInfo {
     username: String,
@@ -74,7 +74,7 @@ pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
     hostname.hostname = match get_hostname_unsafe() {
         Ok(r) => r,
         Err(_) => {
-            let mut file: File = match File::open("/etc/hostname") {
+            let contents = match util::file_read(Path::new("/etc/hostname")) {
                 Ok(r) => r,
                 Err(_) => {
                     match backup_to_hostname_command(&mut hostname) {
@@ -83,16 +83,7 @@ pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
                     }
                 },
             };
-            let mut contents: String = String::new();
-            match file.read_to_string(&mut contents) {
-                Ok(_) => {},
-                Err(_) => {
-                    match backup_to_hostname_command(&mut hostname) {
-                        Ok(_) => return Ok(hostname),
-                        Err(e) => return Err(e),
-                    }
-                },
-            }
+
             if contents.trim().is_empty() {
                 match backup_to_hostname_command(&mut hostname) {
                     Ok(_) => return Ok(hostname),
@@ -112,7 +103,7 @@ pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
 fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply need to know if it failed or not to backup to $USER, the type of err doesn't matter really
     let name: String;
 
-    unsafe { // i do find it funny that no-ones made guarenteed safe c lib bindings in a language designed entirely around memory safety lol
+    unsafe { 
         let user_id: u32 = geteuid();
         let passwd: *mut libc::passwd = getpwuid(user_id);
         if passwd.is_null() {

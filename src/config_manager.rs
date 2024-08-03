@@ -3,7 +3,7 @@ use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::{Read, Write}, path:
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "music")]
 use crate::music::MusicConfiguration;
 
@@ -334,17 +334,10 @@ pub fn check_for_ascii_override() -> Option<String> {
         return None;
     }
 
-    let mut file: File = match File::open(path) {
-        Ok(r) => r,
-        Err(e) => panic!("Can't read from ASCII override - {}", e),
-    };
-    let mut contents: String = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {},
+    match util::file_read(path) {
+        Ok(r) => Some(r),
         Err(e) => panic!("Can't read from ASCII override - {}", e),
     }
-
-    Some(contents)
 }
 
 pub fn generate_config_file(location_override: Option<String>) {

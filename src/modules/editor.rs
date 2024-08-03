@@ -22,9 +22,9 @@ pub struct EditorConfiguration {
 impl Module for EditorInfo {
     fn new() -> EditorInfo {
         EditorInfo {
-            name: "".to_string(),
-            path: "".to_string(),
-            version: "".to_string()
+            name: "Unknown".to_string(),
+            path: "Unknown".to_string(),
+            version: "Unknown".to_string()
         }
     }
 

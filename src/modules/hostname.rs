@@ -22,8 +22,8 @@ pub struct HostnameConfiguration {
 impl Module for HostnameInfo {
     fn new() -> HostnameInfo {
         HostnameInfo {
-            username: "".to_string(),
-            hostname: "".to_string(),
+            username: "Unknown".to_string(),
+            hostname: "Unknown".to_string(),
         }
     }
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {

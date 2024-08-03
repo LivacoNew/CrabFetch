@@ -78,9 +78,9 @@ pub struct DisplayConfiguration {
 impl Module for DisplayInfo {
     fn new() -> DisplayInfo {
         DisplayInfo {
-            name: "".to_string(),
-            make: "".to_string(),
-            model: "".to_string(),
+            name: "Unknown".to_string(),
+            make: "Unknown".to_string(),
+            model: "Unknown".to_string(),
             width: 0,
             height: 0,
             scale: 0,

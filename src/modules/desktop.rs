@@ -20,8 +20,8 @@ pub struct DesktopConfiguration {
 impl Module for DesktopInfo {
     fn new() -> DesktopInfo {
         DesktopInfo {
-            desktop: "".to_string(),
-            display_type: "".to_string()
+            desktop: "Unknown".to_string(),
+            display_type: "Unknown".to_string()
         }
     }
 

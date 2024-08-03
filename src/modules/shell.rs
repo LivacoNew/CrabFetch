@@ -25,9 +25,9 @@ pub struct ShellConfiguration {
 impl Module for ShellInfo {
     fn new() -> ShellInfo {
         ShellInfo {
-            name: "".to_string(),
-            path: "".to_string(),
-            version: "".to_string()
+            name: "Unknown".to_string(),
+            path: "Unknown".to_string(),
+            version: "Unknown".to_string()
         }
     }
 

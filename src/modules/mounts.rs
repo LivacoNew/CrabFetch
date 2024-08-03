@@ -37,9 +37,9 @@ pub struct MountConfiguration {
 impl Module for MountInfo {
     fn new() -> MountInfo {
         MountInfo {
-            device: "".to_string(),
-            mount: "".to_string(),
-            filesystem: "".to_string(),
+            device: "Unknown".to_string(),
+            mount: "Unknown".to_string(),
+            filesystem: "Unknown".to_string(),
             space_avail_kb: 0,
             space_total_kb: 0,
             percent: 0.0

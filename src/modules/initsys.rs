@@ -20,7 +20,7 @@ pub struct InitSystemConfiguration {
 impl Module for InitSystemInfo {
     fn new() -> InitSystemInfo {
         InitSystemInfo {
-            initsys: "".to_string()
+            initsys: "Unknown".to_string()
         }
     }
 

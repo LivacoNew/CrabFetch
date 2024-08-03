@@ -29,12 +29,12 @@ pub struct CPUConfiguration {
 impl Module for CPUInfo {
     fn new() -> CPUInfo {
         CPUInfo {
-            name: "".to_string(),
+            name: "Unknown".to_string(),
             cores: 0,
             threads: 0,
             current_clock_mhz: 0.0,
             max_clock_mhz: 0.0,
-            arch: "".to_string()
+            arch: "Unknown".to_string()
         }
     }
 

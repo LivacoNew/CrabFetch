@@ -24,6 +24,7 @@ pub struct MusicConfiguration {
 impl Module for MusicInfo {
     fn new() -> MusicInfo {
         MusicInfo {
+            // No "unknowns" here as it could just be empty from what I can gleam from the docs
             album: String::new(),
             album_artists: Vec::new(),
             track: String::new(),

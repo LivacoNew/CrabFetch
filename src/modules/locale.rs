@@ -20,8 +20,8 @@ pub struct LocaleConfiguration {
 impl Module for LocaleInfo {
     fn new() -> LocaleInfo {
         LocaleInfo {
-            language: "".to_string(),
-            encoding: "".to_string()
+            language: "Unknown".to_string(),
+            encoding: "Unknown".to_string()
         }
     }
 

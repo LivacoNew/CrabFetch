@@ -23,8 +23,8 @@ pub struct HostConfiguration {
 impl Module for HostInfo {
     fn new() -> HostInfo {
         HostInfo {
-            host: "".to_string(),
-            chassis: "".to_string()
+            host: "Unknown".to_string(),
+            chassis: "Unknown".to_string()
         }
     }
 

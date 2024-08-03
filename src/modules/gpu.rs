@@ -30,8 +30,8 @@ impl Module for GPUInfo {
     fn new() -> GPUInfo {
         GPUInfo {
             index: None,
-            vendor: "".to_string(),
-            model: "".to_string(),
+            vendor: "Unknown".to_string(),
+            model: "Unknown".to_string(),
             vram_mb: 0
         }
     }

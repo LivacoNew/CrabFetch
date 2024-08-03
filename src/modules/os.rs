@@ -28,9 +28,9 @@ pub struct OSConfiguration {
 impl Module for OSInfo {
     fn new() -> OSInfo {
         OSInfo {
-            distro: "".to_string(),
-            distro_id: "".to_string(),
-            kernel: "".to_string(),
+            distro: "Unknown".to_string(),
+            distro_id: "Unknown".to_string(),
+            kernel: "Unknown".to_string(),
         }
     }
 

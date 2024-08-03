@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, mem, path::Path, time::Duration};
+use std::{mem, path::Path, time::Duration};
 
 use humantime::format_duration;
 use serde::Deserialize;

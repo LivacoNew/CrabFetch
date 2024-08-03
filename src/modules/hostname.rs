@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, ffi::CStr, fs::File, io::Read, mem, path::Path, process::Command};
+use std::{env, ffi::CStr, mem, path::Path, process::Command};
 
 use libc::{geteuid, getpwuid, uname};
 use serde::Deserialize;

@@ -124,7 +124,7 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
                 let bench: Option<Instant> = benchmark_point(benchmarking); 
 
                 if known_outputs.displays.is_none() {
-                    known_outputs.displays = Some(displays::get_displays(&config));
+                    known_outputs.displays = Some(displays::get_displays(config));
                 }
                 let mut length: u64 = 0;
                 if known_outputs.displays.as_ref().unwrap().is_err() {

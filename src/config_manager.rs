@@ -1,4 +1,4 @@
-use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::{Read, Write}, path::Path};
+use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::Write, path::Path};
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
@@ -332,7 +332,7 @@ pub fn check_for_ascii_override() -> Option<String> {
 
     match util::file_read(path) {
         Ok(r) => Some(r),
-        Err(e) => None,
+        Err(_) => None,
     }
 }
 

@@ -244,6 +244,10 @@ ignore = [
 
 [host]
 title = "Host"
+# Placeholders;
+# {host} -> The name of the host, either a motherboard name or a laptop model
+# {chassis} -> The chassis type, e.g Desktop or Laptop or whatever
+format = "{host} ({chassis})"
 
 
 [displays]

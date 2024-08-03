@@ -237,6 +237,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("mounts.ignore", vec!["tmpfs", "fuse", "binfmt", "configfs", "debugfs", "mqueue", "tracefs", "hugetlbfs", "bpf", "pstore", "cgroup", "dev", "securityfs", "autofs", "efivar", "sys", "proc", "swap", "ramfs", "/boot/", "/snap/", "/sys/", "/apex/", "/dev/", "/cache", "/data", "/product", "/prism", "/omr", "/odm", "/efs", "/optics", "/vendor", "/metadata", "/system"]).unwrap();
 
     builder = builder.set_default("host.title", "Host").unwrap();
+    builder = builder.set_default("host.format", "{host} ({chassis})").unwrap();
 
     builder = builder.set_default("displays.title", "Display ({make} {model})").unwrap();
     builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz ({name})").unwrap();
@@ -677,6 +678,10 @@ ignore = [
 
 [host]
 title = "Host"
+# Placeholders;
+# {host} -> The name of the host, either a motherboard name or a laptop model
+# {chassis} -> The chassis type, e.g Desktop or Laptop or whatever
+format = "{host} ({chassis})"
 
 
 [displays]

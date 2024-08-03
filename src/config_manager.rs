@@ -93,17 +93,13 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
             let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
             // Config won't be happy unless it ends with .toml
             if !config_path_str.ends_with(".toml") {
-                // Simply crash, to avoid confusing the user as to why the default config is being used
-                // instead of their custom one.
-                panic!("Config path must end with '.toml'");
+                return Err(ConfigurationError::new(Some(config_path_str), "Config path MUST end with '.toml'".to_string()));
             }
 
             // Verify it exists
             let path: &Path = Path::new(&config_path_str);
             if !path.exists() {
-                // Simply crash, to avoid confusing the user as to why the default config is being used
-                // instead of their custom one.
-                panic!("Unable to find config: {}", config_path_str);
+                return Err(ConfigurationError::new(Some(config_path_str), "Unable to find config file.".to_string()));
             }
         } else {
             // Find the config path
@@ -117,7 +113,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                     // Let's try the home directory
                     let mut home_dir: String = match env::var("HOME") {
                         Ok(r) => r,
-                        Err(e) => panic!("Unable to find config folder; {}", e)
+                        Err(e) => return Err(ConfigurationError::new(None, format!("Unable to find config folder: {}", e)))
                     };
                     home_dir.push_str("/.config/CrabFetch/config.toml");
                     home_dir
@@ -322,7 +318,7 @@ pub fn check_for_ascii_override() -> Option<String> {
             // Let's try the home directory
             let mut home_dir: String = match env::var("HOME") {
                 Ok(r) => r,
-                Err(e) => panic!("Unable to find config folder; {}", e) // bruh
+                Err(_) => return None
             };
             home_dir.push_str("/.config/CrabFetch/ascii");
             home_dir
@@ -336,7 +332,7 @@ pub fn check_for_ascii_override() -> Option<String> {
 
     match util::file_read(path) {
         Ok(r) => Some(r),
-        Err(e) => panic!("Can't read from ASCII override - {}", e),
+        Err(e) => None,
     }
 }
 

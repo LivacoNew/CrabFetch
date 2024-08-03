@@ -290,7 +290,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
                 continue;
             }
 
-            model = "".to_string();
+            model = String::new();
             // Read from byte 5+13 to find the full name
             for byte in edid_bytes.iter().take(starting_byte + 13).skip(starting_byte + 5) {
                 model.push(*byte as char);

@@ -254,43 +254,43 @@ mod tests {
         // Test different percentages display right
         super::make_bar(&mut bar_str, "[", "]", "=", "-", 0.0, 16);
         assert_eq!(bar_str, "[--------------]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         super::make_bar(&mut bar_str, "[", "]", "=", "-", 25.0, 16);
         assert_eq!(bar_str, "[====----------]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         super::make_bar(&mut bar_str, "[", "]", "=", "-", 50.0, 16);
         assert_eq!(bar_str, "[=======-------]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         super::make_bar(&mut bar_str, "[", "]", "=", "-", 75.0, 16);
         assert_eq!(bar_str, "[===========---]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         super::make_bar(&mut bar_str, "[", "]", "=", "-", 100.0, 16);
         assert_eq!(bar_str, "[==============]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         // Check we can use odd characters
         super::make_bar(&mut bar_str, "|", "|", ":", "'", 66.0, 16);
         assert_eq!(bar_str, "|::::::::::''''|");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         // Check we can use multiple chars per bar thing
         // This voilates the length but is by design as to let people do wtf they want with it
         super::make_bar(&mut bar_str, "[|", "|]", "!!", "--", 39.0, 16);
         assert_eq!(bar_str, "[|!!!!!!!!!!!!----------------|]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         // Finally we'll check we can make super small/big ones
         super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 255);
         assert_eq!(bar_str, "[###################################################################################################                                                                                                                                                          ]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 5);
         assert_eq!(bar_str, "[## ]");
-        bar_str = "".to_string();
+        bar_str = String::new();
 
         // Finally, this shouldn't give us anything as it's a fucked length
         super::make_bar(&mut bar_str, "[", "]", "#", " ", 39.0, 1);

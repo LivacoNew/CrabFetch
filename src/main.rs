@@ -323,7 +323,7 @@ fn main() {
         match module_name {
             "space" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                output.push("".to_string());
+                output.push(String::new());
                 print_bench_time(args.benchmark, "Space Module", bench);
             },
             "underline" => {

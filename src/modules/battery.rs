@@ -63,6 +63,7 @@ impl Module for BatteryInfo {
         }
 
         formatter::process_percentage_placeholder(&config.battery.format, formatter::round(self.percentage as f64, dec_places) as f32, config)
+            .replace("{percentage}", &self.percentage.to_string())
             .replace("{bar}", &bar)
     }
 }

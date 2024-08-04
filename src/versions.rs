@@ -63,7 +63,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         Err(_) => return None // Would rather play it safe
     };
     if parent_name == name && !KNOWN_SHELLS.contains(&parent_name.as_str()) {
-        panic!("DANGER: Parent process re-invoked for version checking. This has the possibility to create a mini-fork bomb! Called {parent_name} vs {name} \nStopping before I break something...");
+        panic!("DANGER: Parent process re-invoked for version checking, without it being a known shell. This has the possibility to create a mini-fork bomb! Called {parent_name} vs {name} \nStopping before I break something...");
     }
 
     let mut command: Command = Command::new(path);

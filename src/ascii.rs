@@ -22,7 +22,7 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         });
         return (user_override.unwrap(), length)
     }
-    let os: &str = &os.replace('"', "");
+    let os: &str = &os.replace('"', "").to_lowercase();
 
     let ascii: (&str, u16) = match os {
         "arch" => ARCH,
@@ -36,9 +36,16 @@ pub fn get_ascii(os: &str) -> (String, u16) {
         "zorin" => ZORIN,
         "manjaro" => MANJARO,
         "pop" => POPOS,
+        "opensuse-tumbleweed" => OPENSUSE,
+        "opensuse-leap" => OPENSUSE,
+        "rocky" => ROCKYLINUX,
+        "kali" => KALI,
+        "almalinux" => ALMA,
         "android" => ANDROID,
+        "garuda" => GARUDA,
         _ => ("", 0)
     };
+
     // I blame rust not letting me make const strings
     let ascii_string: String = ascii.0.to_string();
     (ascii_string, ascii.1)
@@ -260,6 +267,92 @@ const POPOS: (&str, u16) = (
      .^7??7!!!!!!!!!!!!!!!!!!7??7^.     
         :~!7????????????????7!~:        
            .:~!!77777777!!~:.           ", 40);
+
+const OPENSUSE: (&str, u16) = (
+"           ^7YG#&@@@@@@&#GY7^           
+       .~5#@&BPJ7!~~~~!7JPB&@#5~.       
+     :J#@#Y~.              .~Y#@#J:     
+   .J&@P~ ~!~^:..              !G@&J.   
+  ^B@@#?!^G@@@@&#BPY?7~:.        ~B@B^  
+ ^&@@@@@@@@@@@@@@@@@@@&#GPY!.     .P@&^ 
+:#@@@@@@@@@@@@@@@@@&Y!7??7?B&Y.     P@#:
+Y@@@@@@@@@@@@@@@@@&^!#@PYP5.5@G     :&@Y
+&@@@@@@@@@@@@@@@@@P B@@Y75@~^@@5     P@&
+@@@@@@@@@@@@&P#@@@&!^P&@@#J:P@@@7    Y@@
+&@@@@@@@@@@@@Y:~JG&@P?7777J#@@@&Y    P@&
+Y@@@@@@@@@@@@@#5?~^~?YPGB##BPJ!~:   :&@Y
+:#@@@@@@@@@@@@@@@@&B5J7!~~!7J5B&!   P@#.
+ ^&@@@@@@@@@@@@@@@@@@@@@@@@@&GJ^  .P@&^ 
+  ^B@@@BPPPGGB######BBGPY?!^.    ~B@B^  
+   .J&@G~      .....           !G@&J.   
+     :J#@#Y!.              .~Y#@#J:     
+       .~5#@&BPJ7!~~~~!7JPB&@#5~.       
+           ^7YG#&@@@@@@&#GY7^           ", 40);
+
+const ROCKYLINUX: (&str, u16) = (
+"      :!YG#&@@@@&#GY!:      
+   .!5#@@@@@@@@@@@@@@#5!.   
+  ~G&@@@@@@@@@@@@@@@@@@&G~  
+.?&@@@@@@@@@@@@@@@@@@@@@@&?.
+7&@@@@@@@@@@@@@@&G5#@@@@@@&7
+#@@@@@@@@@@@@@&P!. ^J#@@@@@#
+@@@@@@@@@@@@&5~.     :?B@@@@
+#@@@@@@@@@#Y^    :^.   :7G@#
+7&@@@@@@#J^    :JB&P~.   .!!
+.?&@@@B?:    ^Y#@@@@&P!.    
+  ~GG7:   .~5#@@@@@@@@&P^   
+   ..   .!P&@@@@@@@@@#5!.   
+        ~P#&@@@@&#GY!:      ", 28);
+
+const KALI: (&str, u16) = (
+"   ....::^^~~!!77!~^:                   
+   ..::^~~~!!!!!!7?Y55.                 
+ .:::::....:^~!77??JJJ!                 
+      .:^!!!~~^:..    PGJ??7!!^:.       
+    .:^:..          7G?~^:^~!?YY57.     
+                   ~&^         .~GP~.   
+                   !@:            :7~   
+                    JB7:.               
+                     ^?YYJJJJJJJ?!:.    
+                         ....::~7JY?!~. 
+                                  .77:!^
+                                    !7 ^
+                                     !: 
+                                     .: ", 40);
+
+const ALMA: (&str, u16) = (
+"       .5&@&G~ ..       ..   ~??~       
+       ~@@@@@5J##B~  :JG##B~5@@@@G.     
+       .JGBBPG@@@5. ?&@@@@@BP&@@@G.     
+      !#&##&&&#@P  J@@P!~?#@#GGG5:      
+      ?@@@#!:..:. :&@Y    ^@@@@@@P      
+       5@@#^      :@&.     !7!!7Y!      
+     :!.~P@@P7:    GG    .^~!7!~^.      
+    J@@B~ :?PBBPJ!::? .75GBBBB#@@&BY^   
+ ~??5#@@@B~   ..:..  .^:..    .:5@@@@7  
+B@@@@#G@@5.      ^Y^ .YY:      .5@@#B!  
+P@@@@GB@@^    :7G&7    P@J  .JG&@#5GBBP!
+ ^!!~#@@@#5YPB@@5:      B@5  Y@@@5#@@@@@
+     7G#&&&#B5!. ^7.    J@@~ ^@@@P!G##P!
+       ....  !7YB@@#J~^7#@@! .7!~.  ..  
+             Y@@&BPG#@@@@@B.            
+              ^~7PGGPYG&BY:             
+                B@@@@#..                
+                7B&@B7                  ", 40);
+
+const GARUDA: (&str, u16) = (
+"             ^Y#&&&&&&&&&&#J:       
+           ~5&@&PY55YY55YG@@#Y^     
+         !G@@&Y^     .    ^Y&@@5~   
+      .7B@@B?:    .!G#:     :J#@@G!.
+    :J#@@G7.    :?#@@@#BBBBBBG#@@@@5
+  ^5&@@P~      .?PP555PPPPPPPPP5B@@P
+^P@@&Y^                         ?B?:
+^5&@@P~  .75P5555555555555555PY:    
+  :?#@@G7YGBBBBBBBBBBBBB@@@@@P!.    
+    .7G@@#?:         .!G@@#Y^       
+       ~P@@&P55555555B@@B?:         
+         ^5#&&&&&&&&&&G7.           ", 36);
 
 const ANDROID: (&str, u16) = (
 "          .^^  ........  ^:  

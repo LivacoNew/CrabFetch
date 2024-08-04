@@ -106,7 +106,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
             config_path_str = find_file_in_config_dir("config.toml").map(|x| x.display().to_string());
         }
 
-        builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
+        if config_path_str.is_some() {
+            builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
+        }
     }
     // Set the defaults here
     // General

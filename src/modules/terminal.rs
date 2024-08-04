@@ -76,6 +76,7 @@ const KNOWN_TERMS: &[&str] = &[
     "tilix",
     "hyper",
     "wezterm",
+    "gnome-terminal-server",
     "qterminal"
 ];
 

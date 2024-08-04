@@ -3,7 +3,7 @@ use std::{fs, process::Command};
 
 use sha2::{Sha256, Digest};
 
-use crate::{package_managers::ManagerInfo, proccess_info::ProcessInfo};
+use crate::{modules::shell::KNOWN_SHELLS, package_managers::ManagerInfo, proccess_info::ProcessInfo};
 
 pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, package_managers: &ManagerInfo) -> Option<String> {
     // Steps;
@@ -62,8 +62,8 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         Ok(r) => r,
         Err(_) => return None // Would rather play it safe
     };
-    if parent_name == name {
-        panic!("DANGER: Parent process re-invoked for version checking. This has the possibility to create a mini-fork bomb! Stopping before I break something...");
+    if parent_name == name && !KNOWN_SHELLS.contains(&parent_name.as_str()) {
+        panic!("DANGER: Parent process re-invoked for version checking. This has the possibility to create a mini-fork bomb! Called {parent_name} vs {name} \nStopping before I break something...");
     }
 
     let mut command: Command = Command::new(path);

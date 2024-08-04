@@ -61,7 +61,7 @@ impl Module for ShellInfo {
 // encouter one
 // This prevents stuff like sudo, scripts or running crabfetch as a child process in any way messing us up
 // Compiled from info here https://wiki.archlinux.org/title/Command-line_shell
-const KNOWN_SHELLS: &[&str] = &[
+pub const KNOWN_SHELLS: &[&str] = &[
     "bash", 
     "dash",
     "ksh",

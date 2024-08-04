@@ -178,7 +178,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
 }
 fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), ModuleError> {
     // Search all known locations
-    let ids_path: &Path = match util::find_first_that_exists(vec![
+    let ids_path: &Path = match util::find_first_path_exists(vec![
         Path::new("/usr/share/hwdata/pci.ids"),
         Path::new("/usr/share/misc/pci.ids")
     ]) {
@@ -236,7 +236,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
 }
 // TODO: Revision ID searching too
 fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
-    let ids_path: &Path = match util::find_first_that_exists(vec![
+    let ids_path: &Path = match util::find_first_path_exists(vec![
         Path::new("/usr/share/libdrm/amdgpu.ids")
     ]) {
         Some(r) => r,

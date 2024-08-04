@@ -197,7 +197,7 @@ fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     //
     // Source: https://docs.kernel.org/admin-guide/pm/cpufreq.html
 
-    let freq_path: Option<&Path> = util::find_first_that_exists(vec![
+    let freq_path: Option<&Path> = util::find_first_path_exists(vec![
         Path::new("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit"),
         Path::new("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"),
         Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")

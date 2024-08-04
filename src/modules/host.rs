@@ -75,7 +75,7 @@ pub fn get_host() -> Result<HostInfo, ModuleError> {
     }
 
     // Prioritises product_name for laptops, then goes to board_name
-    let chosen_path: &Path = match util::find_first_that_exists(vec![
+    let chosen_path: &Path = match util::find_first_path_exists(vec![
         Path::new("/sys/devices/virtual/dmi/id/product_name"),
         Path::new("/sys/devices/virtual/dmi/id/board_name")
     ]) {

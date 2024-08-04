@@ -1,4 +1,4 @@
-use std::{env, fmt::{Display, Debug}, fs::{self, File}, io::Write, path::Path};
+use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, PathBuf}};
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
@@ -103,22 +103,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
             }
         } else {
             // Find the config path
-            // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-            config_path_str = Some(match env::var("XDG_CONFIG_HOME") {
-                Ok(mut r) => {
-                    r.push_str("/CrabFetch/config.toml");
-                    r
-                }
-                Err(_) => {
-                    // Let's try the home directory
-                    let mut home_dir: String = match env::var("HOME") {
-                        Ok(r) => r,
-                        Err(e) => return Err(ConfigurationError::new(None, format!("Unable to find config folder: {}", e)))
-                    };
-                    home_dir.push_str("/.config/CrabFetch/config.toml");
-                    home_dir
-                }
-            });
+            config_path_str = find_file_in_config_dir("config.toml").map(|x| x.display().to_string());
         }
 
         builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
@@ -309,29 +294,37 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     Ok(deserialized)
 }
 
-pub fn check_for_ascii_override() -> Option<String> {
-    let ascii_path_str: String = match env::var("XDG_CONFIG_HOME") {
-        Ok(mut r) => {
-            r.push_str("/CrabFetch/ascii");
-            r
-        }
-        Err(_) => {
-            // Let's try the home directory
-            let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => r,
-                Err(_) => return None
-            };
-            home_dir.push_str("/.config/CrabFetch/ascii");
-            home_dir
-        }
-    };
+fn find_file_in_config_dir(path: &str) -> Option<PathBuf> {
+    // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+    let mut paths: Vec<PathBuf> = Vec::new();
+    let mut temp_var_to_shut_up_the_borrow_checker: String;
+    if let Ok(config_home) = env::var("XDG_CONFIG_HOME") {
+        temp_var_to_shut_up_the_borrow_checker = config_home;
+        temp_var_to_shut_up_the_borrow_checker.push_str("/CrabFetch/");
+        temp_var_to_shut_up_the_borrow_checker.push_str(path);
+        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    }
+    let mut temp_var_to_shut_up_the_borrow_checker: String;
+    if let Ok(user_home) = env::var("HOME") {
+        temp_var_to_shut_up_the_borrow_checker = user_home;
+        temp_var_to_shut_up_the_borrow_checker.push_str("/.config/CrabFetch/");
+        temp_var_to_shut_up_the_borrow_checker.push_str(path);
+        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    }
 
-    let path: &Path = Path::new(&ascii_path_str);
+    util::find_first_pathbuf_exists(paths)
+}
+
+pub fn check_for_ascii_override() -> Option<String> {
+    let path: PathBuf = match find_file_in_config_dir("ascii") {
+        Some(r) => r,
+        None => return None
+    };
     if !path.exists() {
         return None;
     }
 
-    match util::file_read(path) {
+    match util::file_read(&path) {
         Ok(r) => Some(r),
         Err(_) => None,
     }

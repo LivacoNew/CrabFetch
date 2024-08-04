@@ -1,6 +1,6 @@
 // Some utility functions
 
-use std::{fs::File, io::Read, path::Path};
+use std::{fs::File, io::Read, path::{Path, PathBuf}};
 
 // Quickly read the full contents of a specified file
 // Not reccomended for large files, use a buffer instead
@@ -20,7 +20,20 @@ pub fn file_read(path: &Path) -> Result<String, String> {
 
 // Select the first path in the vec that exists 
 // Used by stuff like Battery and Host
-pub fn find_first_that_exists(paths: Vec<&Path>) -> Option<&Path> {
+pub fn find_first_path_exists(paths: Vec<&Path>) -> Option<&Path> {
+    for p in paths {
+        if !p.exists() {
+            continue
+        }
+
+        return Some(p);
+    }
+
+    None
+}
+// Select the first path in the vec that exists 
+// Used by stuff like Battery and Host
+pub fn find_first_pathbuf_exists(paths: Vec<PathBuf>) -> Option<PathBuf> {
     for p in paths {
         if !p.exists() {
             continue

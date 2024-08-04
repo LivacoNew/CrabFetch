@@ -75,7 +75,8 @@ const KNOWN_TERMS: &[&str] = &[
     "yakuake",
     "tilix",
     "hyper",
-    "wezterm"
+    "wezterm",
+    "qterminal"
 ];
 
 pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {

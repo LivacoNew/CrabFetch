@@ -259,7 +259,7 @@ fn main() {
         println!("CrabFetch {version}");
         println!();
         println!("Built From: {hash} ({date})");
-        println!("Message: {}", message.replace("<br>", "\n"));
+        println!("{}", message.replace("<br>", "\n"));
         println!();
         println!("Build contains feature flags:");
 

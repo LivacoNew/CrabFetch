@@ -25,6 +25,7 @@ fn main() {
     let output_lines: Vec<&str> = output.split('\n').collect();
     let mut message: String = String::new();
     let mut in_message: bool = false;
+    let mut first_line: bool = true;
     for line in &output_lines {
         if let Some(commit_hash) = line.trim().strip_prefix("commit ") {
             println!("cargo:rustc-env=GIT_HASH={}", &commit_hash);
@@ -36,10 +37,14 @@ fn main() {
         if line.is_empty() {
             // Next lines are all part of the message
             in_message = true;
+            continue;
         }
         if in_message {
+            if !first_line {
+                message.push_str("<br>");
+            }
             message.push_str(line.trim());
-            message.push_str("<br>");
+            first_line = false;
         }
     }
 

@@ -1,6 +1,6 @@
 [package]
 name = "crabfetch"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Livaco"]
 edition = "2021"
 description = "Extremely fast, featureful and customizable command-line fetcher."

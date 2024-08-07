@@ -252,14 +252,18 @@ fn main() {
     print_bench_time(args.benchmark, "Args Parsing", args_bench);
     
     if args.version {
-        let version = env!("CARGO_PKG_VERSION");
-        let hash = env!("GIT_HASH");
-        let date = env!("GIT_DATE");
-        let message = env!("GIT_MESSAGE");
+        let version: &str = env!("CARGO_PKG_VERSION");
+        let hash: &str = env!("GIT_HASH");
+        let date: &str = env!("GIT_DATE");
+        let message: &str = env!("GIT_MESSAGE");
+        let message_lines: Vec<&str> = message.split("<br>").collect();
+
         println!("CrabFetch {version}");
         println!();
         println!("Built From: {hash} ({date})");
-        println!("{}", message.replace("<br>", "\n"));
+        for line in message_lines {
+            println!("  {}", line.trim());
+        }
         println!();
         println!("Build contains feature flags:");
 

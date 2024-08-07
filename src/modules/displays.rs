@@ -245,7 +245,10 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
         let dir_name = x.file_name();
         let dir_name = dir_name.to_str().unwrap();
         if !dir_name.ends_with(drm_name) {
-            continue;
+            // Strip the ending -{id} - Can happen with X11 seemingly
+            if !dir_name[..dir_name.len() - 2].ends_with(drm_name) {
+                continue;
+            }
         }
 
         // Found it

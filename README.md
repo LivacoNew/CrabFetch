@@ -5,25 +5,28 @@
 CrabFetch is a highly performant and extremely easily customisable command-line fetch tool. Like all others it grabs system information and displays it in a fancy way.<br>
 What makes CrabFetch different is that _it aims to be as performant as possible_ while still remaining easy to use. That way, when you start up your riced terminal with your fetcher at the top, you no longer need to feel angry it takes that extra 0.05s to load in!
 
-![Showcase 1](https://i.imgur.com/k6GMh63.png)
-![Showcase 2](https://i.imgur.com/abu7XOl.png)
+![Showcase 1, CrabFetch with all it's modules enabled.](https://i.imgur.com/pAOwyEC.png)
+![Showcase 2, CrabFetch with a more sensible config](https://i.imgur.com/zr9x8l8.png)
 
 
-## Performance
-Comparing the performance of; [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.  
+## Performance Showcase
+We'll compare the performance of; [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.  
 Configs were created to match up as closely as possible, with these benchmarks being taken by `hyperfine 1.18.0`.  
-![As close as possible configs](https://i.imgur.com/cxwm7I5.png)  
+![Screenshot showing each fetch, running with as close of a configs as possible given it's features](https://i.imgur.com/TqT92jM.png)  
+
+<sub>**NOTE 1:** NeoFetch did not let me disable my CPU's integrated GPU, so it is the only one that displays the "Raphiel" GPU. While CrabFetch can be toggled to display it, I could't find a way to tell FastFetch to, so I opted to leave it as the odd one out.</sub><br>
+<sub>**NOTE 2:** NeoFetch also does not find my `/hdd` mount.</sub>
   
 The following screenshot shows the results;  
-![CrabFetch runs the fastest.](https://i.imgur.com/ZvJGw7H.png)  
+![Screenshot showing CrabFetch runs the fastest.](https://i.imgur.com/qETW6EI.png)  
   
-Try this benchmark yourself, if you don't get as good performance please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know!
+Try this benchmark yourself! If you don't get as good performance please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know so I can investigate.
 
 More in-depth benchmarks can be found [on the wiki](https://github.com/LivacoNew/CrabFetch/wiki/Benchmarks).
 
 
 ## System Support
-If CrabFetch doesn't correctly detect something on your system, [make a issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=detection&projects=&template=detection-issue.md&title=) and I'll go hunting for it!
+CrabFetch is very early in it's life, and may not detect some stuff correctly, there's no "standard" for fetching information across every system! If it doesn't detect something on your system, [make a issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=detection&projects=&template=detection-issue.md&title=) so I can go hunting for it!
 
 
 ## Installation
@@ -62,24 +65,16 @@ The configuration file should be in `~/.config/CrabFetch/config.toml`. From ther
 
 
 ## FAQ
-### Does CrabFetch cheat with it's performance?
-Not by default however it is reccomended to enable it.<br>
-The only problem comes in with GPU info, and how slow it is to find. CrabFetch provides two ways to get it;
-- By scanning `/sys/bus/pci/devices` for any GPU's and parsing from there.
-- By using `glxinfo`, which provides the info directly.
+### Does CrabFetch cheat with it's performance (e.g Caching info in the background)?
+No.<br>
 
-The first method is eons faster than waiting for `glxinfo`, however `glxinfo` is more accurate. E.g, [the first method](https://i.imgur.com/IzWCnlF.png) gives my gpu as either a RX 7700 or RX 7800 whereas [glxinfo](https://i.imgur.com/k7ds3ZK.png) gets it bang on as a 7800.<br>
-If you don't believe how slow it is, trust me, [glxinfo is slow...](https://i.imgur.com/YlzENV4.png)
+### Is CrabFetch stable?
+Kind of. It's a hell of a lot more stable than it previously was, but should still be considered Alpha software. This isn't because CrabFetch is broken but simply because support for different systems is still small. Please help out by making issues and complaining at me to fix them!
 
-To allow for accurate GPU info with good performance, _CrabFetch allows you to select to cache the GPU info_. For the sys file method this is kind of useless but for glxinfo this means you can have the full accuracy with the same performance as parsing sys files.
+### Why should I use this?
+I think that's best answered by why I made it in the first place; I was fed up of NeoFetch having to load in every time I spawned a terminal, and while FastFetch was fine enough with the performance I found it's config really unintuitive and in general it's just kind of yucky. Hence CrabFetch was born to try to solve both problems.
 
-Ultimately, this is up to the user to select. **By default, CrabFetch will use sys files without caching**. While I highly recommend using the cached info, I won't set it to be the default so as to not be unfair to other fetchers with performance comparisons.
+If you have these issues as well, your the exact person CrabFetch is trying to be for!
 
-### So how does CrabFetch get it's performance in everything else aside from the GPU?
-Honestly, aside from using Rust (hence the name) and trying not to reinvent the wheel it's just me programming with a keen eye on the runtime duration. Not really much else too it.
-
-### Why make this in the first place?
-I was fed up of NeoFetch having to load in every time I spawned a terminal. FastFetch is fine enough with performance however I find it's config really unintuitive and in general it's just kind of yucky. Hence CrabFetch was born to try to solve both problems.
-
-### Do you plan on supporting other operating systems?
-Not anytime soon. I already work on limited time for all my projects, and having to boot up VM's to test beta software constantly is annoying. That plus the idea of working with Windows again scares me.
+### Do you plan on supporting other operating systems other than Linux?
+Not anytime soon, the idea of working with Windows again scares me and I only use Linux so I don't really have a reason to.

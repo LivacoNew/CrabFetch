@@ -1,5 +1,5 @@
 // Purely handles version detection
-use std::{fs, process::Command};
+use std::{env, fs, process::Command};
 
 use sha2::{Sha256, Digest};
 
@@ -12,6 +12,21 @@ pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, pac
     // If not found either, ONLY THEN go to {command} --version parsing 
 
     let name: &str = name.unwrap_or(exe_path.split('/').last().unwrap());
+
+    // We'll try app specific stuff first 
+    let app_specific: Option<String> = match name {
+        "konsole" => konsole_version(),
+        "xterm" => xterm_version(),
+
+        "bash" => bash_version(),
+        "fish" => fish_version(),
+        "zsh" => zsh_version(),
+
+        _ => None
+    };
+    if app_specific.is_some() {
+        return app_specific;
+    }
 
     if exe_path.starts_with("/usr/bin") {
         // Consult the package manager
@@ -146,5 +161,44 @@ fn compare_hash(hash: &str) -> Option<String> {
         "0936c178ac1e145ede22b277f8cb6a6ce3d1390492628ef999b941a65e51fe8e" => Some("5.2.21".to_string()), // VoidLinux live boot
 
         _ => None
+    }
+}
+
+// Program specific detections
+// Shoutout to this answer for alerting me that these get exported in most apps;
+// https://stackoverflow.com/a/38240328
+
+// Terminals
+fn konsole_version() -> Option<String> {
+    // https://phabricator.kde.org/D12621 
+    match env::var("KONSOLE_VERSION") {
+        Ok(r) => Some(format!("{}.{}.{}", &r[0..2], &r[2..4], &r[4..6])),
+        Err(_) => None,
+    }
+}
+fn xterm_version() -> Option<String> {
+    match env::var("XTERM_VERSION") {
+        Ok(r) => Some(r.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
+        Err(_) => None,
+    }
+}
+
+// Shells
+fn bash_version() -> Option<String> {
+    match env::var("BASH_VERSION") {
+        Ok(r) => Some(r.split('(').collect::<Vec<&str>>()[0].to_string()),
+        Err(_) => None,
+    }
+}
+fn zsh_version() -> Option<String> {
+    match env::var("ZSH_VERSION") {
+        Ok(r) => Some(r),
+        Err(_) => None,
+    }
+}
+fn fish_version() -> Option<String> {
+    match env::var("FISH_VERSION") {
+        Ok(r) => Some(r),
+        Err(_) => None,
     }
 }

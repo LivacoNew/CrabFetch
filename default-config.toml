@@ -26,6 +26,7 @@ modules = [
     "music",
     "initsys",
     "processes",
+    "battery",
 
     "space",
     "colors",

@@ -135,6 +135,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         "music".to_string(),
         "initsys".to_string(),
         "processes".to_string(),
+        "battery".to_string(),
 
         "space".to_string(),
         "colors".to_string(),
@@ -454,6 +455,7 @@ modules = [
     "music",
     "initsys",
     "processes",
+    "battery",
 
     "space",
     "colors",

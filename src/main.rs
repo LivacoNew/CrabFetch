@@ -191,7 +191,7 @@ struct ModuleOutputs {
     desktop: Option<Result<DesktopInfo, ModuleError>>,
     terminal: Option<Result<TerminalInfo, ModuleError>>,
     shell: Option<Result<ShellInfo, ModuleError>>,
-    battery: Option<Result<BatteryInfo, ModuleError>>,
+    battery: Option<Result<Vec<BatteryInfo>, ModuleError>>,
     uptime: Option<Result<UptimeInfo, ModuleError>>,
     locale: Option<Result<LocaleInfo, ModuleError>>,
     #[cfg(feature = "music")]
@@ -595,10 +595,14 @@ fn main() {
             "battery" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.battery.is_none() {
-                    known_outputs.battery = Some(battery::get_battery(&config.battery.path));
+                    known_outputs.battery = Some(battery::get_batteries());
                 }
                 match known_outputs.battery.as_ref().unwrap() {
-                    Ok(battery) => output.push(battery.style(&config, max_title_length)),
+                    Ok(batteries) => {
+                        for bat in batteries {
+                            output.push(bat.style(&config, max_title_length))
+                        }
+                    },
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());

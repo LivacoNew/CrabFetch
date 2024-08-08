@@ -254,9 +254,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
 
-    builder = builder.set_default("battery.title", "Battery").unwrap();
+    builder = builder.set_default("battery.title", "Battery {index}").unwrap();
     builder = builder.set_default("battery.format", "{percentage}%").unwrap();
-    builder = builder.set_default("battery.path", "BAT0").unwrap();
 
     builder = builder.set_default("editor.title", "Editor").unwrap();
     builder = builder.set_default("editor.format", "{name} {version}").unwrap();
@@ -799,9 +798,14 @@ player = "spotify"
 
 
 [battery]
-title = "Battery"
 # Placeholders;
+# {index} -> The batterys index
+title = "Battery {index}"
+
+# Placeholders;
+# {index} -> The batterys index
 # {percentage} -> The battery percentage
+# {bar} -> A progeress bar representing how full the battery is
 format = "{percentage}%"
 
 

@@ -1,10 +1,11 @@
-use std::path::Path;
+use std::{fs::{self, DirEntry, ReadDir}, path::PathBuf};
 
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
 
 pub struct BatteryInfo {
+    index: String,
     percentage: f32,
 }
 #[derive(Deserialize)]
@@ -21,11 +22,11 @@ pub struct BatteryConfiguration {
     pub progress_empty: Option<String>,
     pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>,
-    pub path: String // Will default to BAT0
 }
 impl Module for BatteryInfo {
     fn new() -> BatteryInfo {
         BatteryInfo {
+            index: "Unknown".to_string(),
             percentage: 0.0
         }
     }
@@ -36,9 +37,11 @@ impl Module for BatteryInfo {
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = config.battery.title.clone()
+            .replace("{index}", &self.index).to_string();
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.battery.title_color.as_ref().unwrap_or(&config.title_color);
@@ -46,7 +49,10 @@ impl Module for BatteryInfo {
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.battery.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.battery.title.clone()
+            .replace("{index}", "0").to_string();
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -63,25 +69,51 @@ impl Module for BatteryInfo {
         }
 
         formatter::process_percentage_placeholder(&config.battery.format, formatter::round(self.percentage as f64, dec_places) as f32, config)
+            .replace("{index}", &self.index)
             .replace("{percentage}", &self.percentage.to_string())
             .replace("{bar}", &bar)
     }
 }
 
-pub fn get_battery(battery_path: &str) -> Result<BatteryInfo, ModuleError> {
-    let mut battery: BatteryInfo = BatteryInfo::new();
+pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
+    let mut batteries: Vec<BatteryInfo> = Vec::new();
 
-
-    let path: String = format!("/sys/class/power_supply/{}/capacity", battery_path);
-    battery.percentage = match util::file_read(Path::new(&path)) {
-        Ok(r) => {
-            match r.trim().parse() {
-                Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
-            }
-        },
-        Err(e) => return Err(ModuleError::new("Host", format!("Can't read from {} - {}", path, e))),
+    let dir: ReadDir = match fs::read_dir("/sys/class/power_supply/") {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from /sys/class/power_supply: {}", e))),
     };
+    for d in dir {
+        if d.is_err() {
+            continue;
+        }
+        let d: DirEntry = d.unwrap();
+        let path: PathBuf = d.path();
+        // From what I can tell, this dir is only batteries so parsing is easy
+        let percentage: f32 = match util::file_read(&path.join("capacity")) {
+            Ok(r) => {
+                match r.trim().parse() {
+                    Ok(r) => r,
+                    Err(_) => continue,
+                    // Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
+                }
+            },
+            // Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
+            Err(_) => continue,
+        };
+        let id: String = match path.file_name() {
+            Some(r) => match r.to_str() {
+                Some(r) => r.strip_prefix("BAT").unwrap_or(r).to_string(),
+                None => continue,
+            },
+            None => continue,
+        };
 
-    Ok(battery)
+        batteries.push(BatteryInfo {
+            index: id,
+            percentage
+        })
+    }
+
+
+    Ok(batteries)
 }

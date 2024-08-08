@@ -370,9 +370,14 @@ player = "spotify"
 
 
 [battery]
-title = "Battery"
 # Placeholders;
+# {index} -> The batterys index
+title = "Battery {index}"
+
+# Placeholders;
+# {index} -> The batterys index
 # {percentage} -> The battery percentage
+# {bar} -> A progeress bar representing how full the battery is
 format = "{percentage}%"
 
 

@@ -10,6 +10,7 @@ license = "Apache-2.0"
 
 [features]
 player = ["dep:dbus"]
+music = ["player"]
 android = ["dep:android_system_properties"]
 rpm_packages = ["dep:sqlite"]
 

@@ -393,7 +393,8 @@ mod tests {
         assert!(Path::new(&location).exists());
 
         // Attempt to parse it
-        assert!(crate::config_manager::parse(&Some(location.clone()), &None, &false).is_ok());
+        let parse = crate::config_manager::parse(&Some(location.clone()), &None, &false);
+        assert!(crate::config_manager::parse(&Some(location.clone()), &None, &false).is_ok(), "{:?}", parse.err());
         
         // Finally, we remove the tmp config file 
         let removed: Result<(), Error> = fs::remove_file(location);

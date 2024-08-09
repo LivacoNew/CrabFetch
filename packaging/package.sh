@@ -30,7 +30,7 @@ esac
 
 echo "Building CrabFetch..."
 cd $ROOT_DIR
-cargo build -r -F music,rpm_packages
+cargo build -r -F player,rpm_packages
 cp $ROOT_DIR/target/release/crabfetch $PACKAGE_DIR
 cp $ROOT_DIR/LICENCE $PACKAGE_DIR
 cd $PACKAGE_DIR

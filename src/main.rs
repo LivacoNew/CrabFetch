@@ -15,8 +15,8 @@ use modules::locale::{self, LocaleInfo};
 use modules::memory::{self, MemoryInfo};
 use modules::gpu::{self, GPUInfo};
 use modules::mounts::{self, MountInfo};
-#[cfg(feature = "music")]
-use modules::music::{self, MusicInfo};
+#[cfg(feature = "player")]
+use modules::player::{self, PlayerInfo};
 use modules::os::{self, OSInfo};
 use modules::packages::{self, PackagesInfo};
 use modules::processes::{self, ProcessesInfo};
@@ -146,8 +146,8 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
             "battery" => res = max(res, config.battery.title.chars().count() as u64),
             "uptime" => res = max(res, config.uptime.title.chars().count() as u64),
             "locale" => res = max(res, config.locale.title.chars().count() as u64),
-            #[cfg(feature = "music")]
-            "music" => res = max(res, config.music.title.chars().count() as u64),
+            #[cfg(feature = "player")]
+            "player" => res = max(res, config.player.title.chars().count() as u64),
             "editor" => res = max(res, config.editor.title.chars().count() as u64),
             "initsys" => res = max(res, config.initsys.title.chars().count() as u64),
             _ => {}
@@ -194,8 +194,8 @@ struct ModuleOutputs {
     battery: Option<Result<Vec<BatteryInfo>, ModuleError>>,
     uptime: Option<Result<UptimeInfo, ModuleError>>,
     locale: Option<Result<LocaleInfo, ModuleError>>,
-    #[cfg(feature = "music")]
-    music: Option<Result<Vec<MusicInfo>, ModuleError>>,
+    #[cfg(feature = "player")]
+    player: Option<Result<Vec<PlayerInfo>, ModuleError>>,
     editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>,
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
@@ -223,8 +223,8 @@ impl ModuleOutputs {
             battery: None,
             uptime: None,
             locale: None,
-            #[cfg(feature = "music")]
-            music: None,
+            #[cfg(feature = "player")]
+            player: None,
             editor: None,
             os: None,
             initsys: None,
@@ -273,10 +273,10 @@ fn main() {
         #[cfg(not(feature = "android"))]
         println!(" - android");
 
-        #[cfg(feature = "music")]
-        println!(" + music");
-        #[cfg(not(feature = "music"))]
-        println!(" - music");
+        #[cfg(feature = "player")]
+        println!(" + player");
+        #[cfg(not(feature = "player"))]
+        println!(" - player");
 
         #[cfg(feature = "rpm_packages")]
         println!(" + rpm_packages");
@@ -647,15 +647,15 @@ fn main() {
                 }; 
                 print_bench_time(args.benchmark, "Locale Module", bench);
             },
-            #[cfg(feature = "music")]
-            "music" => {
+            #[cfg(feature = "player")]
+            "player" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.music.is_none() {
-                    known_outputs.music = Some(music::get_music());
+                if known_outputs.player.is_none() {
+                    known_outputs.player = Some(player::get_players());
                 }
-                match known_outputs.music.as_ref().unwrap() {
-                    Ok(music) => {
-                        for player in music {
+                match known_outputs.player.as_ref().unwrap() {
+                    Ok(players) => {
+                        for player in players{
                             output.push(player.style(&config, max_title_length));
                         }
                     }
@@ -663,11 +663,11 @@ fn main() {
                         if log_errors {
                             output.push(e.to_string());
                         } else {
-                            output.push(MusicInfo::unknown_output(&config, max_title_length));
+                            output.push(PlayerInfo::unknown_output(&config, max_title_length));
                         }
                     },
                 }; 
-                print_bench_time(args.benchmark, "Music Module", bench);
+                print_bench_time(args.benchmark, "Player Module", bench);
             },
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

@@ -4,8 +4,8 @@ use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
 use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
-#[cfg(feature = "music")]
-use crate::music::MusicConfiguration;
+#[cfg(feature = "player")]
+use crate::player::PlayerConfiguration;
 
 
 #[derive(Deserialize)]
@@ -52,8 +52,8 @@ pub struct Configuration {
     pub uptime: UptimeConfiguration,
     pub battery: BatteryConfiguration,
     pub locale: LocaleConfiguration,
-    #[cfg(feature = "music")]
-    pub music: MusicConfiguration,
+    #[cfg(feature = "player")]
+    pub player: PlayerConfiguration,
     pub editor: EditorConfiguration,
     pub initsys: InitSystemConfiguration,
     pub processes: ProcessesConfiguration,
@@ -132,7 +132,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         "editor".to_string(),
         "uptime".to_string(),
         "locale".to_string(),
-        "music".to_string(),
+        "player".to_string(),
         "initsys".to_string(),
         "processes".to_string(),
         "battery".to_string(),
@@ -265,8 +265,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("locale.title", "Locale").unwrap();
     builder = builder.set_default("locale.format", "{language} ({encoding})").unwrap();
 
-    builder = builder.set_default("music.title", "Music {player}").unwrap();
-    builder = builder.set_default("music.format", "{track} by {track_artists} ({album})").unwrap();
+    builder = builder.set_default("player.title", "Player ({player})").unwrap();
+    builder = builder.set_default("player.format", "{track} by {track_artists} ({album})").unwrap();
 
     builder = builder.set_default("initsys.title", "Init System").unwrap();
 
@@ -452,7 +452,7 @@ modules = [
     "editor",
     "uptime",
     "locale",
-    "music",
+    "player",
     "initsys",
     "processes",
     "battery",
@@ -783,11 +783,11 @@ title = "Locale"
 format = "{language} ({encoding})"
 
 
-[music]
-# Creates a new line per music player detected
+[player]
+# Creates a new line per player detected
 # Placeholders;
 # {player} -> The player currently playing
-title = "Music {player}"
+title = "Player ({player})"
 # Placeholders;
 # {player} -> The player currently playing
 # {track} - The name of the track

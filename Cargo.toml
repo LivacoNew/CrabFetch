@@ -9,7 +9,7 @@ repository = "https://github.com/LivacoNew/CrabFetch"
 license = "Apache-2.0"
 
 [features]
-music = ["dep:dbus"]
+player = ["dep:dbus"]
 android = ["dep:android_system_properties"]
 rpm_packages = ["dep:sqlite"]
 

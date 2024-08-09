@@ -15,8 +15,8 @@ pub mod uptime;
 pub mod editor;
 pub mod locale;
 pub mod battery;
-#[cfg(feature = "music")]
-pub mod music;
+#[cfg(feature = "player")]
+pub mod player;
 pub mod initsys;
 pub mod processes;
 pub mod datetime;

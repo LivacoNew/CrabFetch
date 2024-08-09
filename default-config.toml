@@ -23,7 +23,7 @@ modules = [
     "editor",
     "uptime",
     "locale",
-    "music",
+    "player",
     "initsys",
     "processes",
     "battery",
@@ -354,11 +354,11 @@ title = "Locale"
 format = "{language} ({encoding})"
 
 
-[music]
-# Creates a new line per music player detected
+[player]
+# Creates a new line per player detected
 # Placeholders;
 # {player} -> The player currently playing
-title = "Music {player}"
+title = "Player ({player})"
 # Placeholders;
 # {player} -> The player currently playing
 # {track} - The name of the track

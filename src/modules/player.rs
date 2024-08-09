@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
 
-pub struct MusicInfo {
+pub struct PlayerInfo {
     player: String,
     album: String,
     album_artists: Vec<String>,
@@ -13,7 +13,7 @@ pub struct MusicInfo {
     track_artists: Vec<String>,
 }
 #[derive(Deserialize)]
-pub struct MusicConfiguration {
+pub struct PlayerConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
@@ -21,9 +21,9 @@ pub struct MusicConfiguration {
     pub separator: Option<String>,
     pub format: String,
 }
-impl Module for MusicInfo {
-    fn new() -> MusicInfo {
-        MusicInfo {
+impl Module for PlayerInfo {
+    fn new() -> PlayerInfo {
+        PlayerInfo {
             // No "unknowns" here as it could just be empty from what I can gleam from the docs
             player: String::new(),
             album: String::new(),
@@ -34,24 +34,24 @@ impl Module for MusicInfo {
     }
 
     fn style(&self, config: &Configuration, max_title_size: u64) -> String {
-        let title_color: &CrabFetchColor = config.music.title_color.as_ref().unwrap_or(&config.title_color);
-        let title_bold: bool = config.music.title_bold.unwrap_or(config.title_bold);
-        let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.music.separator.as_ref().unwrap_or(&config.separator);
+        let title_color: &CrabFetchColor = config.player.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.player.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.player.title_italic.unwrap_or(config.title_italic);
+        let separator: &str = config.player.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.music.title.clone()
+        let title: String = config.player.title.clone()
             .replace("{player}", &self.player);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
-        let title_color: &CrabFetchColor = config.music.title_color.as_ref().unwrap_or(&config.title_color);
-        let title_bold: bool = config.music.title_bold.unwrap_or(config.title_bold);
-        let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.music.separator.as_ref().unwrap_or(&config.separator);
+        let title_color: &CrabFetchColor = config.player.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.player.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.player.title_italic.unwrap_or(config.title_italic);
+        let separator: &str = config.player.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.music.title.clone()
+        let title: String = config.player.title.clone()
             .replace("{player}", "Unknown");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
@@ -61,7 +61,7 @@ impl Module for MusicInfo {
         let album_artists: String = self.album_artists.join(" ");
         let track_artists: String = self.track_artists.join(" ");
 
-        config.music.format.replace("{track}", &self.track)
+        config.player.format.replace("{track}", &self.track)
             .replace("{album}", &self.album)
             .replace("{album_artists}", &album_artists)
             .replace("{track_artists}", &track_artists)
@@ -69,28 +69,28 @@ impl Module for MusicInfo {
     }
 }
 
-pub fn get_music() -> Result<Vec<MusicInfo>, ModuleError> {
-    let mut music: Vec<MusicInfo> = Vec::new();
+pub fn get_players() -> Result<Vec<PlayerInfo>, ModuleError> {
+    let mut players: Vec<PlayerInfo> = Vec::new();
 
     let conn: Connection = match Connection::new_session() {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Music", format!("Unable to connect to DBus: {}", e)))
+        Err(e) => return Err(ModuleError::new("Player", format!("Unable to connect to DBus: {}", e)))
     };
 
-    let players: Vec<String> = match detect_current_players(&conn) {
+    let found_players: Vec<String> = match detect_current_players(&conn) {
         Some(r) => r,
-        None => return Err(ModuleError::new("Music", "Unable to find any players".to_string())),
+        None => return Err(ModuleError::new("Player", "Unable to find any players".to_string())),
     };
 
-    for player in players {
+    for player in found_players {
         let proxy: Proxy<'_, &Connection> = conn.with_proxy(&player, "/org/mpris/MediaPlayer2", Duration::from_secs(1));
     
         let player_metadata: arg::PropMap = match req_player_property(&proxy, "Metadata") {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Music", format!("Unable to fetch metadata for player: {}", e)))
+            Err(e) => return Err(ModuleError::new("Player", format!("Unable to fetch metadata for player: {}", e)))
         };
 
-        let info: MusicInfo = MusicInfo {
+        let info: PlayerInfo = PlayerInfo {
             player: match req_player_identity(&proxy) {
                 Ok(r) => r.to_string(),
                 Err(_) => "Unknown".to_string(),
@@ -112,10 +112,10 @@ pub fn get_music() -> Result<Vec<MusicInfo>, ModuleError> {
                 None => vec!["Unknown".to_string()],
             },
         };
-        music.push(info);
+        players.push(info);
     }
 
-    Ok(music)
+    Ok(players)
 }
 
 fn detect_current_players(conn: &Connection) -> Option<Vec<String>>{

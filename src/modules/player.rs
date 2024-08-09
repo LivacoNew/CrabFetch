@@ -15,11 +15,12 @@ pub struct PlayerInfo {
 #[derive(Deserialize)]
 pub struct PlayerConfiguration {
     pub title: String,
+    pub ignore: Vec<String>,
+    pub format: String,
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
-    pub format: String,
 }
 impl Module for PlayerInfo {
     fn new() -> PlayerInfo {
@@ -69,7 +70,7 @@ impl Module for PlayerInfo {
     }
 }
 
-pub fn get_players() -> Result<Vec<PlayerInfo>, ModuleError> {
+pub fn get_players(ignore: &Vec<String>) -> Result<Vec<PlayerInfo>, ModuleError> {
     let mut players: Vec<PlayerInfo> = Vec::new();
 
     let conn: Connection = match Connection::new_session() {
@@ -83,6 +84,11 @@ pub fn get_players() -> Result<Vec<PlayerInfo>, ModuleError> {
     };
 
     for player in found_players {
+        let name: String = player.split(".").last().unwrap().to_string();
+        if ignore.contains(&name) {
+            continue // ignored
+        }
+
         let proxy: Proxy<'_, &Connection> = conn.with_proxy(&player, "/org/mpris/MediaPlayer2", Duration::from_secs(1));
     
         let player_metadata: arg::PropMap = match req_player_property(&proxy, "Metadata") {

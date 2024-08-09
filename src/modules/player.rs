@@ -11,6 +11,7 @@ pub struct PlayerInfo {
     album_artists: Vec<String>,
     track: String,
     track_artists: Vec<String>,
+    status: String,
 }
 #[derive(Deserialize)]
 pub struct PlayerConfiguration {
@@ -31,6 +32,7 @@ impl Module for PlayerInfo {
             album_artists: Vec::new(),
             track: String::new(),
             track_artists: Vec::new(),
+            status: String::new(),
         }
     }
 
@@ -67,6 +69,7 @@ impl Module for PlayerInfo {
             .replace("{album_artists}", &album_artists)
             .replace("{track_artists}", &track_artists)
             .replace("{player}", &self.player)
+            .replace("{status}", &self.status)
     }
 }
 
@@ -116,6 +119,10 @@ pub fn get_players(ignore: &Vec<String>) -> Result<Vec<PlayerInfo>, ModuleError>
             album_artists: match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:albumArtist") {
                 Some(r) => r.to_vec(),
                 None => vec!["Unknown".to_string()],
+            },
+            status: match req_player_property::<String>(&proxy, "PlaybackStatus") {
+                Ok(r) => r,
+                Err(_) => "Unknown".to_string(),
             },
         };
         players.push(info);

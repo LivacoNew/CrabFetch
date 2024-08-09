@@ -266,7 +266,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("locale.format", "{language} ({encoding})").unwrap();
 
     builder = builder.set_default("player.title", "Player ({player})").unwrap();
-    builder = builder.set_default("player.format", "{track} by {track_artists} ({album})").unwrap();
+    builder = builder.set_default("player.format", "{track} by {track_artists} ({album}) [{status}]").unwrap();
     builder = builder.set_default("player.ignore", Vec::<String>::new()).unwrap();
 
     builder = builder.set_default("initsys.title", "Init System").unwrap();
@@ -795,7 +795,8 @@ title = "Player ({player})"
 # {album} - The name of the album
 # {track_artists} - The names of all track artists
 # {album_artists} - The names of all album artists
-format = "{track} by {track_artists} ({album})"
+# {status} - The status of the player, AKA if it's playing or not.
+format = "{track} by {track_artists} ({album}) [{status}]"
 
 # Any music players to ignore
 # These must be valid MPRIS player strings. You can find them by running something like `playerctl --list-all`

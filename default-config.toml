@@ -365,7 +365,8 @@ title = "Player ({player})"
 # {album} - The name of the album
 # {track_artists} - The names of all track artists
 # {album_artists} - The names of all album artists
-format = "{track} by {track_artists} ({album})"
+# {status} - The status of the player, AKA if it's playing or not.
+format = "{track} by {track_artists} ({album}) [{status}]"
 
 # Any music players to ignore
 # These must be valid MPRIS player strings. You can find them by running something like `playerctl --list-all`

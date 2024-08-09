@@ -195,7 +195,7 @@ struct ModuleOutputs {
     uptime: Option<Result<UptimeInfo, ModuleError>>,
     locale: Option<Result<LocaleInfo, ModuleError>>,
     #[cfg(feature = "music")]
-    music: Option<Result<MusicInfo, ModuleError>>,
+    music: Option<Result<Vec<MusicInfo>, ModuleError>>,
     editor: Option<Result<EditorInfo, ModuleError>>,
     os: Option<Result<OSInfo, ModuleError>>,
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
@@ -651,10 +651,14 @@ fn main() {
             "music" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.music.is_none() {
-                    known_outputs.music = Some(music::get_music(&config.music.player));
+                    known_outputs.music = Some(music::get_music());
                 }
                 match known_outputs.music.as_ref().unwrap() {
-                    Ok(music) => output.push(music.style(&config, max_title_length)),
+                    Ok(music) => {
+                        for player in music {
+                            output.push(player.style(&config, max_title_length));
+                        }
+                    }
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());

@@ -6,6 +6,7 @@ use serde::Deserialize;
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
 
 pub struct MusicInfo {
+    player: String,
     album: String,
     album_artists: Vec<String>,
     track: String,
@@ -19,12 +20,12 @@ pub struct MusicConfiguration {
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
     pub format: String,
-    pub player: String,
 }
 impl Module for MusicInfo {
     fn new() -> MusicInfo {
         MusicInfo {
             // No "unknowns" here as it could just be empty from what I can gleam from the docs
+            player: String::new(),
             album: String::new(),
             album_artists: Vec::new(),
             track: String::new(),
@@ -38,9 +39,11 @@ impl Module for MusicInfo {
         let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.music.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = config.music.title.clone()
+            .replace("{player}", &self.player);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
 
-        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.music.title_color.as_ref().unwrap_or(&config.title_color);
@@ -48,7 +51,10 @@ impl Module for MusicInfo {
         let title_italic: bool = config.music.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.music.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.music.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.music.title.clone()
+            .replace("{player}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
@@ -59,50 +65,92 @@ impl Module for MusicInfo {
             .replace("{album}", &self.album)
             .replace("{album_artists}", &album_artists)
             .replace("{track_artists}", &track_artists)
+            .replace("{player}", &self.player)
     }
 }
 
-pub fn get_music(player: &str) -> Result<MusicInfo, ModuleError> {
-    let mut music: MusicInfo = MusicInfo::new();
+pub fn get_music() -> Result<Vec<MusicInfo>, ModuleError> {
+    let mut music: Vec<MusicInfo> = Vec::new();
 
     let conn: Connection = match Connection::new_session() {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("Music", format!("Unable to connect to DBus: {}", e)))
     };
-    let player_dest: String = format!("org.mpris.MediaPlayer2.{}", player.to_lowercase());
-    if player_dest.ends_with('.') {
-        // Leaving the player string empty can cause a crash without this check
-        return Err(ModuleError::new("Music", "You have specified your player in an invalid way, tried to use a invalid DBus destination.".to_string()))
-    }
-    let proxy: Proxy<'_, &Connection> = conn.with_proxy(&player_dest, "/org/mpris/MediaPlayer2", Duration::from_secs(1));
-    
-    let player_metadata: arg::PropMap = match proxy.get("org.mpris.MediaPlayer2.Player", "Metadata") {
-        Ok(r) => r,
-        Err(e) => {
-            if e.to_string() == "The name is not activatable" {
-                // Likelyhood is they've placed in a player that can't be found
-                return Err(ModuleError::new("Music", "You have specified a player that doesn't exist, isn't active, or doesn't implement MPRIS.".to_string()))
-            }
-            return Err(ModuleError::new("Music", format!("Unable to request player property: {}", e)))
-        },
+
+    let players: Vec<String> = match detect_current_players(&conn) {
+        Some(r) => r,
+        None => return Err(ModuleError::new("Music", "Unable to find any players".to_string())),
     };
 
-    music.album = match arg::prop_cast::<String>(&player_metadata, "xesam:album") {
-        Some(r) => r.to_string(),
-        None => "Unknown".to_string(),
-    };
-    music.track = match arg::prop_cast::<String>(&player_metadata, "xesam:title") {
-        Some(r) => r.to_string(),
-        None => "Unknown".to_string(),
-    };
-    music.track_artists = match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:artist") {
-        Some(r) => r.to_vec(),
-        None => vec!["Unknown".to_string()],
-    };
-    music.album_artists = match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:albumArtist") {
-        Some(r) => r.to_vec(),
-        None => vec!["Unknown".to_string()],
-    };
+    for player in players {
+        let proxy: Proxy<'_, &Connection> = conn.with_proxy(&player, "/org/mpris/MediaPlayer2", Duration::from_secs(1));
+    
+        let player_metadata: arg::PropMap = match req_player_property(&proxy, "Metadata") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Music", format!("Unable to fetch metadata for player: {}", e)))
+        };
+
+        let info: MusicInfo = MusicInfo {
+            player: match req_player_identity(&proxy) {
+                Ok(r) => r.to_string(),
+                Err(_) => "Unknown".to_string(),
+            },
+            album: match arg::prop_cast::<String>(&player_metadata, "xesam:album") {
+                Some(r) => r.to_string(),
+                None => "Unknown".to_string(),
+            },
+            track: match arg::prop_cast::<String>(&player_metadata, "xesam:title") {
+                Some(r) => r.to_string(),
+                None => "Unknown".to_string(),
+            },
+            track_artists: match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:artist") {
+                Some(r) => r.to_vec(),
+                None => vec!["Unknown".to_string()],
+            },
+            album_artists: match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:albumArtist") {
+                Some(r) => r.to_vec(),
+                None => vec!["Unknown".to_string()],
+            },
+        };
+        music.push(info);
+    }
 
     Ok(music)
+}
+
+fn detect_current_players(conn: &Connection) -> Option<Vec<String>>{
+    let proxy: Proxy<'_, &Connection> = conn.with_proxy("org.freedesktop.DBus", "/", Duration::from_secs(1));
+    let (names,): (Vec<String>,) = proxy.method_call("org.freedesktop.DBus", "ListNames", ()).expect("a");
+
+    let mut players: Vec<String> = Vec::new();
+    for name in names {
+        if !name.starts_with("org.mpris.MediaPlayer2") {
+            continue
+        }
+
+        players.push(name);
+    }
+
+    if players.is_empty() {
+        // shit
+        return None;
+    }
+
+    Some(players)
+}
+
+// I will be perfectly honest I have no idea what this generic type does, rust's compiler made it
+// as a suggestion and it worked
+fn req_player_property<T: for<'b> dbus::arg::Get<'b> + 'static>(player_proxy: &Proxy<'_, &Connection>, property: &str) -> Result<T, String> {
+    match player_proxy.get("org.mpris.MediaPlayer2.Player", property) {
+        Ok(r) => Ok(r),
+        Err(e) => Err(e.to_string()),
+    }
+}
+// It's in a different method
+fn req_player_identity(player_proxy: &Proxy<'_, &Connection>) -> Result<String, String> {
+    match player_proxy.get("org.mpris.MediaPlayer2", "Identity") {
+        Ok(r) => Ok(r),
+        Err(e) => Err(e.to_string()),
+    }
 }

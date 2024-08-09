@@ -355,19 +355,17 @@ format = "{language} ({encoding})"
 
 
 [music]
-title = "Music"
+# Creates a new line per music player detected
 # Placeholders;
+# {player} -> The player currently playing
+title = "Music {player}"
+# Placeholders;
+# {player} -> The player currently playing
 # {track} - The name of the track
 # {album} - The name of the album
 # {track_artists} - The names of all track artists
 # {album_artists} - The names of all album artists
 format = "{track} by {track_artists} ({album})"
-
-# The player to get music data from
-# The player must support the MPRIS standard (most do.)
-# Known good selections; (make a GitHub issue if a known good one needs added here)
-# - spotify
-player = "spotify"
 
 
 [battery]

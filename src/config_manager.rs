@@ -265,9 +265,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("locale.title", "Locale").unwrap();
     builder = builder.set_default("locale.format", "{language} ({encoding})").unwrap();
 
-    builder = builder.set_default("music.title", "Music").unwrap();
+    builder = builder.set_default("music.title", "Music {player}").unwrap();
     builder = builder.set_default("music.format", "{track} by {track_artists} ({album})").unwrap();
-    builder = builder.set_default("music.player", "spotify").unwrap();
 
     builder = builder.set_default("initsys.title", "Init System").unwrap();
 
@@ -785,19 +784,17 @@ format = "{language} ({encoding})"
 
 
 [music]
-title = "Music"
+# Creates a new line per music player detected
 # Placeholders;
+# {player} -> The player currently playing
+title = "Music {player}"
+# Placeholders;
+# {player} -> The player currently playing
 # {track} - The name of the track
 # {album} - The name of the album
 # {track_artists} - The names of all track artists
 # {album_artists} - The names of all album artists
 format = "{track} by {track_artists} ({album})"
-
-# The player to get music data from
-# The player must support the MPRIS standard (most do.)
-# Known good selections; (make a GitHub issue if a known good one needs added here)
-# - spotify
-player = "spotify"
 
 
 [battery]

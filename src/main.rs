@@ -236,6 +236,8 @@ impl ModuleOutputs {
 }
 
 fn main() {
+    let full_runtime_bench: Option<Instant> = benchmark_point(true); // True as it's before any parsing
+
     // Are we defo in Linux?
     if env::consts::OS != "linux" && env::consts::OS != "android" {
         println!("CrabFetch only supports Linux! If you want to go through and add support for your own OS, make a pull request :)");
@@ -881,5 +883,6 @@ fn main() {
         }
     }
     print_bench_time(args.benchmark, "Remaining ASCII Output", bench);
+    print_bench_time(args.benchmark, "Full Runtime of CrabFetch", full_runtime_bench);
 }
 

@@ -496,7 +496,12 @@ fn main() {
                     known_outputs.host = Some(host::get_host());
                 }
                 match known_outputs.host.as_ref().unwrap() {
-                    Ok(host) => output.push(host.style(&config, max_title_length)),
+                    Ok(host) => {
+                        output.push(host.style(&config, max_title_length));
+                        if config.host.newline_chassis {
+                            output.push(host.style_chassis(&config, max_title_length));
+                        }
+                    },
                     Err(e) => {
                         if log_errors {
                             output.push(e.to_string());

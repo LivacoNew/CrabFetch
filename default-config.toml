@@ -250,6 +250,12 @@ title = "Host"
 # {chassis} -> The chassis type, e.g Desktop or Laptop or whatever
 format = "{host} ({chassis})"
 
+# Whether to output the chassis on it's own line to remain consistent with other fetch scripts.
+newline_chassis = false
+# The title/format of the chassis if we are outputting on it's own line
+chassis_title = "Chassis"
+chassis_format = "{chassis}"
+
 
 [displays]
 # Will make a new line per entry.

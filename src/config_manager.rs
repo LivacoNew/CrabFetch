@@ -226,6 +226,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("host.title", "Host").unwrap();
     builder = builder.set_default("host.format", "{host} ({chassis})").unwrap();
+    builder = builder.set_default("host.newline_chassis", false).unwrap();
+    builder = builder.set_default("host.chassis_title", "Chassis").unwrap();
+    builder = builder.set_default("host.chassis_format", "{chassis}").unwrap();
 
     builder = builder.set_default("displays.title", "Display ({make} {model})").unwrap();
     builder = builder.set_default("displays.format", "{width}x{height} @ {refresh_rate}Hz ({name})").unwrap();
@@ -680,6 +683,12 @@ title = "Host"
 # {host} -> The name of the host, either a motherboard name or a laptop model
 # {chassis} -> The chassis type, e.g Desktop or Laptop or whatever
 format = "{host} ({chassis})"
+
+# Whether to output the chassis on it's own line to remain consistent with other fetch scripts.
+newline_chassis = false
+# The title/format of the chassis if we are outputting on it's own line
+chassis_title = "Chassis"
+chassis_format = "{chassis}"
 
 
 [displays]

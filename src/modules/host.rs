@@ -18,7 +18,10 @@ pub struct HostConfiguration {
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
-    pub separator: Option<String>
+    pub separator: Option<String>,
+    pub newline_chassis: bool,
+    pub chassis_title: String,
+    pub chassis_format: String
 }
 impl Module for HostInfo {
     fn new() -> HostInfo {
@@ -50,6 +53,19 @@ impl Module for HostInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         config.host.format.replace("{host}", &self.host)
             .replace("{chassis}", &self.chassis)
+    }
+}
+impl HostInfo {
+    // Identical to the regular style method, but placeholder's in the kernel instead
+    pub fn style_chassis(&self, config: &Configuration, max_title_size: u64) -> String {
+        let title_color: &CrabFetchColor = config.host.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_bold: bool = config.host.title_bold.unwrap_or(config.title_bold);
+        let title_italic: bool = config.host.title_italic.unwrap_or(config.title_italic);
+        let separator: &str = config.host.separator.as_ref().unwrap_or(&config.separator);
+
+        let value: String = self.replace_color_placeholders(&config.host.chassis_format.replace("{chassis}", &self.chassis));
+
+        Self::default_style(config, max_title_size, &config.host.chassis_title, title_color, title_bold, title_italic, separator, &value)
     }
 }
 

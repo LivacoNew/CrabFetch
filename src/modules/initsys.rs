@@ -3,24 +3,28 @@ use std::fs;
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, versions, ModuleError};
 
 pub struct InitSystemInfo {
-    initsys: String,
+    name: String,
+    path: String,
+    version: String
 }
 #[derive(Deserialize)]
 pub struct InitSystemConfiguration {
     pub title: String,
+    pub format: String,
     pub title_color: Option<CrabFetchColor>,
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
-    pub format: Option<String>
 }
 impl Module for InitSystemInfo {
     fn new() -> InitSystemInfo {
         InitSystemInfo {
-            initsys: "Unknown".to_string()
+            name: "Unknown".to_string(),
+            path: "Unknown".to_string(),
+            version: "Unknown".to_string()
         }
     }
 
@@ -44,23 +48,28 @@ impl Module for InitSystemInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let format: String = config.initsys.format.clone().unwrap_or("{initsys}".to_string());
-        format.replace("{initsys}", &self.initsys)
+        config.initsys.format.replace("{name}", &self.name)
+            .replace("{path}", &self.path)
+            .replace("{version}", &self.version)
     }
 }
 
-pub fn get_init_system() -> Result<InitSystemInfo, ModuleError> {
+pub fn get_init_system(fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<InitSystemInfo, ModuleError> {
     let mut initsys: InitSystemInfo = InitSystemInfo::new();
 
     // Just gets the symlink from /sbin/init 
-    initsys.initsys = match fs::canonicalize("/sbin/init") {
-        Ok(r) => r.display().to_string()
-            .split('/')
-            .last()
-            .unwrap()
-            .to_string(),
+    initsys.path = match fs::canonicalize("/sbin/init") {
+        Ok(r) => r.display().to_string(),
         Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize /sbin/init symlink: {}", e)))
     };
+    initsys.name = initsys.path.split('/')
+            .last()
+            .unwrap()
+            .to_string();
+
+    if fetch_version {
+        initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
+    }
 
     Ok(initsys)
 }

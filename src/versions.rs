@@ -97,7 +97,8 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         Err(_) => return None,
     };
 
-    // Fixes for different terminals outputs
+    // Fixes for different outputs
+    // Warning: Messy 1-liners
     match name {
         // Terminals
         "xterm" => Some(raw.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
@@ -108,6 +109,8 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         "elvish" => Some(raw.split('+').collect::<Vec<&str>>()[0].trim().to_string()),
         // Editors
         "nvim" => Some(raw.split(' ').collect::<Vec<&str>>()[1].split('\n').next().unwrap()[1..].to_string()),
+        // Init Systems
+        "systemd" => Some(raw.split(' ').collect::<Vec<&str>>()[2].split('\n').next().unwrap().trim_matches(&['(', ')']).to_string()),
 
         _ => {
             let raw_split: Vec<&str> = raw.split(' ').collect();

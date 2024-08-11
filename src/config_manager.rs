@@ -270,6 +270,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("player.ignore", Vec::<String>::new()).unwrap();
 
     builder = builder.set_default("initsys.title", "Init System").unwrap();
+    builder = builder.set_default("initsys.format", "{name} {version}").unwrap();
 
     builder = builder.set_default("processes.title", "Total Processes").unwrap();
 
@@ -817,6 +818,11 @@ format = "{percentage}%"
 
 [initsys]
 title = "Init System"
+# Placeholders;
+# {name} -> The name of the init system
+# {path} -> The path to the init system binary
+# {version} -> The version of the init system
+format = "{name} {version}"
 
 
 [processes]

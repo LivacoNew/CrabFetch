@@ -387,6 +387,11 @@ format = "{percentage}%"
 
 [initsys]
 title = "Init System"
+# Placeholders;
+# {name} -> The name of the init system
+# {path} -> The path to the init system binary
+# {version} -> The version of the init system
+format = "{name} {version}"
 
 
 [processes]

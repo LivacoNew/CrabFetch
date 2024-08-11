@@ -93,7 +93,7 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
         match module.as_str() {
             "hostname" => res = max(res, config.hostname.title.chars().count() as u64),
             "cpu" => res = max(res, config.cpu.title.chars().count() as u64),
-            "gpu" => res = {
+            "gpu" => res = max(res, {
                 if config.gpu.title.contains("{index}") {
                     // Allows for 2 digits in it's place, because no ones going to have more than
                     // 99 GPU's in a single system, and if you are then why tf are you using
@@ -101,10 +101,10 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
                     return max(res, config.gpu.title.chars().count() as u64 - 5);
                 }
                 max(res, config.gpu.title.chars().count() as u64)
-            },
+            }),
             "memory" => res = max(res, config.memory.title.chars().count() as u64),
             "swap" => res = max(res, config.swap.title.chars().count() as u64),
-            "mounts" => res = {
+            "mounts" => res = max(res, {
                 let bench: Option<Instant> = benchmark_point(benchmarking); 
 
                 if known_outputs.mounts.is_none() {
@@ -124,9 +124,9 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
                 print_bench_time(benchmarking, benchmark_warn, "Mounts Module (Pre-comp for max_title_length)", bench);
 
                 length
-            },
+            }),
             "host" => res = max(res, config.host.title.chars().count() as u64),
-            "displays" => res = {
+            "displays" => res = max(res, {
                 let bench: Option<Instant> = benchmark_point(benchmarking); 
 
                 if known_outputs.displays.is_none() {
@@ -143,7 +143,7 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
                 print_bench_time(benchmarking, benchmark_warn, "Displays Module (Pre-comp for max_title_length)", bench);
 
                 length
-            },
+            }),
             "os" => res = max(res, config.os.title.chars().count() as u64),
             "packages" => res = max(res, config.packages.title.chars().count() as u64),
             "desktop" => res = max(res, config.desktop.title.chars().count() as u64),
@@ -160,6 +160,7 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
         }
     }
 
+    println!("{res}");
     res
 }
 // This is done here simply to make the main function not as indented of a mess, it's abstracted into here

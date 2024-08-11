@@ -166,10 +166,9 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
         }
 
         // Finally, Vram
-        match util::file_read(&d.path().join("mem_info_vram_total")) {
-            Ok(r) => gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32,
-            Err(_) => continue, // This one get's let go as it's AMD only... NVIDIA coming once I can actually get my hands on a system
-        };
+        if let Ok(r) = util::file_read(&d.path().join("mem_info_vram_total")) {
+            gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+        }
 
         gpus.push(gpu);
     }

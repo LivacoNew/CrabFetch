@@ -160,7 +160,6 @@ fn calc_max_title_length(config: &Configuration, known_outputs: &mut ModuleOutpu
         }
     }
 
-    println!("{res}");
     res
 }
 // This is done here simply to make the main function not as indented of a mess, it's abstracted into here

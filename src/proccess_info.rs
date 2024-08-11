@@ -2,13 +2,37 @@
 
 use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::parent_id};
 
+// https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html
+#[derive(Clone)]
+pub struct ProcessStatus {
+    pub pid: u32,
+    pub comm: String,
+    pub ppid: u32
+}
+impl ProcessStatus {
+    pub fn from_stat_file(contents: String) -> Self {
+        let split_space: Vec<&str> = contents.split(' ').collect();
+        
+        let lower_comm: usize = contents.find('(').unwrap();
+        let upper_comm: usize = contents.find(')').unwrap() + 1;
+
+        let ppid: u32 = contents[upper_comm..].split(' ').collect::<Vec<&str>>().get(2).unwrap().parse().unwrap();
+        
+        Self {
+            pid: split_space[0].parse().unwrap(),
+            comm: contents[lower_comm..upper_comm].to_string(),
+            ppid
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct ProcessInfo {
     pub pid: u32,
     process_name: Option<String>,
     exe: Option<String>,
     cmdline: Option<Vec<String>>,
-    stat: Option<Vec<String>>,
+    stat: Option<ProcessStatus>,
 
     path: PathBuf
 }
@@ -91,9 +115,9 @@ impl ProcessInfo {
         }
     }
 
-    pub fn get_stat(&mut self) -> Result<Vec<String>, String> {
+    pub fn get_stat(&mut self) -> Result<ProcessStatus, String> {
         match &self.stat {
-            Some(r) => Ok(r.to_vec()),
+            Some(r) => Ok(r.clone()),
             None => {
                 let mut file: File = match File::open(self.path.join("stat")) {
                     Ok(r) => r,
@@ -105,18 +129,15 @@ impl ProcessInfo {
                     Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({})", e))
                 }
                 
-                self.stat = Some(contents.split(' ').map(|x| x.to_string()).collect());
-                Ok(self.stat.as_ref().unwrap().to_vec())
+                self.stat = Some(ProcessStatus::from_stat_file(contents));
+                Ok(self.stat.as_ref().unwrap().clone())
             }
         }
     }
 
     pub fn get_parent_pid(&mut self) -> Result<u32, String> {
         let stat = self.get_stat()?;
-        match stat.get(3) {
-            Some(r) => Ok(r.parse().unwrap()),
-            None => Err("Unable to find parent PID".to_string()),
-        }
+        Ok(stat.ppid)
     }
 
     pub fn get_parent_process(&mut self) -> Result<ProcessInfo, String> {

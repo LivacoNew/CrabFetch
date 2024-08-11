@@ -77,7 +77,8 @@ const KNOWN_TERMS: &[&str] = &[
     "hyper",
     "wezterm",
     "gnome-terminal-server",
-    "qterminal"
+    "qterminal",
+    "tmux"
 ];
 
 pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {

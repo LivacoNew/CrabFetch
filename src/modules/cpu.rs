@@ -23,7 +23,8 @@ pub struct CPUConfiguration {
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
     pub format: String,
-    pub decimal_places: Option<u32>
+    pub decimal_places: Option<u32>,
+    pub remove_trailing_processor: bool
 }
 
 impl Module for CPUInfo {
@@ -71,7 +72,7 @@ impl Module for CPUInfo {
     }
 }
 
-pub fn get_cpu() -> Result<CPUInfo, ModuleError> {
+pub fn get_cpu(remove_trailing_processer: bool) -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
     // This ones split into 2 as theres a lot to parse
     match get_basic_info(&mut cpu) {
@@ -82,6 +83,26 @@ pub fn get_cpu() -> Result<CPUInfo, ModuleError> {
         Ok(_) => {},
         Err(e) => return Err(e)
     };
+
+    if remove_trailing_processer {
+        // Tried doing this with Regex but it added 400 micro secs so fuck that shit
+        let loc: usize = match cpu.name.find("-Core Processor") {
+            Some(r) => r,
+            None => return Ok(cpu), // ignore it
+        };
+
+        // Find the last space
+        let search: &str = &cpu.name[..loc];
+        let mut space_index: usize = 0;
+        for (i, x) in search.chars().enumerate() {
+            if x == ' ' && space_index < i {
+                space_index = i;
+            }
+        }
+
+        let replace_me: &str = &cpu.name[space_index..];
+        cpu.name = cpu.name.replace(replace_me, "");
+    }
 
     Ok(cpu)
 }

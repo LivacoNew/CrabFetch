@@ -208,6 +208,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("cpu.title", "CPU").unwrap();
     builder = builder.set_default("cpu.format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
+    builder = builder.set_default("cpu.remove_trailing_processor", true).unwrap();
 
     builder = builder.set_default("gpu.amd_accuracy", true).unwrap();
     builder = builder.set_default("gpu.ignore_disabled_gpus", true).unwrap();
@@ -573,6 +574,10 @@ title = "CPU"
 # {max_clock_ghz} -> The maximum clock speed, in GHz.
 # {arch} -> The architecture of your CPU.
 format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
+
+# Whether to attempt to remove any trailing "x-Core Processor" left in the branding name by the manufacturer
+# May not be perfect, disable and report an issue if output looks odd.
+remove_trailing_processor = true
 
 
 [gpu]

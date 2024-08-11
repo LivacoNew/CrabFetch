@@ -393,7 +393,7 @@ fn main() {
             "cpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.cpu.is_none() {
-                    known_outputs.cpu = Some(cpu::get_cpu());
+                    known_outputs.cpu = Some(cpu::get_cpu(config.cpu.remove_trailing_processor));
                 }
                 match known_outputs.cpu.as_ref().unwrap() {
                     Ok(cpu) => output.push(cpu.style(&config, max_title_length)),

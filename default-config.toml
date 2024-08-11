@@ -140,6 +140,10 @@ title = "CPU"
 # {arch} -> The architecture of your CPU.
 format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
+# Whether to attempt to remove any trailing "x-Core Processor" left in the branding name by the manufacturer
+# May not be perfect, disable and report an issue if output looks odd.
+remove_trailing_processor = true
+
 
 [gpu]
 # Whether to try to search a separate AMD specific file to try to improve accuracy on AMD GPU's 

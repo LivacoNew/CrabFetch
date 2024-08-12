@@ -536,7 +536,7 @@ fn main() {
             "os" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.os.is_none() {
-                    known_outputs.os = Some(os::get_os());
+                    known_outputs.os = Some(os::get_os(&config));
                 }
                 match known_outputs.os.as_ref().unwrap() {
                     Ok(os) => {
@@ -859,7 +859,7 @@ fn main() {
     if config.ascii.display {
         if known_outputs.os.is_none() {
             let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-            known_outputs.os = Some(os::get_os());
+            known_outputs.os = Some(os::get_os(&config));
             print_bench_time(args.benchmark, args.benchmark_warn, "OS (for ASCII)", os_bench);
         }
         if known_outputs.os.as_ref().unwrap().is_ok() {

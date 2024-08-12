@@ -6,7 +6,7 @@ use {android_system_properties::AndroidSystemProperties, std::{process::Command,
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct OSInfo {
     distro: String,
@@ -59,7 +59,16 @@ impl Module for OSInfo {
     }
 
     fn gen_info_flags(format: &str) -> u32 {
-        todo!()
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{distro}") {
+            info_flags |= OS_INFOFLAG_DISTRO;
+        }
+        if format.contains("{kernel}") {
+            info_flags |= OS_INFOFLAG_KERNEL;
+        }
+
+        info_flags
     }
 }
 impl OSInfo {
@@ -76,8 +85,17 @@ impl OSInfo {
     }
 }
 
-pub fn get_os() -> Result<OSInfo, ModuleError> {
+const OS_INFOFLAG_DISTRO: u32 = 1;
+const OS_INFOFLAG_KERNEL: u32 = 2;
+
+pub fn get_os(config: &Configuration) -> Result<OSInfo, ModuleError> {
     let mut os: OSInfo = OSInfo::new();
+
+    let mut format: String = config.os.format.to_string();
+    if config.os.newline_kernel {
+        format.push_str(&config.os.kernel_format);
+    }
+    let info_flags: u32 = OSInfo::gen_info_flags(&format);
 
     // Android 
     #[cfg(feature = "android")]
@@ -110,27 +128,31 @@ pub fn get_os() -> Result<OSInfo, ModuleError> {
     // Grabs the kernel release from /proc/sys/kernel/osrelease
 
     // Distro
-    let contents = match util::file_read(Path::new("/etc/os-release")) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
-    };
-    for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
-        if line.starts_with("PRETTY_NAME=") {
-            os.distro = line[13..line.len() - 1].to_string();
-            continue;
-        }
-        if line.starts_with("ID=") {
-            os.distro_id = line[3..line.len()].trim().to_string();
-            continue;
+    if is_flag_set_u32(info_flags, OS_INFOFLAG_DISTRO) || config.ascii.display {
+        let contents = match util::file_read(Path::new("/etc/os-release")) {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
+        };
+        for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
+            if line.starts_with("PRETTY_NAME=") {
+                os.distro = line[13..line.len() - 1].to_string();
+                continue;
+            }
+            if line.starts_with("ID=") {
+                os.distro_id = line[3..line.len()].trim().to_string();
+                continue;
+            }
         }
     }
 
     // Kernel
-    let contents = match util::file_read(Path::new("/proc/sys/kernel/osrelease")) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
-    };
-    os.kernel = contents.trim().to_string();
+    if is_flag_set_u32(info_flags, OS_INFOFLAG_KERNEL) {
+        let contents = match util::file_read(Path::new("/proc/sys/kernel/osrelease")) {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
+        };
+        os.kernel = contents.trim().to_string();
+    }
 
     Ok(os)
 }

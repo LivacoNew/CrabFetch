@@ -673,7 +673,7 @@ fn main() {
             "player" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.player.is_none() {
-                    known_outputs.player = Some(player::get_players(&config.player.ignore));
+                    known_outputs.player = Some(player::get_players(&config));
                 }
                 match known_outputs.player.as_ref().unwrap() {
                     Ok(players) => {

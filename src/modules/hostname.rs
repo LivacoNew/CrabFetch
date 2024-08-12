@@ -4,7 +4,7 @@ use std::{env, ffi::CStr, mem, path::Path, process::Command};
 use libc::{geteuid, getpwuid, uname};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct HostnameInfo {
     username: String,
@@ -50,52 +50,74 @@ impl Module for HostnameInfo {
             .replace("{hostname}", &self.hostname)
             .to_string()
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        // model and vendor are co-dependent
+        if format.contains("{hostname}") {
+            info_flags |= HOSTNAME_INFOFLAG_HOSTNAME;
+        }
+        if format.contains("{username}") {
+            info_flags |= HOSTNAME_INFOFLAG_USERNAME;
+        }
+
+        info_flags
+    }
 }
 
-pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {
+const HOSTNAME_INFOFLAG_HOSTNAME: u32 = 1;
+const HOSTNAME_INFOFLAG_USERNAME: u32 = 2;
+
+pub fn get_hostname(config: &Configuration) -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
+    let info_flags: u32 = HostnameInfo::gen_info_flags(&config.hostname.format);
 
     // We'll try the safe way first, then the backup way
     // This is purely cus reading that env variable is faster
-    hostname.username = match env::var("USER") {
-        Ok(r) => r,
-        Err(_) => {
-            // syscall dangerous time
-            match get_username_unsafe() {
-                Ok(r) => r,
-                Err(_) => return Err(ModuleError::new("Hostname", "WARNING: Could not get username (env variable nor syscall)".to_string()))
+    if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_USERNAME) {
+        hostname.username = match env::var("USER") {
+            Ok(r) => r,
+            Err(_) => {
+                // syscall dangerous time
+                match get_username_unsafe() {
+                    Ok(r) => r,
+                    Err(_) => return Err(ModuleError::new("Hostname", "WARNING: Could not get username (env variable nor syscall)".to_string()))
+                }
             }
-        }
-    };
+        };
+    }
 
 
     // Hostname
     // Unlike username, reading the hostname data as a syscall is faster than the file
-    hostname.hostname = match get_hostname_unsafe() {
-        Ok(r) => r,
-        Err(_) => {
-            let contents = match util::file_read(Path::new("/etc/hostname")) {
-                Ok(r) => r,
-                Err(_) => {
+    if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_HOSTNAME) {
+        hostname.hostname = match get_hostname_unsafe() {
+            Ok(r) => r,
+            Err(_) => {
+                let contents = match util::file_read(Path::new("/etc/hostname")) {
+                    Ok(r) => r,
+                    Err(_) => {
+                        match backup_to_hostname_command(&mut hostname) {
+                            Ok(_) => return Ok(hostname),
+                            Err(e) => return Err(e),
+                        }
+                    },
+                };
+
+                if contents.trim().is_empty() {
                     match backup_to_hostname_command(&mut hostname) {
                         Ok(_) => return Ok(hostname),
                         Err(e) => return Err(e),
                     }
-                },
-            };
-
-            if contents.trim().is_empty() {
-                match backup_to_hostname_command(&mut hostname) {
-                    Ok(_) => return Ok(hostname),
-                    Err(e) => return Err(e),
                 }
-            }
-            contents.trim()
-                .lines()
-                .filter(|x| !x.starts_with('#'))
-                .collect()
-        },
-    };
+                contents.trim()
+                    .lines()
+                    .filter(|x| !x.starts_with('#'))
+                    .collect()
+            },
+        };
+    }
 
     Ok(hostname)
 }

@@ -5,7 +5,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -70,21 +70,56 @@ impl Module for CPUInfo {
             .replace("{max_clock_ghz}", &formatter::round((self.max_clock_mhz / 1000.0) as f64, dec_places).to_string())
             .replace("{arch}", &self.arch.to_string())
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        // Figure out the info we need to fetch
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags |= CPU_INFOFLAG_MODEL_NAME
+        }
+        if format.contains("{core_count}") {
+            info_flags |= CPU_INFOFLAG_CORES
+        }
+        if format.contains("{thread_count}") {
+            info_flags |= CPU_INFOFLAG_THREADS
+        }
+        if format.contains("{current_clock_mhz}") || format.contains("{current_clock_ghz}") {
+            info_flags |= CPU_INFOFLAG_CURRENT_CLOCK
+        }
+        if format.contains("{max_clock_mhz}") || format.contains("{max_clock_ghz}") {
+            info_flags |= CPU_INFOFLAG_MAX_CLOCK
+        }
+        if format.contains("{arch}") || format.contains("{arch}") {
+            info_flags |= CPU_INFOFLAG_ARCH
+        }
+
+        info_flags
+    }
 }
 
-pub fn get_cpu(remove_trailing_processer: bool) -> Result<CPUInfo, ModuleError> {
+const CPU_INFOFLAG_MODEL_NAME: u32 = 1;
+const CPU_INFOFLAG_CORES: u32 = 2;
+const CPU_INFOFLAG_THREADS: u32 = 4;
+const CPU_INFOFLAG_CURRENT_CLOCK: u32 = 8;
+const CPU_INFOFLAG_MAX_CLOCK: u32 = 16;
+const CPU_INFOFLAG_ARCH: u32 = 32;
+
+pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
+    let info_flags: u32 = CPUInfo::gen_info_flags(&config.cpu.format);
+
     // This ones split into 2 as theres a lot to parse
-    match get_basic_info(&mut cpu) {
+    match get_basic_info(&mut cpu, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
     };
-    match get_max_clock(&mut cpu) {
+    match get_max_clock(&mut cpu, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
     };
 
-    if remove_trailing_processer {
+    if config.cpu.remove_trailing_processor {
         // Tried doing this with Regex but it added 400 micro secs so fuck that shit
         let loc: usize = match cpu.name.find("-Core Processor") {
             Some(r) => r,
@@ -107,7 +142,7 @@ pub fn get_cpu(remove_trailing_processer: bool) -> Result<CPUInfo, ModuleError> 
     Ok(cpu)
 }
 
-fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
+fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
@@ -130,22 +165,22 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         }
 
         if first_entry {
-            if line.starts_with("model name") {
+            if line.starts_with("model name") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
                 cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
-            if line.starts_with("cpu cores") {
+            if line.starts_with("cpu cores") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CORES) {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e))),
                 }
             }
-            if line.starts_with("siblings") {
+            if line.starts_with("siblings") && is_flag_set_u32(info_flags, CPU_INFOFLAG_THREADS) {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e))),
                 }
             }
-            if line.starts_with("flags") {
+            if line.starts_with("flags") && is_flag_set_u32(info_flags, CPU_INFOFLAG_ARCH) {
                 // https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/arch/x86/include/asm/cpufeatures.h
                 for flag in line.split(": ").collect::<Vec<&str>>()[1].split(' ') {
                     // prepare for trouble
@@ -161,7 +196,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                 }
             }
         }
-        if line.starts_with("cpu MHz") {
+        if line.starts_with("cpu MHz") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CURRENT_CLOCK) {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e))),
@@ -169,7 +204,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             cpu_mhz_count += 1;
         }
     }
-    if cpu.cores == 0 {
+    if cpu.cores == 0 && is_flag_set_u32(info_flags, CPU_INFOFLAG_CORES) {
         cpu.cores = cores;
         // Backup to /sys/devices/system/cpu/present for threads too
         // Thanks to https://stackoverflow.com/a/30150409
@@ -207,7 +242,10 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     cpu.current_clock_mhz /= cpu_mhz_count as f32;
     Ok(())
 }
-fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
+fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
+    if !is_flag_set_u32(info_flags, CPU_INFOFLAG_MAX_CLOCK) {
+        return Ok(())
+    }
     // All of this is relative to /sys/devices/system/cpu/X/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS

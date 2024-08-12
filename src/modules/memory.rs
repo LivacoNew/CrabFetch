@@ -73,9 +73,15 @@ impl Module for MemoryInfo {
             .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on memory module. This should never happen, please make a bug report!")
+    }
 }
 
 pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
+    // no info flags here as while it would've had a slight benefit, all the info requires eachother anyway so
+    // it's hardly worth it
     let mut memory: MemoryInfo = MemoryInfo::new();
 
     // Fetches from /proc/meminfo

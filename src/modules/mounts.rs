@@ -7,7 +7,7 @@ use std::env;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::is_flag_set_u32, ModuleError};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -99,6 +99,25 @@ impl Module for MountInfo {
             .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{device}") {
+            info_flags |= MOUNTS_INFOFLAG_DEVICE;
+        }
+        if format.contains("{space_used}") || format.contains("bar") {
+            info_flags |= MOUNTS_INFOFLAG_SPACE_USED;
+        }
+        if format.contains("{space_avail}") {
+            info_flags |= MOUNTS_INFOFLAG_SPACE_AVAIL;
+        }
+        if format.contains("{space_total}") || format.contains("bar") {
+            info_flags |= MOUNTS_INFOFLAG_SPACE_TOTAL;
+        }
+
+        info_flags
+    }
 }
 impl MountInfo {
     pub fn is_ignored(&self, config: &Configuration) -> bool {
@@ -120,8 +139,15 @@ impl MountInfo {
     }
 }
 
+const MOUNTS_INFOFLAG_DEVICE: u32 = 1;
+const MOUNTS_INFOFLAG_SPACE_USED: u32 = 4;
+const MOUNTS_INFOFLAG_SPACE_TOTAL: u32 = 8;
+const MOUNTS_INFOFLAG_SPACE_AVAIL: u32 = 16;
+
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
+    // title is tagged onto the end here to account for the title placeholders
+    let info_flags: u32 = MountInfo::gen_info_flags(&format!("{}{}", config.mounts.format, config.mounts.title));
 
     #[cfg(not(feature = "android"))]
     let path: &str = "/etc/mtab";
@@ -159,21 +185,26 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         let mut mount: MountInfo = MountInfo::new();
         mount.mount = mount_point.to_string();
         mount.filesystem = entries[2].to_string();
+        if mount.is_ignored(config) {
+            continue;
+        }
 
         // Convert the device entries to device names
         // TODO: support LABEL and PARTLABEL
-        let device_name: &str = entries[0];
-        mount.device = match get_device_name(device_name) {
-            Some(r) => r,
-            None => continue, // ????
-        };
+        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_DEVICE) {
+            let device_name: &str = entries[0];
+            mount.device = match get_device_name(device_name) {
+                Some(r) => r,
+                None => continue, // ????
+            };
+        }
 
         // statfs to get space data
-        if !mount.is_ignored(config) {
+        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL) {
             let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
             if statfs.is_err() {
                 continue
-                // return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
+                    // return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
             }
         }
 

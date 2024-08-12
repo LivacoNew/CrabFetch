@@ -376,7 +376,7 @@ fn main() {
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.hostname.is_none() {
-                    known_outputs.hostname = Some(hostname::get_hostname());
+                    known_outputs.hostname = Some(hostname::get_hostname(&config));
                 }
                 match known_outputs.hostname.as_ref().unwrap() {
                     Ok(hostname) => output.push(hostname.style(&config, max_title_length)),
@@ -393,7 +393,7 @@ fn main() {
             "cpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.cpu.is_none() {
-                    known_outputs.cpu = Some(cpu::get_cpu(config.cpu.remove_trailing_processor));
+                    known_outputs.cpu = Some(cpu::get_cpu(&config));
                 }
                 match known_outputs.cpu.as_ref().unwrap() {
                     Ok(cpu) => output.push(cpu.style(&config, max_title_length)),
@@ -410,7 +410,7 @@ fn main() {
             "gpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.gpu.is_none() {
-                    known_outputs.gpu = Some(gpu::get_gpus(config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus));
+                    known_outputs.gpu = Some(gpu::get_gpus(&config));
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
                     Ok(gpus) => {
@@ -493,7 +493,7 @@ fn main() {
             "host" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.host.is_none() {
-                    known_outputs.host = Some(host::get_host());
+                    known_outputs.host = Some(host::get_host(&config));
                 }
                 match known_outputs.host.as_ref().unwrap() {
                     Ok(host) => {
@@ -536,7 +536,7 @@ fn main() {
             "os" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.os.is_none() {
-                    known_outputs.os = Some(os::get_os());
+                    known_outputs.os = Some(os::get_os(&config));
                 }
                 match known_outputs.os.as_ref().unwrap() {
                     Ok(os) => {
@@ -566,7 +566,7 @@ fn main() {
             "desktop" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.desktop.is_none() {
-                    known_outputs.desktop = Some(desktop::get_desktop());
+                    known_outputs.desktop = Some(desktop::get_desktop(&config));
                 }
                 match known_outputs.desktop.as_ref().unwrap() {
                     Ok(desktop) => output.push(desktop.style(&config, max_title_length)),
@@ -583,7 +583,7 @@ fn main() {
             "terminal" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.terminal.is_none() {
-                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts, config.terminal.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.terminal = Some(terminal::get_terminal(&config, &package_managers));
                 }
                 match known_outputs.terminal.as_ref().unwrap() {
                     Ok(terminal) => output.push(terminal.style(&config, max_title_length)),
@@ -600,7 +600,7 @@ fn main() {
             "shell" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.shell.is_none() {
-                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell, config.shell.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.shell = Some(shell::get_shell(&config, &package_managers));
                 }
                 match known_outputs.shell.as_ref().unwrap() {
                     Ok(shell) => output.push(shell.style(&config, max_title_length)),
@@ -673,7 +673,7 @@ fn main() {
             "player" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.player.is_none() {
-                    known_outputs.player = Some(player::get_players(&config.player.ignore));
+                    known_outputs.player = Some(player::get_players(&config));
                 }
                 match known_outputs.player.as_ref().unwrap() {
                     Ok(players) => {
@@ -694,7 +694,7 @@ fn main() {
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy, config.editor.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.editor = Some(editor::get_editor(&config, &package_managers));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
                     Ok(editor) => output.push(editor.style(&config, max_title_length)),
@@ -711,7 +711,7 @@ fn main() {
             "initsys" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.initsys.is_none() {
-                    known_outputs.initsys = Some(initsys::get_init_system(config.initsys.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.initsys = Some(initsys::get_init_system(&config, &package_managers));
                 }
                 match known_outputs.initsys.as_ref().unwrap() {
                     Ok(init) => output.push(init.style(&config, max_title_length)),
@@ -859,7 +859,7 @@ fn main() {
     if config.ascii.display {
         if known_outputs.os.is_none() {
             let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-            known_outputs.os = Some(os::get_os());
+            known_outputs.os = Some(os::get_os(&config));
             print_bench_time(args.benchmark, args.benchmark_warn, "OS (for ASCII)", os_bench);
         }
         if known_outputs.os.as_ref().unwrap().is_ok() {

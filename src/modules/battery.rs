@@ -73,6 +73,10 @@ impl Module for BatteryInfo {
             .replace("{percentage}", &self.percentage.to_string())
             .replace("{bar}", &bar)
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on battery module. This should never happen, please make a bug report!")
+    }
 }
 
 pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {

@@ -3,7 +3,7 @@ use std::time::Duration;
 use dbus::{arg, blocking::{stdintf::org_freedesktop_dbus::Properties, Connection, Proxy}};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
 pub struct PlayerInfo {
     player: String,
@@ -71,10 +71,32 @@ impl Module for PlayerInfo {
             .replace("{player}", &self.player)
             .replace("{status}", &self.status)
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{track}") || format.contains("{album}") || format.contains("{track_artists}") || format.contains("{album_artists}") {
+            info_flags |= PLAYER_INFOFLAG_METADATA;
+        }
+        if format.contains("{player}") {
+            info_flags |= PLAYER_INFOFLAG_PLAYER;
+        }
+        if format.contains("{status}") {
+            info_flags |= PLAYER_INFOFLAG_STATUS;
+        }
+
+        info_flags
+    }
 }
 
-pub fn get_players(ignore: &Vec<String>) -> Result<Vec<PlayerInfo>, ModuleError> {
+const PLAYER_INFOFLAG_METADATA: u32 = 1;
+const PLAYER_INFOFLAG_PLAYER: u32 = 2;
+const PLAYER_INFOFLAG_STATUS: u32 = 4;
+
+pub fn get_players(config: &Configuration) -> Result<Vec<PlayerInfo>, ModuleError> {
     let mut players: Vec<PlayerInfo> = Vec::new();
+    // title is tagged onto the end here to account for the title placeholders
+    let info_flags: u32 = PlayerInfo::gen_info_flags(&format!("{}{}", config.player.format, config.player.title));
 
     let conn: Connection = match Connection::new_session() {
         Ok(r) => r,
@@ -87,43 +109,60 @@ pub fn get_players(ignore: &Vec<String>) -> Result<Vec<PlayerInfo>, ModuleError>
     };
 
     for player in found_players {
-        let name: String = player.split(".").last().unwrap().to_string();
-        if ignore.contains(&name) {
+        let name: String = player.split('.').last().unwrap().to_string();
+        if config.player.ignore.contains(&name) {
             continue // ignored
         }
 
         let proxy: Proxy<'_, &Connection> = conn.with_proxy(&player, "/org/mpris/MediaPlayer2", Duration::from_secs(1));
     
-        let player_metadata: arg::PropMap = match req_player_property(&proxy, "Metadata") {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Player", format!("Unable to fetch metadata for player: {}", e)))
+        let player_metadata: Option<arg::PropMap> = if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_METADATA) {
+            match req_player_property(&proxy, "Metadata") {
+                Ok(r) => Some(r),
+                Err(e) => return Err(ModuleError::new("Player", format!("Unable to fetch metadata for player: {}", e)))
+            }
+        } else {
+            None
         };
 
+        // mess
         let info: PlayerInfo = PlayerInfo {
-            player: match req_player_identity(&proxy) {
-                Ok(r) => r.to_string(),
-                Err(_) => "Unknown".to_string(),
-            },
-            album: match arg::prop_cast::<String>(&player_metadata, "xesam:album") {
-                Some(r) => r.to_string(),
-                None => "Unknown".to_string(),
-            },
-            track: match arg::prop_cast::<String>(&player_metadata, "xesam:title") {
-                Some(r) => r.to_string(),
-                None => "Unknown".to_string(),
-            },
-            track_artists: match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:artist") {
-                Some(r) => r.to_vec(),
-                None => vec!["Unknown".to_string()],
-            },
-            album_artists: match arg::prop_cast::<Vec<String>>(&player_metadata, "xesam:albumArtist") {
-                Some(r) => r.to_vec(),
-                None => vec!["Unknown".to_string()],
-            },
-            status: match req_player_property::<String>(&proxy, "PlaybackStatus") {
-                Ok(r) => r,
-                Err(_) => "Unknown".to_string(),
-            },
+            player: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_PLAYER) {
+                match req_player_identity(&proxy) {
+                    Ok(r) => r.to_string(),
+                    Err(_) => "Unknown".to_string(),
+                }
+            } else {"Unknown".to_string()},
+            album: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_METADATA) && player_metadata.is_some() {
+                match arg::prop_cast::<String>(player_metadata.as_ref().unwrap(), "xesam:album") {
+                    Some(r) => r.to_string(),
+                    None => "Unknown".to_string(),
+                }
+            } else {"Unknown".to_string()},
+            track: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_METADATA) && player_metadata.is_some() {
+                match arg::prop_cast::<String>(player_metadata.as_ref().unwrap(), "xesam:title") {
+                    Some(r) => r.to_string(),
+                    None => "Unknown".to_string(),
+                }
+            } else {"Unknown".to_string()},
+            track_artists: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_METADATA) && player_metadata.is_some() {
+                match arg::prop_cast::<Vec<String>>(player_metadata.as_ref().unwrap(), "xesam:artist") {
+                    Some(r) => r.to_vec(),
+                    None => vec!["Unknown".to_string()],
+                }
+            } else {vec!["Unknown".to_string()]},
+            album_artists: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_METADATA) && player_metadata.is_some() {
+                match arg::prop_cast::<Vec<String>>(player_metadata.as_ref().unwrap(), "xesam:albumArtist") {
+                    Some(r) => r.to_vec(),
+                    None => vec!["Unknown".to_string()],
+                }
+            } else {vec!["Unknown".to_string()]},
+            status: if is_flag_set_u32(info_flags, PLAYER_INFOFLAG_STATUS) {
+                match req_player_property::<String>(&proxy, "PlaybackStatus") {
+                    Ok(r) => r,
+                    Err(_) => "Unknown".to_string(),
+                }
+            } else {"Unknown".to_string()},
         };
         players.push(info);
     }

@@ -3,7 +3,7 @@ use std::fs;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, versions, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, util::is_flag_set_u32, versions, ModuleError};
 
 pub struct InitSystemInfo {
     name: String,
@@ -52,23 +52,52 @@ impl Module for InitSystemInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags |= INITSYS_INFOFLAG_NAME;
+            info_flags |= INITSYS_INFOFLAG_PATH // deps on path
+        }
+        if format.contains("{path}") {
+            info_flags |= INITSYS_INFOFLAG_PATH
+        }
+        if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= INITSYS_INFOFLAG_NAME;
+            info_flags |= INITSYS_INFOFLAG_PATH;
+            info_flags |= INITSYS_INFOFLAG_VERSION
+        }
+
+        info_flags
+    }
 }
 
-pub fn get_init_system(fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<InitSystemInfo, ModuleError> {
+const INITSYS_INFOFLAG_NAME: u32 = 1;
+const INITSYS_INFOFLAG_PATH: u32 = 2;
+const INITSYS_INFOFLAG_VERSION: u32 = 4;
+
+pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -> Result<InitSystemInfo, ModuleError> {
     let mut initsys: InitSystemInfo = InitSystemInfo::new();
+    let info_flags: u32 = InitSystemInfo::gen_info_flags(&config.initsys.format);
 
     // Just gets the symlink from /sbin/init 
-    initsys.path = match fs::canonicalize("/sbin/init") {
-        Ok(r) => r.display().to_string(),
-        Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize /sbin/init symlink: {}", e)))
-    };
-    initsys.name = initsys.path.split('/')
+    if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_PATH) {
+        initsys.path = match fs::canonicalize("/sbin/init") {
+            Ok(r) => r.display().to_string(),
+            Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize /sbin/init symlink: {}", e)))
+        };
+    }
+    if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_NAME) {
+        initsys.name = initsys.path.split('/')
             .last()
             .unwrap()
             .to_string();
+    }
 
-    if fetch_version {
-        initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
+    if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_VERSION) {
+        initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(initsys)

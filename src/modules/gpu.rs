@@ -3,7 +3,7 @@ use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader}, path::Path};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 #[derive(Clone)]
 pub struct GPUInfo {
@@ -68,6 +68,25 @@ impl Module for GPUInfo {
             .replace("{model}", &self.model)
             .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        // model and vendor are co-dependent
+        if format.contains("{vendor}") {
+            info_flags |= GPU_INFOFLAG_VENDOR;
+            info_flags |= GPU_INFOFLAG_MODEL;
+        }
+        if format.contains("{model}") {
+            info_flags |= GPU_INFOFLAG_MODEL;
+            info_flags |= GPU_INFOFLAG_VENDOR;
+        }
+        if format.contains("{vram}") {
+            info_flags |= GPU_INFOFLAG_VRAM
+        }
+
+        info_flags
+    }
 }
 impl GPUInfo {
     pub fn set_index(&mut self, index: u8) {
@@ -75,10 +94,15 @@ impl GPUInfo {
     }
 }
 
-pub fn get_gpus(amd_accuracy: bool, ignore_disabled_gpus: bool) -> Result<Vec<GPUInfo>, ModuleError> {
-    let mut gpus: Vec<GPUInfo> = Vec::new();
+const GPU_INFOFLAG_VENDOR: u32 = 1;
+const GPU_INFOFLAG_MODEL: u32 = 2;
+const GPU_INFOFLAG_VRAM: u32 = 4;
 
-    match fill_from_pcisysfile(&mut gpus, amd_accuracy, ignore_disabled_gpus) {
+pub fn get_gpus(config: &Configuration) -> Result<Vec<GPUInfo>, ModuleError> {
+    let mut gpus: Vec<GPUInfo> = Vec::new();
+    let info_flags: u32 = GPUInfo::gen_info_flags(&config.gpu.format);
+
+    match fill_from_pcisysfile(&mut gpus, config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
     }
@@ -86,7 +110,7 @@ pub fn get_gpus(amd_accuracy: bool, ignore_disabled_gpus: bool) -> Result<Vec<GP
     Ok(gpus)
 }
 
-fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disabled: bool) -> Result<(), ModuleError> {
+fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disabled: bool, info_flags: u32) -> Result<(), ModuleError> {
     // This scans /sys/bus/pci/devices/ and checks the class to find the first display adapter it
     // can
     // This needs expanded at a later date
@@ -140,34 +164,39 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
             };
         }
 
-        // Vendor/Device
-        let vendor: String = match util::file_read(&d.path().join("vendor")) {
-            Ok(r) => r[2..].trim().to_string(),
-            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-        };
-        let device: String = match util::file_read(&d.path().join("device")) {
-            Ok(r) => r[2..].trim().to_string(),
-            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
-        };
-        let device_data: (String, String) = match search_pci_ids(&vendor, &device) {
-            Ok(r) => r,
-            Err(e) => return Err(e)
-        };
-
         let mut gpu: GPUInfo = GPUInfo::new();
-        gpu.vendor = device_data.0;
-        if vendor == "1002" && amd_accuracy { // AMD
-            gpu.model = match search_amd_model(&device)? {
-                Some(r) => r,
-                None => device_data.1,
+        // Vendor/Device
+        if is_flag_set_u32(info_flags, GPU_INFOFLAG_MODEL) || is_flag_set_u32(info_flags, GPU_INFOFLAG_VENDOR) {
+            let vendor_id: String = match util::file_read(&d.path().join("vendor")) {
+                Ok(r) => r[2..].trim().to_string(),
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
             };
-        } else {
-            gpu.model = device_data.1;
+            let device_id: String = match util::file_read(&d.path().join("device")) {
+                Ok(r) => r[2..].trim().to_string(),
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+            };
+            let device_data: (String, String) = match search_pci_ids(&vendor_id, &device_id) {
+                Ok(r) => r,
+                Err(e) => return Err(e)
+            };
+
+            // TODO: Just directly search AMD, not the first pci.ids file
+            gpu.vendor = device_data.0;
+            if vendor_id == "1002" && amd_accuracy { // AMD
+                gpu.model = match search_amd_model(&device_id)? {
+                    Some(r) => r,
+                    None => device_data.1,
+                };
+            } else {
+                gpu.model = device_data.1;
+            }
         }
 
         // Finally, Vram
-        if let Ok(r) = util::file_read(&d.path().join("mem_info_vram_total")) {
-            gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+        if is_flag_set_u32(info_flags, GPU_INFOFLAG_VRAM) {
+            if let Ok(r) = util::file_read(&d.path().join("mem_info_vram_total")) {
+                gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+            }
         }
 
         gpus.push(gpu);

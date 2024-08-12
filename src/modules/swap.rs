@@ -73,10 +73,15 @@ impl Module for SwapInfo {
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on swap module. This should never happen, please make a bug report!")
+    }
 }
 
 pub fn get_swap(sysinfo: &mut Option<libc::sysinfo>) -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
+    // no info flags here as it's all dependent on eachother
 
     let sysinfo_unwrap: libc::sysinfo = sysinfo.unwrap_or_else(|| {
         unsafe {

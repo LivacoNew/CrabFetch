@@ -47,6 +47,10 @@ impl Module for UptimeInfo {
         let format: String = config.uptime.format.clone().unwrap_or("{time}".to_string());
         format.replace("{time}", &format_duration(self.uptime).to_string())
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on uptime module. This should never happen, please make a bug report!")
+    }
 }
 
 pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, ModuleError> {

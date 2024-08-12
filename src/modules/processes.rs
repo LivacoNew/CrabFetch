@@ -46,6 +46,10 @@ impl Module for ProcessesInfo {
         let format: String = config.processes.format.clone().unwrap_or("{count}".to_string());
         format.replace("{count}", &self.count.to_string())
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on processes module. This should never happen, please make a bug report!")
+    }
 }
 
 pub fn get_process_count() -> Result<ProcessesInfo, ModuleError> {

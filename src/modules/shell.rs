@@ -5,7 +5,7 @@ use std::{fs::File, io::Read};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, proccess_info::ProcessInfo, versions, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
 
 pub struct ShellInfo {
     name: String,
@@ -55,7 +55,31 @@ impl Module for ShellInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags |= SHELL_INFOFLAG_NAME;
+            info_flags |= SHELL_INFOFLAG_PATH // deps on path
+        }
+        if format.contains("{path}") {
+            info_flags |= SHELL_INFOFLAG_PATH
+        }
+        if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= SHELL_INFOFLAG_NAME;
+            info_flags |= SHELL_INFOFLAG_PATH;
+            info_flags |= SHELL_INFOFLAG_VERSION
+        }
+
+        info_flags
+    }
 }
+
+const SHELL_INFOFLAG_NAME: u32 = 1;
+const SHELL_INFOFLAG_PATH: u32 = 2;
+const SHELL_INFOFLAG_VERSION: u32 = 4;
 
 // A list of known shells, the idea being that we keep going up in parent processes until we
 // encouter one
@@ -82,11 +106,12 @@ pub const KNOWN_SHELLS: &[&str] = &[
     "xonsh"
 ];
 
-pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
+pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
+    let info_flags: u32 = ShellInfo::gen_info_flags(&config.shell.format);
 
-    if show_default_shell {
-        return get_default_shell(fetch_version, use_checksums, package_managers);
+    if config.shell.show_default_shell {
+        return get_default_shell(info_flags, config.use_version_checksums, package_managers);
     }
 
     // Goes up until we hit one of our known shells
@@ -108,8 +133,12 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} cmdline - {}", parent_pid, e))),
             };
-            shell.path = cmdline[1].to_string();
-            shell.name = shell.path.split('/').last().unwrap().to_string();
+            if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
+                shell.path = cmdline[1].to_string();
+            }
+            if is_flag_set_u32(info_flags, SHELL_INFOFLAG_NAME) {
+                shell.name = shell.path.split('/').last().unwrap().to_string();
+            }
         }
         #[cfg(not(feature = "android"))]
         {
@@ -134,40 +163,46 @@ pub fn get_shell(show_default_shell: bool, fetch_version: bool, use_checksums: b
     // Android already has the path/name, regular people don't tho
     #[cfg(not(feature = "android"))]
     {
-        shell.path = match parent_process.get_exe(true) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {}", e)))
-        };
+        if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
+            shell.path = match parent_process.get_exe(true) {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {}", e)))
+            };
+        }
     }
 
-    if fetch_version {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
+    if is_flag_set_u32(info_flags, SHELL_INFOFLAG_VERSION) {
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)
 }
 
-fn get_default_shell(fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
+fn get_default_shell(info_flags: u32, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead
     // too :)
     // This definitely isn't the old $SHELL grabbing code, no sir.
-    shell.path = match env::var("SHELL") {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
-    };
-    shell.path = match which::which(&shell.path) {
-        Ok(r) => r.display().to_string(),
-        Err(e) => return Err(ModuleError::new("Shell", format!("Could not find 'which' for {}: {}", shell.path, e)))
-    };
-    shell.name = shell.path.split('/')
-        .collect::<Vec<&str>>()
-        .last()
-        .unwrap()
-        .to_string();
+    if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
+        shell.path = match env::var("SHELL") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
+        };
+        shell.path = match which::which(&shell.path) {
+            Ok(r) => r.display().to_string(),
+            Err(e) => return Err(ModuleError::new("Shell", format!("Could not find 'which' for {}: {}", shell.path, e)))
+        };
+    }
+    if is_flag_set_u32(info_flags, SHELL_INFOFLAG_NAME) {
+        shell.name = shell.path.split('/')
+            .collect::<Vec<&str>>()
+            .last()
+            .unwrap()
+            .to_string();
+    }
 
-    if fetch_version {
+    if is_flag_set_u32(info_flags, SHELL_INFOFLAG_VERSION) {
         shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 

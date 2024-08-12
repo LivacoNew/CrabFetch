@@ -88,6 +88,10 @@ impl Module for PackagesInfo {
         // if it does, your fucked, and panic time ensures
         panic!("Packages should never fail, something's wrong. Report this to my GitHub please.");
     }
+
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on packages module. This should never happen, please make a bug report!")
+    }
 }
 
 pub struct ManagerInfo {

@@ -5,7 +5,7 @@ use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
 use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{self, ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -127,6 +127,33 @@ impl Module for DisplayInfo {
             .replace("{height}", &self.height.to_string())
             .replace("{refresh_rate}", &refresh_rate)
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME
+        }
+        if format.contains("{make}") {
+            info_flags |= DISPLAYS_INFOFLAG_MAKE;
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME // DRM name is required for EDID
+        }
+        if format.contains("{model}") {
+            info_flags |= DISPLAYS_INFOFLAG_MODEL;
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME // DRM name is required for EDID
+        }
+        if format.contains("{width}") {
+            info_flags |= DISPLAYS_INFOFLAG_WIDTH
+        }
+        if format.contains("{height}") {
+            info_flags |= DISPLAYS_INFOFLAG_HEIGHT
+        }
+        if format.contains("{refresh_rate}") {
+            info_flags |= DISPLAYS_INFOFLAG_REFRESH_RATE
+        }
+
+        info_flags
+    }
 }
 impl DisplayInfo {
     // Used by calc_max_title_length
@@ -139,23 +166,33 @@ impl DisplayInfo {
     }
 }
 
+const DISPLAYS_INFOFLAG_DRM_NAME: u32 = 1;
+const DISPLAYS_INFOFLAG_MAKE: u32 = 2;
+const DISPLAYS_INFOFLAG_MODEL: u32 = 4;
+const DISPLAYS_INFOFLAG_WIDTH: u32 = 8;
+const DISPLAYS_INFOFLAG_HEIGHT: u32 = 16;
+const DISPLAYS_INFOFLAG_REFRESH_RATE: u32 = 32;
+
 pub fn get_displays(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError> {
+    // title is tagged onto the end here to account for the title placeholders
+    let info_flags: u32 = DisplayInfo::gen_info_flags(&format!("{}{}", config.displays.format, config.displays.title));
+
     // Good news, during my college final deadline hell over the past 2 months, I learned how to
     // use a display server connection!
     
     // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
     // can report any string and break if someone's dumb enough to do that
     if env::var("WAYLAND_DISPLAY").is_ok() {
-        fetch_wayland(config)
+        fetch_wayland(config, info_flags)
     } else if env::var("DISPLAY").is_ok() {
-        fetch_xorg()
+        fetch_xorg(info_flags)
     } else {
         Err(ModuleError::new("Display", "Could not identify desktop session type.".to_string()))
     }
 }
 
 
-fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
+fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     // This has really opened my eyes as to why more pieces of software haven't swapped over to
     // Wayland yet, it's so much more convoluted at times compared to X11
     let (conn, screen_num) = match x11rb::connect(None) {
@@ -192,18 +229,24 @@ fn fetch_xorg() -> Result<Vec<DisplayInfo>, ModuleError> {
     let mut displays: Vec<DisplayInfo> = Vec::new();
     for monitor in monitors {
         // Get the DRM name 
-        let drm_name: String = match xproto::get_atom_name(&conn, monitor.name) {
-            Ok(r) => match r.reply() {
-                Ok(r) => String::from_utf8(r.name).unwrap(),
+        let mut drm_name: String = "Unknown".to_string();
+        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_DRM_NAME) {
+            drm_name = match xproto::get_atom_name(&conn, monitor.name) {
+                Ok(r) => match r.reply() {
+                    Ok(r) => String::from_utf8(r.name).unwrap(),
+                    Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
+                },
                 Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
-            },
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
-        };
+            };
+        }
         // Find the make/model from the EDID
-        let (make, model): (String, String) = match get_edid_makemodel(&drm_name) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get make/model for monitor {}: {}", monitor.name, e))),
-        };
+        let (mut make, mut model): (String, String) = ("Unknown".to_string(), "Unknown".to_string());
+        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
+            (make, model) = match get_edid_makemodel(&drm_name) {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get make/model for monitor {}: {}", monitor.name, e))),
+            };
+        }
 
         let display = DisplayInfo {
             name: drm_name,
@@ -375,7 +418,9 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         }
     }
 }
-fn fetch_wayland(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError> {
+// NOTE: Wayland will ignore info flags, as all the events have to be passed through *regardless*
+// It will only use them for make/model with EDID, nothing else
+fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     let conn: Connection = match Connection::connect_to_env() {
         Ok(r) => r,
         Err(e) => {
@@ -421,10 +466,12 @@ fn fetch_wayland(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError
             x.scale_resolution();
         }
         
-        (x.make, x.model) = match get_edid_makemodel(&x.name) {
-            Ok(r) => r,
-            Err(_) => return, // We're in a closure, can't return an error
-        };
+        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
+            (x.make, x.model) = match get_edid_makemodel(&x.name) {
+                Ok(r) => r,
+                Err(_) => return, // We're in a closure, can't return an error
+            };
+        }
     });
 
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));

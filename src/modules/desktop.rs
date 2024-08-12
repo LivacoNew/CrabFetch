@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
 pub struct DesktopInfo {
     desktop: String,
@@ -48,31 +48,52 @@ impl Module for DesktopInfo {
         config.desktop.format.replace("{desktop}", &self.desktop)
             .replace("{display_type}", &self.display_type)
     }
+
+    fn gen_info_flags(format: &str) -> u32 {
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{desktop}") {
+            info_flags |= DESKTOP_INFOFLAG_DESKTOP
+        }
+        if format.contains("{display_type}") {
+            info_flags |= DESKTOP_INFOFLAG_DISPLAY_TYPE
+        }
+
+        info_flags
+    }
 }
 
-pub fn get_desktop() -> Result<DesktopInfo, ModuleError> {
+const DESKTOP_INFOFLAG_DESKTOP: u32 = 1;
+const DESKTOP_INFOFLAG_DISPLAY_TYPE: u32 = 2;
+
+pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
+    let info_flags: u32 = DesktopInfo::gen_info_flags(&config.desktop.format);
 
-    desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
-    };
+    if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DESKTOP) {
+        desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
+        };
+    }
 
-    desktop.display_type = match env::var("XDG_SESSION_TYPE") {
-        Ok(r) => r,
-        Err(_) => {
-            // Check if WAYLAND_DISPLAY is set 
-            // If not, we'll check if DISPLAY is set 
-            // Otherwise we have no idea
-            if env::var("WAYLAND_DISPLAY").is_ok() {
-                "wayland".to_string()
-            } else if env::var("DISPLAY").is_ok() {
-                "x11".to_string()
-            } else {
-                return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
+    if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DISPLAY_TYPE) {
+        desktop.display_type = match env::var("XDG_SESSION_TYPE") {
+            Ok(r) => r,
+            Err(_) => {
+                // Check if WAYLAND_DISPLAY is set 
+                // If not, we'll check if DISPLAY is set 
+                // Otherwise we have no idea
+                if env::var("WAYLAND_DISPLAY").is_ok() {
+                    "wayland".to_string()
+                } else if env::var("DISPLAY").is_ok() {
+                    "x11".to_string()
+                } else {
+                    return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
+                }
             }
-        }
-    };
+        };
+    }
 
     Ok(desktop)
 }

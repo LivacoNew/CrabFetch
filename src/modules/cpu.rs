@@ -71,7 +71,7 @@ impl Module for CPUInfo {
             .replace("{arch}", &self.arch.to_string())
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         // Figure out the info we need to fetch
         let mut info_flags: u32 = 0;
 
@@ -107,7 +107,7 @@ const CPU_INFOFLAG_ARCH: u32 = 32;
 
 pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
-    let info_flags: u32 = cpu.gen_info_flags(&config.cpu.format);
+    let info_flags: u32 = CPUInfo::gen_info_flags(&config.cpu.format);
 
     // This ones split into 2 as theres a lot to parse
     match get_basic_info(&mut cpu, info_flags) {

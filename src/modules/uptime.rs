@@ -48,7 +48,7 @@ impl Module for UptimeInfo {
         format.replace("{time}", &format_duration(self.uptime).to_string())
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

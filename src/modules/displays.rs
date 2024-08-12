@@ -128,7 +128,7 @@ impl Module for DisplayInfo {
             .replace("{refresh_rate}", &refresh_rate)
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         let mut info_flags: u32 = 0;
 
         if format.contains("{name}") {
@@ -174,10 +174,8 @@ const DISPLAYS_INFOFLAG_HEIGHT: u32 = 16;
 const DISPLAYS_INFOFLAG_REFRESH_RATE: u32 = 32;
 
 pub fn get_displays(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleError> {
-    // Aint gonna lie this exists just for the info_flags call
-    let displays: DisplayInfo = DisplayInfo::new();
     // title is tagged onto the end here to account for the title placeholders
-    let info_flags: u32 = displays.gen_info_flags(&format!("{}{}", config.displays.format, config.displays.title));
+    let info_flags: u32 = DisplayInfo::gen_info_flags(&format!("{}{}", config.displays.format, config.displays.title));
 
     // Good news, during my college final deadline hell over the past 2 months, I learned how to
     // use a display server connection!

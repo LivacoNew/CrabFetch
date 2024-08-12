@@ -53,7 +53,7 @@ impl Module for EditorInfo {
             .replace("{version}", &self.version)
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         let mut info_flags: u32 = 0;
 
         if format.contains("{name}") {
@@ -77,7 +77,7 @@ const EDITOR_INFOFLAG_VERSION: u32 = 4;
 
 pub fn get_editor(config: &Configuration, package_managers: &ManagerInfo) -> Result<EditorInfo, ModuleError> {
     let mut editor: EditorInfo = EditorInfo::new();
-    let info_flags: u32 = editor.gen_info_flags(&config.editor.format);
+    let info_flags: u32 = EditorInfo::gen_info_flags(&config.editor.format);
 
     let env_value: String = match env::var("EDITOR") {
         Ok(r) => r,

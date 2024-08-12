@@ -58,7 +58,7 @@ impl Module for OSInfo {
             .replace("{kernel}", &self.kernel)
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

@@ -53,7 +53,7 @@ impl Module for InitSystemInfo {
             .replace("{version}", &self.version)
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

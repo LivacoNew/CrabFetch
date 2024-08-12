@@ -51,7 +51,7 @@ impl Module for HostnameInfo {
             .to_string()
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

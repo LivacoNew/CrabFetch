@@ -89,7 +89,7 @@ impl Module for PackagesInfo {
         panic!("Packages should never fail, something's wrong. Report this to my GitHub please.");
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

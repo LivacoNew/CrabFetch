@@ -55,7 +55,7 @@ impl Module for HostInfo {
             .replace("{chassis}", &self.chassis)
     }
 
-    fn gen_info_flags(&self, format: &str) -> u32 {
+    fn gen_info_flags(format: &str) -> u32 {
         todo!()
     }
 }

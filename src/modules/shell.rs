@@ -67,6 +67,9 @@ impl Module for ShellInfo {
             info_flags |= SHELL_INFOFLAG_PATH
         }
         if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= SHELL_INFOFLAG_NAME;
+            info_flags |= SHELL_INFOFLAG_PATH;
             info_flags |= SHELL_INFOFLAG_VERSION
         }
 

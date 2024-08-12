@@ -64,6 +64,9 @@ impl Module for InitSystemInfo {
             info_flags |= INITSYS_INFOFLAG_PATH
         }
         if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= INITSYS_INFOFLAG_NAME;
+            info_flags |= INITSYS_INFOFLAG_PATH;
             info_flags |= INITSYS_INFOFLAG_VERSION
         }
 

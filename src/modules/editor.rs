@@ -64,6 +64,9 @@ impl Module for EditorInfo {
             info_flags |= EDITOR_INFOFLAG_PATH
         }
         if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= EDITOR_INFOFLAG_NAME;
+            info_flags |= EDITOR_INFOFLAG_PATH;
             info_flags |= EDITOR_INFOFLAG_VERSION
         }
 

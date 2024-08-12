@@ -72,19 +72,48 @@ impl Module for CPUInfo {
     }
 }
 
-pub fn get_cpu(remove_trailing_processer: bool) -> Result<CPUInfo, ModuleError> {
+const CPU_INFO_MODEL_NAME: u32 = 1;
+const CPU_INFO_CORES: u32 = 2;
+const CPU_INFO_THREADS: u32 = 4;
+const CPU_INFO_CURRENT_CLOCK: u32 = 8;
+const CPU_INFO_MAX_CLOCK: u32 = 16;
+const CPU_INFO_ARCH: u32 = 32;
+
+pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
+
+    // Figure out the info we need to fetch
+    let mut info_flags: u32 = 0;
+    if config.cpu.format.contains("{name}") {
+        info_flags += CPU_INFO_MODEL_NAME
+    }
+    if config.cpu.format.contains("{core_count}") {
+        info_flags += CPU_INFO_CORES
+    }
+    if config.cpu.format.contains("{thread_count}") {
+        info_flags += CPU_INFO_THREADS
+    }
+    if config.cpu.format.contains("{current_clock_mhz}") || config.cpu.format.contains("{current_clock_ghz}") {
+        info_flags += CPU_INFO_CURRENT_CLOCK
+    }
+    if config.cpu.format.contains("{max_clock_mhz}") || config.cpu.format.contains("{max_clock_ghz}") {
+        info_flags += CPU_INFO_MAX_CLOCK
+    }
+    if config.cpu.format.contains("{arch}") || config.cpu.format.contains("{arch}") {
+        info_flags += CPU_INFO_ARCH
+    }
+
     // This ones split into 2 as theres a lot to parse
-    match get_basic_info(&mut cpu) {
+    match get_basic_info(&mut cpu, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
     };
-    match get_max_clock(&mut cpu) {
+    match get_max_clock(&mut cpu, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
     };
 
-    if remove_trailing_processer {
+    if config.cpu.remove_trailing_processor {
         // Tried doing this with Regex but it added 400 micro secs so fuck that shit
         let loc: usize = match cpu.name.find("-Core Processor") {
             Some(r) => r,
@@ -107,7 +136,7 @@ pub fn get_cpu(remove_trailing_processer: bool) -> Result<CPUInfo, ModuleError> 
     Ok(cpu)
 }
 
-fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
+fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
@@ -130,22 +159,22 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
         }
 
         if first_entry {
-            if line.starts_with("model name") {
+            if line.starts_with("model name") && (info_flags & CPU_INFO_MODEL_NAME > 0) {
                 cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
-            if line.starts_with("cpu cores") {
+            if line.starts_with("cpu cores") && (info_flags & CPU_INFO_CORES > 0) {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e))),
                 }
             }
-            if line.starts_with("siblings") {
+            if line.starts_with("siblings") && (info_flags & CPU_INFO_THREADS > 0) {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e))),
                 }
             }
-            if line.starts_with("flags") {
+            if line.starts_with("flags") && (info_flags & CPU_INFO_ARCH > 0) {
                 // https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/arch/x86/include/asm/cpufeatures.h
                 for flag in line.split(": ").collect::<Vec<&str>>()[1].split(' ') {
                     // prepare for trouble
@@ -161,7 +190,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
                 }
             }
         }
-        if line.starts_with("cpu MHz") {
+        if line.starts_with("cpu MHz") && (info_flags & CPU_INFO_CURRENT_CLOCK > 0) {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e))),
@@ -169,7 +198,7 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
             cpu_mhz_count += 1;
         }
     }
-    if cpu.cores == 0 {
+    if cpu.cores == 0 && (info_flags & CPU_INFO_CORES > 0) {
         cpu.cores = cores;
         // Backup to /sys/devices/system/cpu/present for threads too
         // Thanks to https://stackoverflow.com/a/30150409
@@ -207,7 +236,10 @@ fn get_basic_info(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
     cpu.current_clock_mhz /= cpu_mhz_count as f32;
     Ok(())
 }
-fn get_max_clock(cpu: &mut CPUInfo) -> Result<(), ModuleError> {
+fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
+    if info_flags & CPU_INFO_MAX_CLOCK == 0 {
+        return Ok(())
+    }
     // All of this is relative to /sys/devices/system/cpu/X/cpufreq
     // There's 3 possible places to get the frequency in here;
     // - bios_limit - Only present if a limit is set in BIOS

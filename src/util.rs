@@ -44,3 +44,7 @@ pub fn find_first_pathbuf_exists(paths: Vec<PathBuf>) -> Option<PathBuf> {
 
     None
 }
+
+pub fn is_flag_set_u32(value: u32, flag: u32) -> bool {
+    value & flag > 0
+}

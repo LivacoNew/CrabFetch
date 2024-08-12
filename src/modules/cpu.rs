@@ -5,7 +5,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{
 use {android_system_properties::AndroidSystemProperties, std::env};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct CPUInfo {
     name: String,
@@ -165,22 +165,22 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         }
 
         if first_entry {
-            if line.starts_with("model name") && (info_flags & CPU_INFOFLAG_MODEL_NAME > 0) {
+            if line.starts_with("model name") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
                 cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
-            if line.starts_with("cpu cores") && (info_flags & CPU_INFOFLAG_CORES > 0) {
+            if line.starts_with("cpu cores") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CORES) {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {}", e))),
                 }
             }
-            if line.starts_with("siblings") && (info_flags & CPU_INFOFLAG_THREADS > 0) {
+            if line.starts_with("siblings") && is_flag_set_u32(info_flags, CPU_INFOFLAG_THREADS) {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
                     Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {}", e))),
                 }
             }
-            if line.starts_with("flags") && (info_flags & CPU_INFOFLAG_ARCH > 0) {
+            if line.starts_with("flags") && is_flag_set_u32(info_flags, CPU_INFOFLAG_ARCH) {
                 // https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/arch/x86/include/asm/cpufeatures.h
                 for flag in line.split(": ").collect::<Vec<&str>>()[1].split(' ') {
                     // prepare for trouble
@@ -196,7 +196,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
                 }
             }
         }
-        if line.starts_with("cpu MHz") && (info_flags & CPU_INFOFLAG_CURRENT_CLOCK > 0) {
+        if line.starts_with("cpu MHz") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CURRENT_CLOCK) {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e))),
@@ -204,7 +204,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
             cpu_mhz_count += 1;
         }
     }
-    if cpu.cores == 0 && (info_flags & CPU_INFOFLAG_CORES > 0) {
+    if cpu.cores == 0 && is_flag_set_u32(info_flags, CPU_INFOFLAG_CORES) {
         cpu.cores = cores;
         // Backup to /sys/devices/system/cpu/present for threads too
         // Thanks to https://stackoverflow.com/a/30150409
@@ -243,7 +243,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
     Ok(())
 }
 fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
-    if info_flags & CPU_INFOFLAG_MAX_CLOCK == 0 {
+    if !is_flag_set_u32(info_flags, CPU_INFOFLAG_MAX_CLOCK) {
         return Ok(())
     }
     // All of this is relative to /sys/devices/system/cpu/X/cpufreq

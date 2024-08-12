@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
 pub struct DesktopInfo {
     desktop: String,
@@ -70,14 +70,14 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
     let info_flags: u32 = desktop.gen_info_flags(&config.desktop.format);
 
-    if info_flags & DESKTOP_INFOFLAG_DESKTOP > 0 {
+    if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DESKTOP) {
         desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
         };
     }
 
-    if info_flags & DESKTOP_INFOFLAG_DISPLAY_TYPE > 0 {
+    if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DISPLAY_TYPE) {
         desktop.display_type = match env::var("XDG_SESSION_TYPE") {
             Ok(r) => r,
             Err(_) => {

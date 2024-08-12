@@ -50,11 +50,12 @@ impl Module for LocaleInfo {
     }
 
     fn gen_info_flags(format: &str) -> u32 {
-        todo!()
+        panic!("gen_info_flags called on locale module. This should never happen, please make a bug report!")
     }
 }
 
 pub fn get_locale() -> Result<LocaleInfo, ModuleError> {
+    // no info flags here as it's all from the same source
     let mut locale: LocaleInfo = LocaleInfo::new();
 
     let raw: String = match env::var("LANG") {

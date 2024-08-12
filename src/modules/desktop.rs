@@ -50,29 +50,44 @@ impl Module for DesktopInfo {
     }
 }
 
-pub fn get_desktop() -> Result<DesktopInfo, ModuleError> {
+const DESKTOP_INFOFLAG_DESKTOP: u8 = 1;
+const DESKTOP_INFOFLAG_DISPLAY_TYPE: u8 = 2;
+
+pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
 
-    desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
-    };
+    let mut info_flags: u8 = 0;
+    if config.desktop.format.contains("{desktop}") {
+        info_flags += DESKTOP_INFOFLAG_DESKTOP
+    }
+    if config.desktop.format.contains("{display_type}") {
+        info_flags += DESKTOP_INFOFLAG_DISPLAY_TYPE
+    }
 
-    desktop.display_type = match env::var("XDG_SESSION_TYPE") {
-        Ok(r) => r,
-        Err(_) => {
-            // Check if WAYLAND_DISPLAY is set 
-            // If not, we'll check if DISPLAY is set 
-            // Otherwise we have no idea
-            if env::var("WAYLAND_DISPLAY").is_ok() {
-                "wayland".to_string()
-            } else if env::var("DISPLAY").is_ok() {
-                "x11".to_string()
-            } else {
-                return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
+    if info_flags & DESKTOP_INFOFLAG_DESKTOP > 0 {
+        desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP env variable: {}", e)))
+        };
+    }
+
+    if info_flags & DESKTOP_INFOFLAG_DISPLAY_TYPE > 0 {
+        desktop.display_type = match env::var("XDG_SESSION_TYPE") {
+            Ok(r) => r,
+            Err(_) => {
+                // Check if WAYLAND_DISPLAY is set 
+                // If not, we'll check if DISPLAY is set 
+                // Otherwise we have no idea
+                if env::var("WAYLAND_DISPLAY").is_ok() {
+                    "wayland".to_string()
+                } else if env::var("DISPLAY").is_ok() {
+                    "x11".to_string()
+                } else {
+                    return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
+                }
             }
-        }
-    };
+        };
+    }
 
     Ok(desktop)
 }

@@ -566,7 +566,7 @@ fn main() {
             "desktop" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.desktop.is_none() {
-                    known_outputs.desktop = Some(desktop::get_desktop());
+                    known_outputs.desktop = Some(desktop::get_desktop(&config));
                 }
                 match known_outputs.desktop.as_ref().unwrap() {
                     Ok(desktop) => output.push(desktop.style(&config, max_title_length)),

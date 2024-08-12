@@ -468,7 +468,6 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
             x.scale_resolution();
         }
         
-        println!("{info_flags:#b}");
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
             (x.make, x.model) = match get_edid_makemodel(&x.name) {
                 Ok(r) => r,

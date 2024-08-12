@@ -106,20 +106,14 @@ impl Module for MountInfo {
         if format.contains("{device}") {
             info_flags |= MOUNTS_INFOFLAG_DEVICE;
         }
-        if format.contains("{mount}") {
-            info_flags |= MOUNTS_INFOFLAG_MOUNT;
-        }
-        if format.contains("{space_used}") {
+        if format.contains("{space_used}") || format.contains("bar") {
             info_flags |= MOUNTS_INFOFLAG_SPACE_USED;
         }
         if format.contains("{space_avail}") {
             info_flags |= MOUNTS_INFOFLAG_SPACE_AVAIL;
         }
-        if format.contains("{space_total}") {
+        if format.contains("{space_total}") || format.contains("bar") {
             info_flags |= MOUNTS_INFOFLAG_SPACE_TOTAL;
-        }
-        if format.contains("{filesystem}") {
-            info_flags |= MOUNTS_INFOFLAG_FILESYSTEM;
         }
 
         info_flags
@@ -146,11 +140,9 @@ impl MountInfo {
 }
 
 const MOUNTS_INFOFLAG_DEVICE: u32 = 1;
-const MOUNTS_INFOFLAG_MOUNT: u32 = 2;
 const MOUNTS_INFOFLAG_SPACE_USED: u32 = 4;
 const MOUNTS_INFOFLAG_SPACE_TOTAL: u32 = 8;
 const MOUNTS_INFOFLAG_SPACE_AVAIL: u32 = 16;
-const MOUNTS_INFOFLAG_FILESYSTEM: u32 = 32;
 
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
@@ -191,11 +183,10 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         }
 
         let mut mount: MountInfo = MountInfo::new();
-        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_MOUNT) {
-            mount.mount = mount_point.to_string();
-        }
-        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_FILESYSTEM) {
-            mount.filesystem = entries[2].to_string();
+        mount.mount = mount_point.to_string();
+        mount.filesystem = entries[2].to_string();
+        if mount.is_ignored(config) {
+            continue;
         }
 
         // Convert the device entries to device names
@@ -209,7 +200,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         }
 
         // statfs to get space data
-        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL) && !mount.is_ignored(config) {
+        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL) {
             let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
             if statfs.is_err() {
                 continue

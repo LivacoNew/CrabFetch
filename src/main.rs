@@ -376,7 +376,7 @@ fn main() {
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.hostname.is_none() {
-                    known_outputs.hostname = Some(hostname::get_hostname());
+                    known_outputs.hostname = Some(hostname::get_hostname(&config));
                 }
                 match known_outputs.hostname.as_ref().unwrap() {
                     Ok(hostname) => output.push(hostname.style(&config, max_title_length)),

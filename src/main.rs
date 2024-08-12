@@ -694,7 +694,7 @@ fn main() {
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor(config.editor.fancy, config.editor.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.editor = Some(editor::get_editor(&config, &package_managers));
                 }
                 match known_outputs.editor.as_ref().unwrap() {
                     Ok(editor) => output.push(editor.style(&config, max_title_length)),

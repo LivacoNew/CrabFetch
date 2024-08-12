@@ -711,7 +711,7 @@ fn main() {
             "initsys" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.initsys.is_none() {
-                    known_outputs.initsys = Some(initsys::get_init_system(config.initsys.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.initsys = Some(initsys::get_init_system(&config, &package_managers));
                 }
                 match known_outputs.initsys.as_ref().unwrap() {
                     Ok(init) => output.push(init.style(&config, max_title_length)),

@@ -53,7 +53,7 @@ impl Module for EditorInfo {
             .replace("{version}", &self.version)
     }
 
-    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+    fn gen_info_flags(&self, format: &str) -> u32 {
         todo!()
     }
 }

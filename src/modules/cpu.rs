@@ -71,41 +71,43 @@ impl Module for CPUInfo {
             .replace("{arch}", &self.arch.to_string())
     }
 
-    fn gen_info_flags(&self, config: &Configuration) -> u32 {
-        todo!()
+    fn gen_info_flags(&self, format: &str) -> u32 {
+        // Figure out the info we need to fetch
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags += CPU_INFOFLAG_MODEL_NAME
+        }
+        if format.contains("{core_count}") {
+            info_flags += CPU_INFOFLAG_CORES
+        }
+        if format.contains("{thread_count}") {
+            info_flags += CPU_INFOFLAG_THREADS
+        }
+        if format.contains("{current_clock_mhz}") || format.contains("{current_clock_ghz}") {
+            info_flags += CPU_INFOFLAG_CURRENT_CLOCK
+        }
+        if format.contains("{max_clock_mhz}") || format.contains("{max_clock_ghz}") {
+            info_flags += CPU_INFOFLAG_MAX_CLOCK
+        }
+        if format.contains("{arch}") || format.contains("{arch}") {
+            info_flags += CPU_INFOFLAG_ARCH
+        }
+
+        info_flags
     }
 }
 
-const CPU_INFOFLAG_MODEL_NAME: u8 = 1;
-const CPU_INFOFLAG_CORES: u8 = 2;
-const CPU_INFOFLAG_THREADS: u8 = 4;
-const CPU_INFOFLAG_CURRENT_CLOCK: u8 = 8;
-const CPU_INFOFLAG_MAX_CLOCK: u8 = 16;
-const CPU_INFOFLAG_ARCH: u8 = 32;
+const CPU_INFOFLAG_MODEL_NAME: u32 = 1;
+const CPU_INFOFLAG_CORES: u32 = 2;
+const CPU_INFOFLAG_THREADS: u32 = 4;
+const CPU_INFOFLAG_CURRENT_CLOCK: u32 = 8;
+const CPU_INFOFLAG_MAX_CLOCK: u32 = 16;
+const CPU_INFOFLAG_ARCH: u32 = 32;
 
 pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
     let mut cpu: CPUInfo = CPUInfo::new();
-
-    // Figure out the info we need to fetch
-    let mut info_flags: u8 = 0;
-    if config.cpu.format.contains("{name}") {
-        info_flags += CPU_INFOFLAG_MODEL_NAME
-    }
-    if config.cpu.format.contains("{core_count}") {
-        info_flags += CPU_INFOFLAG_CORES
-    }
-    if config.cpu.format.contains("{thread_count}") {
-        info_flags += CPU_INFOFLAG_THREADS
-    }
-    if config.cpu.format.contains("{current_clock_mhz}") || config.cpu.format.contains("{current_clock_ghz}") {
-        info_flags += CPU_INFOFLAG_CURRENT_CLOCK
-    }
-    if config.cpu.format.contains("{max_clock_mhz}") || config.cpu.format.contains("{max_clock_ghz}") {
-        info_flags += CPU_INFOFLAG_MAX_CLOCK
-    }
-    if config.cpu.format.contains("{arch}") || config.cpu.format.contains("{arch}") {
-        info_flags += CPU_INFOFLAG_ARCH
-    }
+    let info_flags: u32 = cpu.gen_info_flags(&config.cpu.format);
 
     // This ones split into 2 as theres a lot to parse
     match get_basic_info(&mut cpu, info_flags) {
@@ -140,7 +142,7 @@ pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
     Ok(cpu)
 }
 
-fn get_basic_info(cpu: &mut CPUInfo, info_flags: u8) -> Result<(), ModuleError> {
+fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
     // Starts by reading and parsing /proc/cpuinfo
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
@@ -240,7 +242,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u8) -> Result<(), ModuleError> 
     cpu.current_clock_mhz /= cpu_mhz_count as f32;
     Ok(())
 }
-fn get_max_clock(cpu: &mut CPUInfo, info_flags: u8) -> Result<(), ModuleError> {
+fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
     if info_flags & CPU_INFOFLAG_MAX_CLOCK == 0 {
         return Ok(())
     }

@@ -49,7 +49,7 @@ impl Module for LocaleInfo {
             .replace("{encoding}", &self.encoding)
     }
 
-    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+    fn gen_info_flags(&self, format: &str) -> u32 {
         todo!()
     }
 }

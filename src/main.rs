@@ -410,7 +410,7 @@ fn main() {
             "gpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.gpu.is_none() {
-                    known_outputs.gpu = Some(gpu::get_gpus(config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus));
+                    known_outputs.gpu = Some(gpu::get_gpus(&config));
                 }
                 match known_outputs.gpu.as_ref().unwrap() {
                     Ok(gpus) => {

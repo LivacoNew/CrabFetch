@@ -600,7 +600,7 @@ fn main() {
             "shell" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.shell.is_none() {
-                    known_outputs.shell = Some(shell::get_shell(config.shell.show_default_shell, config.shell.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.shell = Some(shell::get_shell(&config, &package_managers));
                 }
                 match known_outputs.shell.as_ref().unwrap() {
                     Ok(shell) => output.push(shell.style(&config, max_title_length)),

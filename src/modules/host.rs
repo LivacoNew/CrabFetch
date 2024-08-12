@@ -54,6 +54,10 @@ impl Module for HostInfo {
         config.host.format.replace("{host}", &self.host)
             .replace("{chassis}", &self.chassis)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 impl HostInfo {
     // Identical to the regular style method, but placeholder's in the kernel instead

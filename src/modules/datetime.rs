@@ -44,6 +44,10 @@ impl Module for DateTimeInfo {
     fn replace_placeholders(&self, config: &Configuration) -> String {
         self.datetime.format(&config.datetime.format).to_string()
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_date_time() -> DateTimeInfo {

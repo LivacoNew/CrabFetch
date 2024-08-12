@@ -48,6 +48,10 @@ impl Module for LocaleInfo {
         config.locale.format.replace("{language}", &self.language)
             .replace("{encoding}", &self.encoding)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_locale() -> Result<LocaleInfo, ModuleError> {

@@ -55,6 +55,10 @@ impl Module for TerminalInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 // A list of known terminals, similar to shell we keep going up until we encouter one

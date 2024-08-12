@@ -73,6 +73,10 @@ impl Module for MemoryInfo {
             .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_memory() -> Result<MemoryInfo, ModuleError> {

@@ -71,6 +71,10 @@ impl Module for PlayerInfo {
             .replace("{player}", &self.player)
             .replace("{status}", &self.status)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_players(ignore: &Vec<String>) -> Result<Vec<PlayerInfo>, ModuleError> {

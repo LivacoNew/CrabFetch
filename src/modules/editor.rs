@@ -52,6 +52,10 @@ impl Module for EditorInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_editor(fancy: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<EditorInfo, ModuleError> {

@@ -48,6 +48,10 @@ impl Module for DesktopInfo {
         config.desktop.format.replace("{desktop}", &self.desktop)
             .replace("{display_type}", &self.display_type)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 const DESKTOP_INFOFLAG_DESKTOP: u8 = 1;

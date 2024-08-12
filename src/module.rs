@@ -9,6 +9,7 @@ pub trait Module {
     fn style(&self, config: &Configuration, max_title_length: u64) -> String;
     fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
     fn replace_placeholders(&self, config: &Configuration) -> String;
+    fn gen_info_flags(&self, config: &Configuration) -> u32;
 
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
     fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, separator: &str, value: &str) -> String {

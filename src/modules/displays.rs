@@ -127,6 +127,10 @@ impl Module for DisplayInfo {
             .replace("{height}", &self.height.to_string())
             .replace("{refresh_rate}", &refresh_rate)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 impl DisplayInfo {
     // Used by calc_max_title_length

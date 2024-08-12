@@ -70,6 +70,10 @@ impl Module for CPUInfo {
             .replace("{max_clock_ghz}", &formatter::round((self.max_clock_mhz / 1000.0) as f64, dec_places).to_string())
             .replace("{arch}", &self.arch.to_string())
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 const CPU_INFOFLAG_MODEL_NAME: u8 = 1;

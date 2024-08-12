@@ -99,6 +99,10 @@ impl Module for MountInfo {
             .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 impl MountInfo {
     pub fn is_ignored(&self, config: &Configuration) -> bool {

@@ -55,6 +55,10 @@ impl Module for ShellInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 // A list of known shells, the idea being that we keep going up in parent processes until we

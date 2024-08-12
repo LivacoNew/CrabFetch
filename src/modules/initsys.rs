@@ -52,6 +52,10 @@ impl Module for InitSystemInfo {
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_init_system(fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<InitSystemInfo, ModuleError> {

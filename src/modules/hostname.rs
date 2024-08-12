@@ -50,6 +50,10 @@ impl Module for HostnameInfo {
             .replace("{hostname}", &self.hostname)
             .to_string()
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_hostname() -> Result<HostnameInfo, ModuleError> {

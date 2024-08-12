@@ -73,6 +73,10 @@ impl Module for SwapInfo {
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 
 pub fn get_swap(sysinfo: &mut Option<libc::sysinfo>) -> Result<SwapInfo, ModuleError> {

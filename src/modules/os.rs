@@ -57,6 +57,10 @@ impl Module for OSInfo {
         config.os.format.replace("{distro}", &self.distro)
             .replace("{kernel}", &self.kernel)
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 impl OSInfo {
     // Identical to the regular style method, but placeholder's in the kernel instead

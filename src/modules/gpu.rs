@@ -68,6 +68,10 @@ impl Module for GPUInfo {
             .replace("{model}", &self.model)
             .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
     }
+
+    fn gen_info_flags(&self, config: &Configuration) -> u32 {
+        todo!()
+    }
 }
 impl GPUInfo {
     pub fn set_index(&mut self, index: u8) {

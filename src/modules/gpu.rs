@@ -180,6 +180,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                 Err(e) => return Err(e)
             };
 
+            // TODO: Just directly search AMD, not the first pci.ids file
             gpu.vendor = device_data.0;
             if vendor_id == "1002" && amd_accuracy { // AMD
                 gpu.model = match search_amd_model(&device_id)? {

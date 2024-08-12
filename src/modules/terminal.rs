@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::ManagerInfo, proccess_info::ProcessInfo, versions, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
 
 pub struct TerminalInfo {
     name: String,
@@ -57,7 +57,23 @@ impl Module for TerminalInfo {
     }
 
     fn gen_info_flags(format: &str) -> u32 {
-        todo!()
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{name}") {
+            info_flags |= TERM_INFOFLAG_NAME;
+            info_flags |= TERM_INFOFLAG_PATH // deps on path
+        }
+        if format.contains("{path}") {
+            info_flags |= TERM_INFOFLAG_PATH
+        }
+        if format.contains("{version}") {
+            // deps on all 3
+            info_flags |= TERM_INFOFLAG_NAME;
+            info_flags |= TERM_INFOFLAG_PATH;
+            info_flags |= TERM_INFOFLAG_VERSION
+        }
+
+        info_flags
     }
 }
 
@@ -85,8 +101,13 @@ const KNOWN_TERMS: &[&str] = &[
     "tmux"
 ];
 
-pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: bool, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {
+const TERM_INFOFLAG_NAME: u32 = 1;
+const TERM_INFOFLAG_PATH: u32 = 2;
+const TERM_INFOFLAG_VERSION: u32 = 4;
+
+pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> Result<TerminalInfo, ModuleError> {
     let mut terminal: TerminalInfo = TerminalInfo::new();
+    let info_flags: u32 = TerminalInfo::gen_info_flags(&config.terminal.format);
 
     #[cfg(feature = "android")]
     if env::consts::OS == "android" && Path::new("/data/data/com.termux/files/").exists() { // TODO: Does this still work in other emulators?
@@ -137,41 +158,47 @@ pub fn get_terminal(chase_ssh_tty: bool, fetch_version: bool, use_checksums: boo
     if !terminal_process.is_valid() {
         return Err(ModuleError::new("Terminal", "Unable to find terminal process".to_string()));
     }
-    terminal.name = match terminal_process.get_process_name() {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
-    };
 
-    // Fix for gnome terminal coming out as gnome-terminal-server
-    if terminal.name.trim() == "gnome-terminal-server" {
-        terminal.name = "GNOME Terminal".to_string();
-    }
-    // Fix for elementaryos terminal being shitty
-    if terminal.name.trim() == "io.elementary.terminal" {
-        terminal.name = "Elementary Terminal".to_string();
-    }
- 
-    if terminal.name.trim().replace('\0', "") == "sshd:" {
-        if !chase_ssh_tty {
-            terminal.name = "SSH Terminal".to_string();
-        } else {
-            // Find the tty number in the current /stat and just construct it from that
-            // Taken from the comment on https://unix.stackexchange.com/a/77797 by "user723" ...
-            // get a more creative username man
-            terminal.name = match fs::canonicalize("/proc/self/fd/0") {
-                Ok(r) => r.display().to_string(),
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize /proc/self/fd/0 symlink: {}", e)))
-            };
+    // Only do the additonal name processing if we want it
+    if is_flag_set_u32(info_flags, TERM_INFOFLAG_NAME) {
+        terminal.name = match terminal_process.get_process_name() {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
+        };
+
+        // Fix for gnome terminal coming out as gnome-terminal-server
+        if terminal.name.trim() == "gnome-terminal-server" {
+            terminal.name = "GNOME Terminal".to_string();
+        }
+        // Fix for elementaryos terminal being shitty
+        if terminal.name.trim() == "io.elementary.terminal" {
+            terminal.name = "Elementary Terminal".to_string();
+        }
+
+        if terminal.name.trim().replace('\0', "") == "sshd:" {
+            if !config.terminal.chase_ssh_pts {
+                terminal.name = "SSH Terminal".to_string();
+            } else {
+                // Find the tty number in the current /stat and just construct it from that
+                // Taken from the comment on https://unix.stackexchange.com/a/77797 by "user723" ...
+                // get a more creative username man
+                terminal.name = match fs::canonicalize("/proc/self/fd/0") {
+                    Ok(r) => r.display().to_string(),
+                    Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize /proc/self/fd/0 symlink: {}", e)))
+                };
+            }
         }
     }
 
-    terminal.path = match terminal_process.get_exe(true) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
-    };
+    if is_flag_set_u32(info_flags, TERM_INFOFLAG_PATH) {
+        terminal.path = match terminal_process.get_exe(true) {
+            Ok(r) => r,
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
+        };
+    }
 
-    if fetch_version {
-        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
+    if is_flag_set_u32(info_flags, TERM_INFOFLAG_VERSION) {
+        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(terminal)

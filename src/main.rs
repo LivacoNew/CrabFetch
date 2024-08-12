@@ -583,7 +583,7 @@ fn main() {
             "terminal" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.terminal.is_none() {
-                    known_outputs.terminal = Some(terminal::get_terminal(config.terminal.chase_ssh_pts, config.terminal.format.contains("{version}"), config.use_version_checksums, &package_managers));
+                    known_outputs.terminal = Some(terminal::get_terminal(&config, &package_managers));
                 }
                 match known_outputs.terminal.as_ref().unwrap() {
                     Ok(terminal) => output.push(terminal.style(&config, max_title_length)),

@@ -49,7 +49,7 @@ impl Module for LocaleInfo {
             .replace("{encoding}", &self.encoding)
     }
 
-    fn gen_info_flags(format: &str) -> u32 {
+    fn gen_info_flags(_: &str) -> u32 {
         panic!("gen_info_flags called on locale module. This should never happen, please make a bug report!")
     }
 }

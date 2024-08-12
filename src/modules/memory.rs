@@ -74,8 +74,8 @@ impl Module for MemoryInfo {
             .replace("{bar}", &bar.to_string())
     }
 
-    fn gen_info_flags(format: &str) -> u32 {
-        panic!("gen_info_flags called on locale module. This should never happen, please make a bug report!")
+    fn gen_info_flags(_: &str) -> u32 {
+        panic!("gen_info_flags called on memory module. This should never happen, please make a bug report!")
     }
 }
 

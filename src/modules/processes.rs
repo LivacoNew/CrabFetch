@@ -47,7 +47,7 @@ impl Module for ProcessesInfo {
         format.replace("{count}", &self.count.to_string())
     }
 
-    fn gen_info_flags(format: &str) -> u32 {
+    fn gen_info_flags(_: &str) -> u32 {
         panic!("gen_info_flags called on processes module. This should never happen, please make a bug report!")
     }
 }

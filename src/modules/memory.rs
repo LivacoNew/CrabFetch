@@ -75,11 +75,13 @@ impl Module for MemoryInfo {
     }
 
     fn gen_info_flags(format: &str) -> u32 {
-        todo!()
+        panic!("gen_info_flags called on locale module. This should never happen, please make a bug report!")
     }
 }
 
 pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
+    // no info flags here as while it would've had a slight benefit, all the info requires eachother anyway so
+    // it's hardly worth it
     let mut memory: MemoryInfo = MemoryInfo::new();
 
     // Fetches from /proc/meminfo

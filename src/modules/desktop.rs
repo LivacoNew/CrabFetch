@@ -50,23 +50,25 @@ impl Module for DesktopInfo {
     }
 
     fn gen_info_flags(&self, format: &str) -> u32 {
-        todo!()
+        let mut info_flags: u32 = 0;
+
+        if format.contains("{desktop}") {
+            info_flags += DESKTOP_INFOFLAG_DESKTOP
+        }
+        if format.contains("{display_type}") {
+            info_flags += DESKTOP_INFOFLAG_DISPLAY_TYPE
+        }
+
+        info_flags
     }
 }
 
-const DESKTOP_INFOFLAG_DESKTOP: u8 = 1;
-const DESKTOP_INFOFLAG_DISPLAY_TYPE: u8 = 2;
+const DESKTOP_INFOFLAG_DESKTOP: u32 = 1;
+const DESKTOP_INFOFLAG_DISPLAY_TYPE: u32 = 2;
 
 pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
-
-    let mut info_flags: u8 = 0;
-    if config.desktop.format.contains("{desktop}") {
-        info_flags += DESKTOP_INFOFLAG_DESKTOP
-    }
-    if config.desktop.format.contains("{display_type}") {
-        info_flags += DESKTOP_INFOFLAG_DISPLAY_TYPE
-    }
+    let info_flags: u32 = desktop.gen_info_flags(&config.desktop.format);
 
     if info_flags & DESKTOP_INFOFLAG_DESKTOP > 0 {
         desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {

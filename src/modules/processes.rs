@@ -48,7 +48,7 @@ impl Module for ProcessesInfo {
     }
 
     fn gen_info_flags(format: &str) -> u32 {
-        todo!()
+        panic!("gen_info_flags called on processes module. This should never happen, please make a bug report!")
     }
 }
 

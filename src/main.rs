@@ -493,7 +493,7 @@ fn main() {
             "host" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.host.is_none() {
-                    known_outputs.host = Some(host::get_host());
+                    known_outputs.host = Some(host::get_host(&config));
                 }
                 match known_outputs.host.as_ref().unwrap() {
                     Ok(host) => {

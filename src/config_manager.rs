@@ -201,6 +201,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("ascii.display", true).unwrap();
     builder = builder.set_default("ascii.colors", vec!["bright_magenta"]).unwrap();
     builder = builder.set_default("ascii.margin", 4).unwrap();
+    builder = builder.set_default("ascii.side", "left").unwrap();
 
     // Modules
     builder = builder.set_default("hostname.title", "").unwrap();
@@ -546,6 +547,9 @@ colors = ["bright_magenta"]
 
 # The amount of space to put between the ASCII and the info
 margin = 4
+
+# Which side of the modules to display the ASCII on, left, right, top or bottom
+side = "left"
 
 
 

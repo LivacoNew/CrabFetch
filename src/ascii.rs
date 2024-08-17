@@ -6,6 +6,7 @@ use crate::{config_manager::{self, Configuration}, formatter::CrabFetchColor};
 #[derive(Deserialize)]
 pub struct AsciiConfiguration {
     pub display: bool,
+    pub side: String,
     pub colors: Vec<CrabFetchColor>,
     pub margin: u16,
 }

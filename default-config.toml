@@ -112,6 +112,9 @@ colors = ["bright_magenta"]
 # The amount of space to put between the ASCII and the info
 margin = 4
 
+# Which side of the modules to display the ASCII on, left, right, top or bottom
+side = "left"
+
 
 
 

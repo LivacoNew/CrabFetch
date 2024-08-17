@@ -881,28 +881,68 @@ fn main() {
     }
     print_bench_time(args.benchmark, args.benchmark_warn, "Display ASCII Pre-Calc", ascii_bench);
 
+    // TODO: Clean this up, bit messy
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
     let mut current_line: usize = 0;
+    if config.ascii.display && config.ascii.side == "top" {
+        #[allow(clippy::mut_range_bound)]
+        for _ in current_line..ascii_length {
+            println!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+            current_line += 1;
+        }
+        // Margin
+        print!("{}", "\n".repeat(config.ascii.margin as usize));
+    }
+
+    // so we get the correct spacing on the ascii 
+    let max_length: usize = {
+        let mut len: usize = 0;
+        // no need to even calculate it if not
+        if config.ascii.side == "right" {
+            for out in &output {
+                len = max(len, strip_ansi_escapes::strip_str(out).chars().count());
+            }
+        }
+        len
+    };
     for out in output {
-        if config.ascii.display {
+        if config.ascii.display && config.ascii.side == "left" {
             print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
         }
-
         print!("{}", out);
+        if config.ascii.display && config.ascii.side == "right" {
+            let out_len: usize = strip_ansi_escapes::strip_str(out).chars().count();
+            // This manually adds the margin to the right, as get_ascii_line only does the left
+            print!("{}", " ".repeat((max_length - out_len) + config.ascii.margin as usize));
+            print!("{}", get_ascii_line(current_line, &ascii_split, &(ascii_target_length - config.ascii.margin), &config));
+        }
+
         current_line += 1;
         println!();
     }
-    print_bench_time(args.benchmark, args.benchmark_warn, "Module + ASCII Output", bench);
+    if config.ascii.display && config.ascii.side == "bottom" {
+        // Margin
+        print!("{}", "\n".repeat(config.ascii.margin as usize));
+
+        for x in 0..ascii_length {
+            println!("{}", get_ascii_line(x, &ascii_split, &ascii_target_length, &config));
+        }
+    }
+
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
-    if current_line < ascii_length && config.ascii.display {
+    if current_line < ascii_length && config.ascii.display && (config.ascii.side == "left" || config.ascii.side == "right") {
         let mut ascii_line: usize = current_line;
         for _ in current_line..ascii_length {
+            if config.ascii.side == "right" {
+                print!("{}", " ".repeat(max_length + config.ascii.margin as usize));
+            }
             print!("{}", get_ascii_line(ascii_line, &ascii_split, &ascii_target_length, &config));
             ascii_line += 1;
             println!();
         }
     }
-    print_bench_time(args.benchmark, args.benchmark_warn, "Remaining ASCII Output", bench);
+    print_bench_time(args.benchmark, args.benchmark_warn, "Module + ASCII Output", bench);
+
     print_bench_time(args.benchmark, args.benchmark_warn, "Full Runtime of CrabFetch", full_runtime_bench);
 }
 

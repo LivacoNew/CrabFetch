@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs};
 
 #[cfg(feature = "android")]
 use std::{path::Path, env};
@@ -116,6 +116,15 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("Terminal", format!("Could not parse $TERMUX_VERSION env variable: {}", e)))
         };
+        return Ok(terminal);
+    }
+
+    if env::var("WT_SESSION").is_ok() {
+        // We're in WSL
+        terminal.name = "Windows Terminal".to_string();
+        terminal.path = "N/A".to_string();
+        terminal.version = "N/A".to_string();
+
         return Ok(terminal);
     }
 

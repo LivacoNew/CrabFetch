@@ -1,5 +1,5 @@
 use core::str;
-use std::path::Path;
+use std::{env, path::Path};
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
@@ -111,6 +111,12 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
                 return Ok(host);
             }
         }
+    }
+
+    // WSL
+    if env::var("WT_SESSION").is_ok() {
+        host.host = "Windows Subsystem for Linux".to_string();
+        host.chassis = "Unknown".to_string();
     }
 
     // Prioritises product_name for laptops, then goes to board_name

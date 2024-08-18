@@ -1,5 +1,5 @@
 use core::str;
-use std::{ffi::CStr, mem, path::Path, time::Instant};
+use std::{ffi::CStr, mem, path::Path};
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::{process::Command, env}};

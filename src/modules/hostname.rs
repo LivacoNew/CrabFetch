@@ -1,7 +1,7 @@
 use core::str;
 use std::{env, ffi::CStr, mem, path::Path, process::Command};
 
-use libc::{geteuid, getpwuid, uname, utsname};
+use libc::{geteuid, getpwuid, utsname};
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};

@@ -1,7 +1,6 @@
 use core::str;
-use std::{env, ffi::CStr, process::Command};
+use std::{env, process::Command};
 
-use libc::{geteuid, getpwuid};
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util::is_flag_set_u32, ModuleError};
@@ -78,13 +77,7 @@ pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) ->
     if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_USERNAME) {
         hostname.username = match env::var("USER") {
             Ok(r) => r,
-            Err(_) => {
-                // syscall dangerous time
-                match get_username_unsafe() {
-                    Ok(r) => r,
-                    Err(_) => return Err(ModuleError::new("Hostname", "WARNING: Could not get username (env variable nor syscall)".to_string()))
-                }
-            }
+            Err(_) => syscall_cache.get_passwd_cached().name
         };
     }
 
@@ -96,25 +89,6 @@ pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) ->
     }
 
     Ok(hostname)
-}
-
-fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply need to know if it failed or not to backup to $USER, the type of err doesn't matter really
-    let name: String;
-
-    unsafe { 
-        let user_id: u32 = geteuid();
-        let passwd: *mut libc::passwd = getpwuid(user_id);
-        if passwd.is_null() {
-            return Err(()) // null pointer
-        }
-
-        name = match CStr::from_ptr((*passwd).pw_name).to_str() {
-            Ok(r) => r.to_string(),
-            Err(_) => return Err(()),
-        };
-    }
-
-    Ok(name)
 }
 
 fn _backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {

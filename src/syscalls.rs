@@ -4,18 +4,24 @@
 
 use std::mem;
 
+use libc::{geteuid, getpwuid};
+
 use crate::util;
 
 pub struct SyscallCache {
     // https://man7.org/linux/man-pages/man2/sysinfo.2.html
     sysinfo: Option<libc::sysinfo>,
     uname: Option<libc::utsname>,
+    euid: Option<u32>,
+    passwd: Option<libc::passwd>,
 }
 impl SyscallCache {
     pub fn new() -> Self {
         Self {
             sysinfo: None,
-            uname: None
+            uname: None,
+            euid: None,
+            passwd: None,
         }
     }
 
@@ -36,6 +42,25 @@ impl SyscallCache {
         }
         self.uname = Some(uname_buffer);
     }
+    fn cache_euid(&mut self) {
+        unsafe {
+            self.euid = Some(geteuid());
+        }
+    }
+    fn cache_passwd(&mut self) {
+        let passwd_buffer: libc::passwd;
+        unsafe { 
+            let user_id: u32 = self.get_euid_cached();
+            let buffer_ptr: *mut libc::passwd = getpwuid(user_id);
+            if buffer_ptr.is_null() {
+                // Null pointer, this is a crash as we have no error handling for the time being
+                // TODO: Handle this properly
+                panic!("passwd buffer pointer is null (No error handling for this is implemented yet)");
+            }
+            passwd_buffer = *buffer_ptr;
+        }
+        self.passwd = Some(passwd_buffer);
+    }
 
     // Get the syscalls, and process/cache them if they're not gotten already
     pub fn get_sysinfo_cached(&mut self) -> libc::sysinfo {
@@ -50,6 +75,20 @@ impl SyscallCache {
         }
 
         Utsname::from_libc(self.uname.unwrap())
+    }
+    pub fn get_euid_cached(&mut self) -> u32 {
+        if self.euid.is_none() {
+            self.cache_euid();
+        }
+
+        self.euid.unwrap()
+    }
+    pub fn get_passwd_cached(&mut self) -> Passwd {
+        if self.passwd.is_none() {
+            self.cache_passwd();
+        }
+
+        Passwd::from_libc(self.passwd.unwrap())
     }
 }
 
@@ -71,6 +110,25 @@ impl Utsname {
             release: util::cstr_from_ptr(utsname.release.as_ptr()).expect("Unable to convert CStr to Rust String"),
             version: util::cstr_from_ptr(utsname.version.as_ptr()).expect("Unable to convert CStr to Rust String"),
             machine: util::cstr_from_ptr(utsname.machine.as_ptr()).expect("Unable to convert CStr to Rust String"),
+        }
+    }
+}
+
+pub struct Passwd {
+    pub name: String,
+    pub uid: u32,
+    pub gid: u32,
+    pub dir: String,
+    pub shell: String
+}
+impl Passwd {
+    pub fn from_libc(passwd: libc::passwd) -> Self {
+        Self {
+            name: util::cstr_from_ptr(passwd.pw_name).expect("Unable to convert CStr to Rust String"),
+            uid: passwd.pw_uid,
+            gid: passwd.pw_gid,
+            dir: util::cstr_from_ptr(passwd.pw_dir).expect("Unable to convert CStr to Rust String"),
+            shell: util::cstr_from_ptr(passwd.pw_shell).expect("Unable to convert CStr to Rust String"),
         }
     }
 }

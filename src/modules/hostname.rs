@@ -1,7 +1,7 @@
 use core::str;
 use std::{env, ffi::CStr, mem, path::Path, process::Command};
 
-use libc::{geteuid, getpwuid, uname};
+use libc::{geteuid, getpwuid, uname, utsname};
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -69,7 +69,7 @@ impl Module for HostnameInfo {
 const HOSTNAME_INFOFLAG_HOSTNAME: u32 = 1;
 const HOSTNAME_INFOFLAG_USERNAME: u32 = 2;
 
-pub fn get_hostname(config: &Configuration) -> Result<HostnameInfo, ModuleError> {
+pub fn get_hostname(config: &Configuration, uname: &mut Option<utsname>) -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
     let info_flags: u32 = HostnameInfo::gen_info_flags(&config.hostname.format);
 
@@ -92,7 +92,7 @@ pub fn get_hostname(config: &Configuration) -> Result<HostnameInfo, ModuleError>
     // Hostname
     // Unlike username, reading the hostname data as a syscall is faster than the file
     if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_HOSTNAME) {
-        hostname.hostname = match get_hostname_unsafe() {
+        hostname.hostname = match get_hostname_unsafe(uname) {
             Ok(r) => r,
             Err(_) => {
                 let contents = match util::file_read(Path::new("/etc/hostname")) {
@@ -140,16 +140,18 @@ fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply ne
 
     Ok(name)
 }
-fn get_hostname_unsafe() -> Result<String, ()> {
-    let hostname: String;
-
+fn get_hostname_unsafe(uname: &mut Option<utsname>) -> Result<String, ()> {
+    let uname_unwrap: utsname = uname.unwrap_or_else(|| {
+        unsafe {
+            let mut data: libc::utsname = mem::zeroed();
+            libc::uname(&mut data);
+            *uname = Some(data);
+            data
+        }
+    });
     unsafe {
-        let mut name_buff: libc::utsname = mem::zeroed();
-        uname(&mut name_buff);
-        hostname = CStr::from_ptr(name_buff.nodename.as_ptr()).to_str().unwrap().to_string();
+        Ok(CStr::from_ptr(uname_unwrap.nodename.as_ptr()).to_str().unwrap().to_string())
     }
-
-    Ok(hostname)
 }
 fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
     // If all else is fucked, it'll come here

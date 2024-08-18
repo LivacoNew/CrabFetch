@@ -1,9 +1,10 @@
 use core::str;
-use std::path::Path;
+use std::{ffi::CStr, mem, path::Path, time::Instant};
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::{process::Command, env}};
 
+use libc::utsname;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -88,7 +89,7 @@ impl OSInfo {
 const OS_INFOFLAG_DISTRO: u32 = 1;
 const OS_INFOFLAG_KERNEL: u32 = 2;
 
-pub fn get_os(config: &Configuration) -> Result<OSInfo, ModuleError> {
+pub fn get_os(config: &Configuration, uname: &mut Option<utsname>) -> Result<OSInfo, ModuleError> {
     let mut os: OSInfo = OSInfo::new();
 
     let mut format: String = config.os.format.to_string();
@@ -147,12 +148,32 @@ pub fn get_os(config: &Configuration) -> Result<OSInfo, ModuleError> {
 
     // Kernel
     if is_flag_set_u32(info_flags, OS_INFOFLAG_KERNEL) {
-        let contents = match util::file_read(Path::new("/proc/sys/kernel/osrelease")) {
+        os.kernel = match get_kernel_unsafe(uname) {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /proc/sys/kernel/osrelease - {}", e))),
-        };
-        os.kernel = contents.trim().to_string();
+            Err(_) => {
+                // Backup the the file
+                match util::file_read(Path::new("/proc/sys/kernel/osrelease")) {
+                    Ok(r) => r,
+                    Err(e) => return Err(ModuleError::new("OS", format!("Can't find kernel, latest attempt from /proc/sys/kernel/osrelease - {}", e))),
+                }
+            },
+        }
     }
 
     Ok(os)
+}
+
+fn get_kernel_unsafe(uname: &mut Option<utsname>) -> Result<String, ()> {
+    let uname_unwrap: utsname = uname.unwrap_or_else(|| {
+        unsafe {
+            let mut data: libc::utsname = mem::zeroed();
+            libc::uname(&mut data);
+            *uname = Some(data);
+            data
+        }
+    });
+
+    unsafe {
+        Ok(CStr::from_ptr(uname_unwrap.release.as_ptr()).to_str().unwrap().to_string())
+    }
 }

@@ -219,6 +219,7 @@ struct ModuleOutputs {
 
     // Any other potentially duplicated work can be put here and passed into modules
     syscall_sysinfo: Option<libc::sysinfo>,
+    syscall_uname: Option<libc::utsname>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -245,7 +246,9 @@ impl ModuleOutputs {
             initsys: None,
             processes: None,
             datetime: None,
+
             syscall_sysinfo: None,
+            syscall_uname: None,
         }
     }
 }
@@ -376,7 +379,7 @@ fn main() {
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.hostname.is_none() {
-                    known_outputs.hostname = Some(hostname::get_hostname(&config));
+                    known_outputs.hostname = Some(hostname::get_hostname(&config, &mut known_outputs.syscall_uname));
                 }
                 match known_outputs.hostname.as_ref().unwrap() {
                     Ok(hostname) => output.push(hostname.style(&config, max_title_length)),
@@ -536,7 +539,7 @@ fn main() {
             "os" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.os.is_none() {
-                    known_outputs.os = Some(os::get_os(&config));
+                    known_outputs.os = Some(os::get_os(&config, &mut known_outputs.syscall_uname));
                 }
                 match known_outputs.os.as_ref().unwrap() {
                     Ok(os) => {
@@ -859,7 +862,7 @@ fn main() {
     if config.ascii.display {
         if known_outputs.os.is_none() {
             let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-            known_outputs.os = Some(os::get_os(&config));
+            known_outputs.os = Some(os::get_os(&config, &mut known_outputs.syscall_uname));
             print_bench_time(args.benchmark, args.benchmark_warn, "OS (for ASCII)", os_bench);
         }
         if known_outputs.os.as_ref().unwrap().is_ok() {

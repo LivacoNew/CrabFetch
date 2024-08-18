@@ -1,9 +1,8 @@
 use core::str;
-use std::mem;
 
 use serde::Deserialize;
 
-use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, syscalls::SyscallCache, ModuleError};
 
 pub struct SwapInfo {
     used_kb: u64,
@@ -79,21 +78,14 @@ impl Module for SwapInfo {
     }
 }
 
-pub fn get_swap(sysinfo: &mut Option<libc::sysinfo>) -> Result<SwapInfo, ModuleError> {
+pub fn get_swap(syscall_cache: &mut SyscallCache) -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
     // no info flags here as it's all dependent on eachother
 
-    let sysinfo_unwrap: libc::sysinfo = sysinfo.unwrap_or_else(|| {
-        unsafe {
-            let mut infobuf: libc::sysinfo = mem::zeroed();
-            libc::sysinfo(&mut infobuf);
-            *sysinfo = Some(infobuf);
-            infobuf
-        }
-    });
+    let sysinfo: libc::sysinfo = syscall_cache.get_sysinfo_cached();
 
-    swap.total_kb = (sysinfo_unwrap.totalswap * sysinfo_unwrap.mem_unit as u64) / 1000;
-    swap.used_kb = swap.total_kb - ((sysinfo_unwrap.freeswap * sysinfo_unwrap.mem_unit as u64) / 1000);
+    swap.total_kb = (sysinfo.totalswap * sysinfo.mem_unit as u64) / 1000;
+    swap.used_kb = swap.total_kb - ((sysinfo.freeswap * sysinfo.mem_unit as u64) / 1000);
 
     if swap.total_kb != 0 {
         swap.percent = (swap.used_kb as f32 / swap.total_kb as f32) * 100.0;

@@ -1,9 +1,9 @@
-use std::{mem, path::Path, time::Duration};
+use std::{path::Path, time::Duration};
 
 use humantime::format_duration;
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util, ModuleError};
 
 pub struct UptimeInfo {
     uptime: Duration,
@@ -53,7 +53,7 @@ impl Module for UptimeInfo {
     }
 }
 
-pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, ModuleError> {
+pub fn get_uptime(syscall_cache: &mut SyscallCache) -> Result<UptimeInfo, ModuleError> {
     let mut uptime: UptimeInfo = UptimeInfo::new();
 
     // Grabs from /proc/uptime
@@ -61,7 +61,7 @@ pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, Mod
         Ok(r) => r,
         Err(_) => {
             // Backup to the sysinfo call
-            use_syscall(sysinfo, &mut uptime);
+            use_syscall(syscall_cache, &mut uptime);
             return Ok(uptime);
         },
     };
@@ -73,14 +73,7 @@ pub fn get_uptime(sysinfo: &mut Option<libc::sysinfo>) -> Result<UptimeInfo, Mod
     Ok(uptime)
 }
 
-fn use_syscall(sysinfo: &mut Option<libc::sysinfo>, uptime: &mut UptimeInfo) {
-    let sysinfo_unwrap: libc::sysinfo = sysinfo.unwrap_or_else(|| {
-        unsafe {
-            let mut infobuf: libc::sysinfo = mem::zeroed();
-            libc::sysinfo(&mut infobuf);
-            *sysinfo = Some(infobuf);
-            infobuf
-        }
-    });
+fn use_syscall(syscall_cache: &mut SyscallCache, uptime: &mut UptimeInfo) {
+    let sysinfo_unwrap: libc::sysinfo = syscall_cache.get_sysinfo_cached();
     uptime.uptime = Duration::new(sysinfo_unwrap.uptime as u64, 0);
 }

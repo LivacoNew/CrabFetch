@@ -1,6 +1,6 @@
 // Some utility functions
 
-use std::{fs::File, io::Read, path::{Path, PathBuf}};
+use std::{ffi::CStr, fs::File, io::Read, path::{Path, PathBuf}};
 
 // Quickly read the full contents of a specified file
 // Not reccomended for large files, use a buffer instead
@@ -45,6 +45,23 @@ pub fn find_first_pathbuf_exists(paths: Vec<PathBuf>) -> Option<PathBuf> {
     None
 }
 
+// Is a bigflag set?
 pub fn is_flag_set_u32(value: u32, flag: u32) -> bool {
     value & flag > 0
+}
+
+// Quickly convert a CStr to String 
+// Wrapper to make this safe
+pub fn cstr_from_ptr(ptr: *const i8) -> Result<String, String> {
+    if ptr.is_null() {
+        return Err("Pointer is null!".to_string());
+    }
+
+    unsafe {
+        let str: &str = match CStr::from_ptr(ptr).to_str() {
+            Ok(r) => r,
+            Err(e) => return Err(e.to_string()),
+        };
+        Ok(str.to_string())
+    }
 }

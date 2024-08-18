@@ -1,10 +1,10 @@
 use core::str;
-use std::{env, ffi::CStr, mem, path::Path, process::Command};
+use std::{env, ffi::CStr, process::Command};
 
-use libc::{geteuid, getpwuid, utsname};
+use libc::{geteuid, getpwuid};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util::is_flag_set_u32, ModuleError};
 
 pub struct HostnameInfo {
     username: String,
@@ -69,7 +69,7 @@ impl Module for HostnameInfo {
 const HOSTNAME_INFOFLAG_HOSTNAME: u32 = 1;
 const HOSTNAME_INFOFLAG_USERNAME: u32 = 2;
 
-pub fn get_hostname(config: &Configuration, uname: &mut Option<utsname>) -> Result<HostnameInfo, ModuleError> {
+pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
     let info_flags: u32 = HostnameInfo::gen_info_flags(&config.hostname.format);
 
@@ -92,31 +92,7 @@ pub fn get_hostname(config: &Configuration, uname: &mut Option<utsname>) -> Resu
     // Hostname
     // Unlike username, reading the hostname data as a syscall is faster than the file
     if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_HOSTNAME) {
-        hostname.hostname = match get_hostname_unsafe(uname) {
-            Ok(r) => r,
-            Err(_) => {
-                let contents = match util::file_read(Path::new("/etc/hostname")) {
-                    Ok(r) => r,
-                    Err(_) => {
-                        match backup_to_hostname_command(&mut hostname) {
-                            Ok(_) => return Ok(hostname),
-                            Err(e) => return Err(e),
-                        }
-                    },
-                };
-
-                if contents.trim().is_empty() {
-                    match backup_to_hostname_command(&mut hostname) {
-                        Ok(_) => return Ok(hostname),
-                        Err(e) => return Err(e),
-                    }
-                }
-                contents.trim()
-                    .lines()
-                    .filter(|x| !x.starts_with('#'))
-                    .collect()
-            },
-        };
+        hostname.hostname = syscall_cache.get_uname_cached().nodename;
     }
 
     Ok(hostname)
@@ -140,20 +116,8 @@ fn get_username_unsafe() -> Result<String, ()> { // No error type as I simply ne
 
     Ok(name)
 }
-fn get_hostname_unsafe(uname: &mut Option<utsname>) -> Result<String, ()> {
-    let uname_unwrap: utsname = uname.unwrap_or_else(|| {
-        unsafe {
-            let mut data: libc::utsname = mem::zeroed();
-            libc::uname(&mut data);
-            *uname = Some(data);
-            data
-        }
-    });
-    unsafe {
-        Ok(CStr::from_ptr(uname_unwrap.nodename.as_ptr()).to_str().unwrap().to_string())
-    }
-}
-fn backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
+
+fn _backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
     // If all else is fucked, it'll come here
     let output: Vec<u8> = match Command::new("hostname")
         .output() {

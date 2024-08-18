@@ -28,6 +28,7 @@ use modules::uptime::{self, UptimeInfo};
 use modules::hostname::{self, HostnameInfo};
 use config_manager::Configuration;
 use package_managers::ManagerInfo;
+use syscalls::SyscallCache;
 
 use crate::ascii::get_ascii_line;
 
@@ -40,6 +41,7 @@ mod versions;
 mod package_managers;
 mod module;
 mod util;
+mod syscalls;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -216,10 +218,6 @@ struct ModuleOutputs {
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
     processes: Option<Result<ProcessesInfo, ModuleError>>,
     datetime: Option<DateTimeInfo>,
-
-    // Any other potentially duplicated work can be put here and passed into modules
-    syscall_sysinfo: Option<libc::sysinfo>,
-    syscall_uname: Option<libc::utsname>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -246,9 +244,6 @@ impl ModuleOutputs {
             initsys: None,
             processes: None,
             datetime: None,
-
-            syscall_sysinfo: None,
-            syscall_uname: None,
         }
     }
 }
@@ -335,6 +330,9 @@ fn main() {
     package_managers.probe_and_cache();
     print_bench_time(args.benchmark, args.benchmark_warn, "Cache Package Managers", bench);
 
+    // Setup our syscall cache
+    let mut syscall_cache: SyscallCache = SyscallCache::new();
+
     // 
     //  Detect
     //
@@ -380,7 +378,7 @@ fn main() {
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.hostname.is_none() {
-                    known_outputs.hostname = Some(hostname::get_hostname(&config, &mut known_outputs.syscall_uname));
+                    known_outputs.hostname = Some(hostname::get_hostname(&config, &mut syscall_cache));
                 }
                 match known_outputs.hostname.as_ref().unwrap() {
                     Ok(hostname) => output.push(hostname.style(&config, max_title_length)),
@@ -456,7 +454,7 @@ fn main() {
             "swap" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.swap.is_none() {
-                    known_outputs.swap = Some(swap::get_swap(&mut known_outputs.syscall_sysinfo));
+                    known_outputs.swap = Some(swap::get_swap(&mut syscall_cache));
                 }
                 match known_outputs.swap.as_ref().unwrap() {
                     Ok(swap) => output.push(swap.style(&config, max_title_length)),
@@ -540,7 +538,7 @@ fn main() {
             "os" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.os.is_none() {
-                    known_outputs.os = Some(os::get_os(&config, &mut known_outputs.syscall_uname));
+                    known_outputs.os = Some(os::get_os(&config, &mut syscall_cache));
                 }
                 match known_outputs.os.as_ref().unwrap() {
                     Ok(os) => {
@@ -642,7 +640,7 @@ fn main() {
             "uptime" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.uptime.is_none() {
-                    known_outputs.uptime = Some(uptime::get_uptime(&mut known_outputs.syscall_sysinfo));
+                    known_outputs.uptime = Some(uptime::get_uptime(&mut syscall_cache));
                 }
                 match known_outputs.uptime.as_ref().unwrap() {
                     Ok(uptime) => output.push(uptime.style(&config, max_title_length)),
@@ -863,7 +861,7 @@ fn main() {
     if config.ascii.display {
         if known_outputs.os.is_none() {
             let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
-            known_outputs.os = Some(os::get_os(&config, &mut known_outputs.syscall_uname));
+            known_outputs.os = Some(os::get_os(&config, &mut syscall_cache));
             print_bench_time(args.benchmark, args.benchmark_warn, "OS (for ASCII)", os_bench);
         }
         if known_outputs.os.as_ref().unwrap().is_ok() {

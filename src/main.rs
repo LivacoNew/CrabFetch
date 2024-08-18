@@ -929,7 +929,6 @@ fn main() {
         }
     }
 
-    let bench: Option<Instant> = benchmark_point(args.benchmark); 
     if current_line < ascii_length && config.ascii.display && (config.ascii.side == "left" || config.ascii.side == "right") {
         let mut ascii_line: usize = current_line;
         for _ in current_line..ascii_length {

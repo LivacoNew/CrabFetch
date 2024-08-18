@@ -327,12 +327,13 @@ fn main() {
     // Define our module outputs, and figure out the max title length
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
     let max_title_length: u64 = calc_max_title_length(&config, &mut known_outputs, args.benchmark, args.benchmark_warn);
+    print_bench_time(args.benchmark, args.benchmark_warn, "Pre-Process", bench);
 
     // Pre-Process any package manager info we may need
     let bench: Option<Instant> = benchmark_point(args.benchmark);
     let mut package_managers: ManagerInfo = ManagerInfo::new();
     package_managers.probe_and_cache();
-    print_bench_time(args.benchmark, args.benchmark_warn, "Pre-Process and Cache Package Managers", bench);
+    print_bench_time(args.benchmark, args.benchmark_warn, "Cache Package Managers", bench);
 
     // 
     //  Detect

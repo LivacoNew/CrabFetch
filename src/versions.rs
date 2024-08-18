@@ -28,7 +28,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, pac
         return app_specific;
     }
 
-    if exe_path.starts_with("/usr/bin") || exe_path.starts_with("/usr/lib") {
+    if exe_path.starts_with("/usr/bin") || exe_path.starts_with("/usr/lib") || exe_path.starts_with("/data/data/com.termux/files/usr/bin") {
         // Consult the package manager
         let package_manager: Option<String> = use_package_manager(substitite_package_name(name), package_managers);
         if package_manager.is_some() {

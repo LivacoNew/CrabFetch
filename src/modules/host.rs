@@ -117,6 +117,7 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
     if env::var("WT_SESSION").is_ok() {
         host.host = "Windows Subsystem for Linux".to_string();
         host.chassis = "Unknown".to_string();
+        return Ok(host);
     }
 
     // Prioritises product_name for laptops, then goes to board_name

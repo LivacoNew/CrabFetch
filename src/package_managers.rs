@@ -93,7 +93,12 @@ impl ManagerInfo {
         Some(packages)
     }
     fn process_dpkg_packages() -> Option<HashMap<String, PackageInfo>> {
-        let file: File = match File::open("/var/lib/dpkg/status") {
+        let file_path: &str = if cfg!(not(feature = "android")) { 
+            "/var/lib/dpkg/status"
+        } else {
+            "/data/data/com.termux/files/usr/var/lib/dpkg/status"
+        };
+        let file: File = match File::open(file_path) {
             Ok(r) => r,
             Err(_) => return None,
         };

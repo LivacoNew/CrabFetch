@@ -1,8 +1,5 @@
 use std::env;
 
-#[cfg(feature = "android")]
-use std::{fs::File, io::Read};
-
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
@@ -131,7 +128,7 @@ pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Resu
         {
             let cmdline: Vec<String> = match parent_process.get_cmdline() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("OS", format!("Can't read from {} cmdline - {}", parent_pid, e))),
+                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process cmdline: {}", e)))
             };
             if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
                 shell.path = cmdline[1].to_string();

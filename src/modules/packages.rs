@@ -1,8 +1,5 @@
 use core::str;
 
-#[cfg(feature = "android")]
-use std::env;
-
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 

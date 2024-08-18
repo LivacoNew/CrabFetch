@@ -63,7 +63,7 @@ impl Module for OSInfo {
         let mut info_flags: u32 = 0;
 
         if format.contains("{distro}") {
-            info_flags |= OS_INFOFLAG_DISTRO;
+           info_flags |= OS_INFOFLAG_DISTRO;
         }
         if format.contains("{kernel}") {
             info_flags |= OS_INFOFLAG_KERNEL;
@@ -98,52 +98,28 @@ pub fn get_os(config: &Configuration, uname: &mut Option<utsname>) -> Result<OSI
     }
     let info_flags: u32 = OSInfo::gen_info_flags(&format);
 
-    // Android 
-    #[cfg(feature = "android")]
-    if env::consts::OS == "android" {
-        let props = AndroidSystemProperties::new();
-        // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
-        if let Some(val) = props.get("ro.build.version.release_or_preview_display") {
-            os.distro = format!("Android {}", val);
-        } else {
-            os.distro = "Android".to_string();
-        }
-        os.distro_id = "android".to_string();
-        
-        // This may fuck performance, will have to keep an eye on this 
-        let output: Vec<u8> = match Command::new("uname").arg("-r")
-            .output() {
-                Ok(r) => r.stdout,
-                Err(_) => return Err(ModuleError::new("OS", "Can't find kernel version.".to_string())),
-            };
-
-        os.kernel = match String::from_utf8(output) {
-            Ok(r) => r.trim().to_string(),
-            Err(_) => return Err(ModuleError::new("OS", "Can't find kernel version.".to_string())),
-        };
-
-        return Ok(os);
-    }
-
     // Grabs the distro name from /etc/os-release
     // Grabs the kernel release from /proc/sys/kernel/osrelease
 
     // Distro
     if is_flag_set_u32(info_flags, OS_INFOFLAG_DISTRO) || config.ascii.display {
-        let contents = match util::file_read(Path::new("/etc/os-release")) {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
-        };
-        for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
-            if line.starts_with("PRETTY_NAME=") {
-                os.distro = line[13..line.len() - 1].to_string();
-                continue;
+        // Android 
+        #[cfg(feature = "android")]
+        if env::consts::OS == "android" {
+            let props = AndroidSystemProperties::new();
+            // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
+            if let Some(val) = props.get("ro.build.version.release_or_preview_display") {
+                os.distro = format!("Android {}", val);
+            } else {
+                os.distro = "Android".to_string();
             }
-            if line.starts_with("ID=") {
-                os.distro_id = line[3..line.len()].trim().to_string();
-                continue;
-            }
+            os.distro_id = "android".to_string();
+        } else {
+            parse_os_release(&mut os)?;
         }
+
+        #[cfg(not(feature = "android"))]
+        parse_os_release(&mut os)?;
     }
 
     // Kernel
@@ -176,4 +152,23 @@ fn get_kernel_unsafe(uname: &mut Option<utsname>) -> Result<String, ()> {
     unsafe {
         Ok(CStr::from_ptr(uname_unwrap.release.as_ptr()).to_str().unwrap().to_string())
     }
+}
+
+fn parse_os_release(os: &mut OSInfo) -> Result<(), ModuleError> {
+    let contents = match util::file_read(Path::new("/etc/os-release")) {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
+    };
+    for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
+        if line.starts_with("PRETTY_NAME=") {
+            os.distro = line[13..line.len() - 1].to_string();
+            continue;
+        }
+        if line.starts_with("ID=") {
+            os.distro_id = line[3..line.len()].trim().to_string();
+            continue;
+        }
+    }
+
+    Ok(())
 }

@@ -108,6 +108,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         "fish" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
         "elvish" => Some(raw.split('+').collect::<Vec<&str>>()[0].trim().to_string()),
         // Editors
+        "vim" => Some(raw.split(' ').collect::<Vec<&str>>()[4].to_string()),
         "nvim" => Some(raw.split(' ').collect::<Vec<&str>>()[1].split('\n').next().unwrap()[1..].to_string()),
         // Init Systems
         "systemd" => Some(raw.split(' ').collect::<Vec<&str>>()[2].split('\n').next().unwrap().trim_matches(&['(', ')']).to_string()),

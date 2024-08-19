@@ -196,7 +196,9 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
                 }
             }
         }
-        if line.starts_with("cpu MHz") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CURRENT_CLOCK) {
+        // This ignore's it's feature flag to prevent issues allow max freq to back up to this on
+        // failure
+        if line.starts_with("cpu MHz") {
             cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {}", e))),

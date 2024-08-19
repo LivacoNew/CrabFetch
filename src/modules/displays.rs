@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, fs::{self, read_dir, ReadDir}};
 
 use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
-use x11rb::{connection::RequestConnection, protocol::{randr::{self, ConnectionExt, MonitorInfo, Rotation}, xproto::{self, Screen}}};
+use x11rb::{connection::RequestConnection, protocol::{randr::{self, ConnectionExt, GetCrtcInfoReply, GetOutputInfoReply, GetScreenResourcesCurrentReply, ModeInfo, MonitorInfo, Rotation}, xproto::{self, Screen}}};
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
@@ -197,7 +197,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             };
         }
 
-        let resources = match conn.randr_get_screen_resources_current(screen.root) {
+        let resources: GetScreenResourcesCurrentReply = match conn.randr_get_screen_resources_current(screen.root) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
@@ -205,12 +205,12 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
         };
 
-        let output = match monitor.outputs.first() {
-            Some(r) => r.to_owned(),
+        let output: u32 = match monitor.outputs.first() {
+            Some(r) => *r,
             None => return Err(ModuleError::new("Display", format!("Monitor {} has no outputs", monitor.name))),
         };
 
-        let output_info = match conn.randr_get_output_info(output, resources.config_timestamp) {
+        let output_info: GetOutputInfoReply = match conn.randr_get_output_info(output, resources.config_timestamp) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
@@ -218,7 +218,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
         };
 
-        let crtc = match conn.randr_get_crtc_info(output_info.crtc, resources.config_timestamp) {
+        let crtc: GetCrtcInfoReply = match conn.randr_get_crtc_info(output_info.crtc, resources.config_timestamp) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
                 Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
@@ -226,7 +226,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
         };
 
-        let mode = match resources.modes.iter().find(|x| x.id == crtc.mode) {
+        let mode: &ModeInfo = match resources.modes.iter().find(|x| x.id == crtc.mode) {
             Some(r) => r,
             None => return Err(ModuleError::new("Display", format!("Failed to find mode {}", crtc.mode))),
         };

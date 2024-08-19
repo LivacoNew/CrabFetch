@@ -86,7 +86,6 @@ pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -
     // Thanks to https://superuser.com/a/1183819
     let mut process: ProcessInfo = ProcessInfo::new(1);
 
-    // Just gets the symlink from /sbin/init 
     if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_PATH) {
         let path: String = match process.get_cmdline() {
             Ok(r) => r[0].to_string(),

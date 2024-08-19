@@ -1,6 +1,6 @@
 // Some utility functions
 
-use std::{ffi::CStr, fs::File, io::Read, path::{Path, PathBuf}};
+use std::{ffi::{c_char, CStr}, fs::File, io::Read, path::{Path, PathBuf}};
 
 // Quickly read the full contents of a specified file
 // Not reccomended for large files, use a buffer instead
@@ -52,7 +52,7 @@ pub fn is_flag_set_u32(value: u32, flag: u32) -> bool {
 
 // Quickly convert a CStr to String 
 // Wrapper to make this safe
-pub fn cstr_from_ptr(ptr: *const i8) -> Result<String, String> {
+pub fn cstr_from_ptr(ptr: *const c_char) -> Result<String, String> {
     if ptr.is_null() {
         return Err("Pointer is null!".to_string());
     }

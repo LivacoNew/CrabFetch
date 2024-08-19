@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, fs::{self, read_dir, ReadDir}};
 
 use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
-use x11rb::{connection::RequestConnection, protocol::{randr::{self, MonitorInfo}, xproto::{self, ConnectionExt, CreateWindowAux, Screen, Window, WindowClass}}, COPY_DEPTH_FROM_PARENT};
+use x11rb::{connection::RequestConnection, protocol::{randr::{self, ConnectionExt, GetCrtcInfoReply, GetOutputInfoReply, GetScreenResourcesCurrentReply, ModeInfo, MonitorInfo, Rotation}, xproto::{self, Screen}}};
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
 
@@ -15,49 +15,15 @@ pub struct DisplayInfo {
     width: u16,
     height: u16,
     scale: i32,
-    refresh_rate: Option<u16>,
-    // Tempararily holds the transform for wayland while the rest of the data comes in
-    // Should never be accessed otherwise
-    wl_transform: Option<WEnum<Transform>>
+    refresh_rate: u16,
+    rotation: u16,
 }
 impl DisplayInfo {
-    fn wl_calc_transform(&mut self) {
-        // ONLY FOR WAYLAND!!!!!
-        // Translate it and reset the transform
-        match self.wl_transform.unwrap() {
-            WEnum::Value(transform) => {
-                match transform {
-                    Transform::_90 => {
-                        // Swap width/height
-                        let (width, height) = (self.width, self.height);
-                        self.width = height;
-                        self.height = width;
-                    },
-                    Transform::_270 => {
-                        // Swap width/height
-                        let (width, height) = (self.width, self.height);
-                        self.width = height;
-                        self.height = width;
-                    },
-                    Transform::Flipped90 => {
-                        // Swap width/height
-                        let (width, height) = (self.width, self.height);
-                        self.width = height;
-                        self.height = width;
-                    },
-                    Transform::Flipped270 => {
-                        // Swap width/height
-                        let (width, height) = (self.width, self.height);
-                        self.width = height;
-                        self.height = width;
-                    },
-                    _ => {}
-                }
-            },
-            WEnum::Unknown(_) => {}, // ? no idea what to do here
+    fn calc_rotation(&mut self) {
+        if self.rotation % 180 != 0 {
+            // Swap width/height
+            (self.width, self.height) = (self.height, self.width);
         }
-        // So if another event comes in it doesn't try to parse again
-        self.wl_transform = None; 
     }
     fn scale_resolution(&mut self) {
         self.width /= self.scale as u16;
@@ -84,8 +50,8 @@ impl Module for DisplayInfo {
             width: 0,
             height: 0,
             scale: 0,
-            refresh_rate: None,
-            wl_transform: None
+            refresh_rate: 0,
+            rotation: 0
         }
     }
 
@@ -102,7 +68,7 @@ impl Module for DisplayInfo {
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
-    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+    fn unknown_output(config: &Configuration, max_title_size: u64) -> String {
         let title_color: &CrabFetchColor = config.displays.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.displays.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
@@ -116,16 +82,12 @@ impl Module for DisplayInfo {
     }
 
     fn replace_placeholders(&self, config: &Configuration) -> String {
-        let refresh_rate: String = match self.refresh_rate {
-            Some(r) => r.to_string(),
-            None => "N/A".to_string(),
-        };
         config.displays.format.replace("{name}", &self.name)
             .replace("{make}", &self.make)
             .replace("{model}", &self.model)
             .replace("{width}", &self.width.to_string())
             .replace("{height}", &self.height.to_string())
-            .replace("{refresh_rate}", &refresh_rate)
+            .replace("{refresh_rate}", &self.refresh_rate.to_string())
     }
 
     fn gen_info_flags(format: &str) -> u32 {
@@ -179,7 +141,7 @@ pub fn get_displays(config: &Configuration) -> Result<Vec<DisplayInfo>, ModuleEr
 
     // Good news, during my college final deadline hell over the past 2 months, I learned how to
     // use a display server connection!
-    
+
     // Instead of relying on XDG_SESSION_TYPE line Desktop, I simply just check the sockets as it
     // can report any string and break if someone's dumb enough to do that
     if env::var("WAYLAND_DISPLAY").is_ok() {
@@ -201,25 +163,12 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     };
 
     let screen: &Screen = &x11rb::connection::Connection::setup(&conn).roots[screen_num];
-    let win_id: Window = match x11rb::connection::Connection::generate_id(&conn) {
-        Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 identifier: {}", e))),
-    };
-    match conn.create_window(COPY_DEPTH_FROM_PARENT, win_id, screen.root,
-        0, 0,
-        1, 1,
-        0,
-        WindowClass::INPUT_OUTPUT, 0, &CreateWindowAux::new()) 
-    {
-        Ok(_) => {},
-        Err(e) => return Err(ModuleError::new("Display", format!("Can't create new X11 window: {}", e))),
-    };
 
     if conn.extension_information(randr::X11_EXTENSION_NAME).is_err() {
         return Err(ModuleError::new("Display", "X11 compositor doesn't have required 'randr' extension.".to_string()));
     }
 
-    let monitors: Vec<MonitorInfo> = match randr::get_monitors(&conn, win_id, true) {
+    let monitors: Vec<MonitorInfo> = match randr::get_monitors(&conn, screen.root, true) {
         Ok(r) => match r.reply() {
             Ok(r) => r.monitors,
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
@@ -228,7 +177,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     };
     let mut displays: Vec<DisplayInfo> = Vec::new();
     for monitor in monitors {
-        // Get the DRM name 
+        // Get the DRM name
         let mut drm_name: String = "Unknown".to_string();
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_DRM_NAME) {
             drm_name = match xproto::get_atom_name(&conn, monitor.name) {
@@ -248,22 +197,61 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             };
         }
 
-        let display = DisplayInfo {
+        // Find the screen rotation
+        let resources: GetScreenResourcesCurrentReply = match conn.randr_get_screen_resources_current(screen.root) {
+            Ok(r) => match r.reply() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
+            },
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
+        };
+
+        let output: u32 = match monitor.outputs.first() {
+            Some(r) => *r,
+            None => return Err(ModuleError::new("Display", format!("Monitor {} has no outputs", monitor.name))),
+        };
+
+        let output_info: GetOutputInfoReply = match conn.randr_get_output_info(output, resources.config_timestamp) {
+            Ok(r) => match r.reply() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
+            }
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
+        };
+
+        let crtc: GetCrtcInfoReply = match conn.randr_get_crtc_info(output_info.crtc, resources.config_timestamp) {
+            Ok(r) => match r.reply() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
+            }
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
+        };
+
+        // And finally
+        let mode: &ModeInfo = match resources.modes.iter().find(|x| x.id == crtc.mode) {
+            Some(r) => r,
+            None => return Err(ModuleError::new("Display", format!("Failed to find mode {}", crtc.mode))),
+        };
+
+        let mut display = DisplayInfo {
             name: drm_name,
             make,
             model,
-            width: monitor.width,
-            height: monitor.height,
+            width: mode.width,
+            height: mode.height,
             scale: 1,
-            refresh_rate: None, // Can't get on X11, or at least if you can I don't know how
-            wl_transform: None
+            refresh_rate: (mode.dot_clock / (mode.htotal as u32 * mode.vtotal as u32)) as u16,
+            rotation: match crtc.rotation & 0b111 {
+                Rotation::ROTATE90 => 90,
+                Rotation::ROTATE180 => 180,
+                Rotation::ROTATE270 => 270,
+                _ => 0,
+            }
         };
-
+        display.calc_rotation();
         displays.push(display);
     }
 
-    // Not error checked as it's not a huge problem if this fails, moreso just a "would be nice to do" thing
-    let _ = conn.destroy_window(win_id);
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)
 }
@@ -305,13 +293,13 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
         }
 
         // Thanks to these wonderful sources;
-        // - https://glenwing.github.io/docs/VESA-EEDID-A2.pdf 
+        // - https://glenwing.github.io/docs/VESA-EEDID-A2.pdf
         // - https://github.com/tuomas56/edid-rs/tree/master?tab=readme-ov-file
         //
-        // From what I can tell, manufacturer ID is at byte 8+2 
+        // From what I can tell, manufacturer ID is at byte 8+2
         // Display model name itself is somewhere buried within a display descriptor, which I have
         // to go through and find
-        
+
         let manuid: u16 = ((edid_bytes[8] as u16) << 8) | (edid_bytes[9] as u16);
         // + 64 to convert em to uppercase ascii
         let char1: char = (((manuid & 0b011111_00000000) >> 10) as u8 + 64) as char;
@@ -356,7 +344,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
 
         break;
     }
-    
+
     Ok((make, model))
 }
 
@@ -366,7 +354,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
 //
 struct WaylandState {
     complete: bool, // Tells us whether to break out of the event loop or not
-    num_outputs: u8, // How many outputs are waiting to be processed 
+    num_outputs: u8, // How many outputs are waiting to be processed
     outputs: HashMap<wl_output::WlOutput, DisplayInfo> // The output data as it stands
 }
 impl Dispatch<wl_registry::WlRegistry, ()> for WaylandState {
@@ -375,7 +363,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for WaylandState {
             if interface == "wl_output" {
                 // This is what we're looking for, bind to it
                 reg.bind::<wl_output::WlOutput, _, _>(name, version, qh, ());
-                state.num_outputs += 1;   
+                state.num_outputs += 1;
             }
         }
     }
@@ -390,25 +378,33 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Name {name} = &event {
             display.name = name.to_string();
         }
-        if let wl_output::Event::Scale {factor} = &event { 
+        if let wl_output::Event::Scale {factor} = &event {
             display.scale = *factor;
         }
         if let wl_output::Event::Geometry {transform, ..} = &event {
-            display.wl_transform = Some(*transform);
+            display.rotation = match *transform {
+                WEnum::Value(v) => match v {
+                    Transform::_90 | Transform::Flipped90 => 90,
+                    Transform::_180 | Transform::Flipped180 => 180,
+                    Transform::_270 | Transform::Flipped270=> 270,
+                    _ => 0,
+                },
+                WEnum::Unknown(_) => 0
+            };
         }
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = width.to_string().parse::<u16>().unwrap_or(0);
             display.height = height.to_string().parse::<u16>().unwrap_or(0);
             display.refresh_rate = match (*refresh as f32 / 1000.0).round().to_string().parse::<u16>() {
-                Ok(r) => Some(r),
+                Ok(r) => r,
                 // There's no real "error handling" here so just set it to 0 so it's not None and letting us get stuck in an infinite loop
                 // Clearly your compositor is very very very dumb
-                Err(_) => Some(0)
+                Err(_) => 0,
             };
         }
 
-        if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate.is_some() && display.wl_transform.is_some() {
-            // We're done, release it 
+        if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate != 0 {
+            // We're done, release it
             output.release();
             if state.num_outputs == 0 {
                 state.complete = true;
@@ -461,11 +457,11 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
         .collect();
 
     displays.iter_mut().for_each(|x| {
-        x.wl_calc_transform();
+        x.calc_rotation();
         if config.displays.scale_size {
             x.scale_resolution();
         }
-        
+
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
             if env::var("WT_SESSION").is_ok() {
                 // WSL has no EDID and the compositor would just return weston's weird virtual display thing

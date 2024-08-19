@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::{env, fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
 use std::mem;
 
 #[cfg(feature = "android")]
@@ -164,6 +164,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         Err(e) => return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {}", e))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
+    let mut device_cache: Vec<String> = Vec::new();
     for line in buffer.lines() {
         if line.is_err() {
             continue
@@ -177,26 +178,39 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
             .filter(|x| x.trim() != "")
             .map(|x| x.trim())
             .collect();
+    
+        let mut mount: MountInfo = MountInfo::new();
+        let device_name: &str = entries[0];
+        mount.device = match get_device_name(device_name) {
+            Some(r) => r,
+            None => continue, // Invalid device or not a device we want
+        };
+        // skipped on android as we want fuse
+        #[cfg(not(feature = "android"))]
+        if device_cache.contains(&mount.device) {
+            continue; // Already processed
+        }
+        device_cache.push(device_name.to_string());
+
+        if !is_device_wanted(&mount.device) {
+            continue; // bullshit
+        }
+
         let mount_point: &str = entries[1];
         if mount_point == "none" || mount_point == "swap" {
             continue
         }
+        // Android is a odd-ball with a *whitelist* instead as it has way too many weird and
+        // wonderful mounts, and as far as I can tell is overall an exception
+        #[cfg(feature = "android")]
+        if mount_point != "/" && !mount_point.starts_with("/storage") {
+            continue
+        }
 
-        let mut mount: MountInfo = MountInfo::new();
         mount.mount = mount_point.to_string();
         mount.filesystem = entries[2].to_string();
         if mount.is_ignored(config) {
             continue;
-        }
-
-        // Convert the device entries to device names
-        // TODO: support LABEL and PARTLABEL
-        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_DEVICE) {
-            let device_name: &str = entries[0];
-            mount.device = match get_device_name(device_name) {
-                Some(r) => r,
-                None => continue, // ????
-            };
         }
 
         // statfs to get space data
@@ -235,6 +249,7 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
 }
 
 fn get_device_name(device_name: &str) -> Option<String> {
+    // This method is also responsible for filtering out any devices we don't want
     let dev: String;
     if let Some(uuid) = device_name.strip_prefix("UUID=") {
         // UUID
@@ -253,4 +268,27 @@ fn get_device_name(device_name: &str) -> Option<String> {
     }
 
     Some(dev)
+}
+
+fn is_device_wanted(device_name: &str) -> bool {
+    // WSL
+    // FIXME: This is INCREDIBLY hacky
+    if env::var("WT_SESSION").is_ok() && &device_name[1..3] == ":\\" {
+        return true;
+    }
+
+    // This starts_with is a very primative check for if a device is virtual or physical, aka
+    // whether we care about it or not
+    #[cfg(not(feature = "android"))]
+    if !device_name.starts_with('/') {
+        return false;
+    }
+
+    // let in fuse for android
+    #[cfg(feature = "android")]
+    if !device_name.starts_with('/') && device_name != "fuse" {
+        return false;
+    }
+    
+    true
 }

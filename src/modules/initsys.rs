@@ -3,7 +3,7 @@ use std::fs;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, util::is_flag_set_u32, versions, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
 
 pub struct InitSystemInfo {
     name: String,
@@ -82,9 +82,17 @@ pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -
     let mut initsys: InitSystemInfo = InitSystemInfo::new();
     let info_flags: u32 = InitSystemInfo::gen_info_flags(&config.initsys.format);
 
+    // Reads the /cmdline of process 1, either using that or redirecting to it's symlink 
+    // Thanks to https://superuser.com/a/1183819
+    let mut process: ProcessInfo = ProcessInfo::new(1);
+
     // Just gets the symlink from /sbin/init 
     if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_PATH) {
-        initsys.path = match fs::canonicalize("/sbin/init") {
+        let path: String = match process.get_cmdline() {
+            Ok(r) => r[0].to_string(),
+            Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to read from root process cmdline: {}", e))),
+        };
+        initsys.path = match fs::canonicalize(path) {
             Ok(r) => r.display().to_string(),
             Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize /sbin/init symlink: {}", e)))
         };

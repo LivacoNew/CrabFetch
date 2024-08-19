@@ -8,6 +8,9 @@ What makes CrabFetch different is that _it aims to be as performant as possible_
 ![Showcase 1, CrabFetch with all it's modules enabled.](https://i.imgur.com/pAOwyEC.png)
 ![Showcase 2, CrabFetch with a more sensible config](https://i.imgur.com/zr9x8l8.png)
 
+**Do note that CrabFetch is quite early in it's life and shouldn be considered in "beta". You may encounter issues.**  
+**Please, report _ALL_ issues and help me improve it. You may even have fun breaking it!**
+
 
 ## Performance Showcase
 We'll compare the performance of; [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.  
@@ -60,8 +63,8 @@ To generate the default configuration file, run `crabfetch -g`.<br>
 The configuration file should be in `~/.config/CrabFetch/config.toml`. From there, refer to either the comments or the [wiki page](https://github.com/LivacoNew/CrabFetch/wiki/Configuration).
 
 ## Credits
-- [NeoFetch](https://github.com/dylanaraps/neofetch) for being an occasional source on where to find some info in Linux.
-- [FastFetch](https://github.com/fastfetch-cli/fastfetch) Also a source for system info, as well as the the author informing me of numerous issues I was unaware of.
+- [FastFetch](https://github.com/fastfetch-cli/fastfetch) An occasional source on where to find info in Linux, as well as it's author being extremely helpful in the repository.
+- [NeoFetch](https://github.com/dylanaraps/neofetch) Another occasional source on where to find info.
 
 
 ## FAQ
@@ -72,9 +75,7 @@ No.<br>
 Kind of. It's a hell of a lot more stable than it previously was, but should still be considered Alpha software. This isn't because CrabFetch is broken but simply because support for different systems is still small. Please help out by making issues and complaining at me to fix them!
 
 ### Why should I use this?
-I think that's best answered by why I made it in the first place; I was fed up of NeoFetch having to load in every time I spawned a terminal, and while FastFetch was fine enough with the performance I found it's config really unintuitive and in general it's just kind of yucky. Hence CrabFetch was born to try to solve both problems.
-
-If you have these issues as well, your the exact person CrabFetch is trying to be for!
+I think that's best answered by why I made it in the first place; I was fed up of NeoFetch having to load in every time I spawned a terminal, and while FastFetch had the performance, I found it's setup and usage quite unintuitive. Hence CrabFetch was born to try to solve both problems.
 
 ### Do you plan on supporting other operating systems other than Linux?
 Not anytime soon, the idea of working with Windows again scares me and I only use Linux so I don't really have a reason to.

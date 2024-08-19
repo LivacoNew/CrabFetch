@@ -2,7 +2,7 @@ use core::str;
 use std::{env, path::Path};
 
 #[cfg(feature = "android")]
-use {android_system_properties::AndroidSystemProperties, std::env};
+use android_system_properties::AndroidSystemProperties;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};

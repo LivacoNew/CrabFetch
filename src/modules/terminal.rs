@@ -1,7 +1,7 @@
 use std::{env, fs};
 
 #[cfg(feature = "android")]
-use std::{path::Path, env};
+use std::path::Path;
 
 use serde::Deserialize;
 

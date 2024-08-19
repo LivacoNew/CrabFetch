@@ -197,6 +197,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             };
         }
 
+        // Find the screen rotation
         let resources: GetScreenResourcesCurrentReply = match conn.randr_get_screen_resources_current(screen.root) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
@@ -226,6 +227,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
         };
 
+        // And finally
         let mode: &ModeInfo = match resources.modes.iter().find(|x| x.id == crtc.mode) {
             Some(r) => r,
             None => return Err(ModuleError::new("Display", format!("Failed to find mode {}", crtc.mode))),

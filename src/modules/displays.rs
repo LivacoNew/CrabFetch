@@ -467,10 +467,20 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
         }
         
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
-            (x.make, x.model) = match get_edid_makemodel(&x.name) {
-                Ok(r) => r,
-                Err(_) => return, // We're in a closure, can't return an error
-            };
+            if env::var("WT_SESSION").is_ok() {
+                // WSL has no EDID and the compositor would just return weston's weird virtual display thing
+                x.make = "N/A".to_string();
+                x.model = "N/A".to_string();
+            } else {
+                (x.make, x.model) = match get_edid_makemodel(&x.name) {
+                    Ok(r) => r,
+                    Err(_) => return, // We're in a closure, can't return an error
+                };
+            }
+        }
+        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_DRM_NAME) && env::var("WT_SESSION").is_ok() {
+            // WSL also doesn't have any DRM name
+            x.name = "N/A".to_string();
         }
     });
 

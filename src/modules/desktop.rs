@@ -70,6 +70,13 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
     let info_flags: u32 = DesktopInfo::gen_info_flags(&config.desktop.format);
 
+    if env::var("WT_SESSION").is_ok() {
+        // WSLG weird shit https://github.com/microsoft/wslg
+        desktop.desktop = "WSLG".to_string();
+        desktop.display_type = "Wayland".to_string();
+        return Ok(desktop);
+    }
+
     if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DESKTOP) {
         desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
             Ok(r) => r,

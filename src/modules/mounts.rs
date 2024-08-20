@@ -94,7 +94,7 @@ impl Module for MountInfo {
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{filesystem}", &self.filesystem)
-            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, use_ibis, 0))
+            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, use_ibis, dec_places))
             .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, use_ibis, dec_places))
             .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())

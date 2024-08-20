@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::{fs::{self, File}, io::{BufRead, BufReader, Error}, path::{Path, PathBuf}};
 use std::mem;
 
 #[cfg(feature = "android")]
@@ -215,11 +215,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
         // statfs to get space data
         if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL) {
-            let statfs: Result<(), ModuleError> = call_statfs(mount_point, &mut mount);
-            if statfs.is_err() {
-                continue
-                    // return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {}", mount_point)));
-            }
+            call_statfs(&mount_point, &mut mount)?;
         }
 
         mounts.push(mount);
@@ -238,7 +234,11 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
         let mut buffer: statfs = mem::zeroed();
         let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
         if x != 0 {
-            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, x)))
+            let c: String = match Error::last_os_error().raw_os_error() {
+                Some(r) => r.to_string(),
+                None => "N/A".to_string(),
+            };
+            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, c)))
         }
 
         mount.space_total_kb = (buffer.f_blocks * buffer.f_bsize as u64) / 1000;

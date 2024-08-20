@@ -5,7 +5,7 @@ use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
 use x11rb::{connection::RequestConnection, protocol::{randr::{self, ConnectionExt, GetCrtcInfoReply, GetOutputInfoReply, GetScreenResourcesCurrentReply, ModeInfo, MonitorInfo, Rotation}, xproto::{self, Screen}}};
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 #[derive(Clone)]
 pub struct DisplayInfo {
@@ -395,12 +395,7 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = width.to_string().parse::<u16>().unwrap_or(0);
             display.height = height.to_string().parse::<u16>().unwrap_or(0);
-            display.refresh_rate = match (*refresh as f32 / 1000.0).round().to_string().parse::<u16>() {
-                Ok(r) => r,
-                // There's no real "error handling" here so just set it to 0 so it's not None and letting us get stuck in an infinite loop
-                // Clearly your compositor is very very very dumb
-                Err(_) => 0,
-            };
+            display.refresh_rate = (*refresh as f32 / 1000.0).round().to_string().parse::<u16>().unwrap_or(0);
         }
 
         if !display.name.is_empty() && display.width != 0 && display.height != 0 && display.refresh_rate != 0 {
@@ -463,7 +458,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
         }
 
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
-            if env::var("WT_SESSION").is_ok() {
+            if util::in_wsl() {
                 // WSL has no EDID and the compositor would just return weston's weird virtual display thing
                 x.make = "N/A".to_string();
                 x.model = "N/A".to_string();
@@ -474,7 +469,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
                 };
             }
         }
-        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_DRM_NAME) && env::var("WT_SESSION").is_ok() {
+        if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_DRM_NAME) && util::in_wsl() {
             // WSL also doesn't have any DRM name
             x.name = "N/A".to_string();
         }

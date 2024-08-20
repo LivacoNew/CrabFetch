@@ -1,5 +1,5 @@
 use core::str;
-use std::{env, path::Path};
+use std::{path::Path};
 
 #[cfg(feature = "android")]
 use android_system_properties::AndroidSystemProperties;
@@ -114,7 +114,7 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
     }
 
     // WSL
-    if env::var("WT_SESSION").is_ok() {
+    if util::in_wsl() {
         host.host = "Windows Subsystem for Linux".to_string();
         host.chassis = "N/A".to_string();
         return Ok(host);

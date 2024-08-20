@@ -2,7 +2,7 @@ use std::env;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct DesktopInfo {
     desktop: String,
@@ -70,7 +70,7 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     let mut desktop: DesktopInfo = DesktopInfo::new();
     let info_flags: u32 = DesktopInfo::gen_info_flags(&config.desktop.format);
 
-    if env::var("WT_SESSION").is_ok() {
+    if util::in_wsl() {
         // WSLG weird shit https://github.com/microsoft/wslg
         desktop.desktop = "WSLG".to_string();
         desktop.display_type = "Wayland".to_string();

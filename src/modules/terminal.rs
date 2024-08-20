@@ -1,11 +1,11 @@
-use std::{env, fs};
+use std::{fs};
 
 #[cfg(feature = "android")]
 use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::{self, is_flag_set_u32}, versions, ModuleError};
 
 pub struct TerminalInfo {
     name: String,
@@ -119,7 +119,7 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
         return Ok(terminal);
     }
 
-    if env::var("WT_SESSION").is_ok() {
+    if util::in_wsl() {
         // We're in WSL
         terminal.name = "Windows Terminal".to_string();
         terminal.path = "N/A".to_string();

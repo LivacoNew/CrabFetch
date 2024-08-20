@@ -1,4 +1,4 @@
-use std::{env, fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::{fs::{self, File}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
 use std::mem;
 
 #[cfg(feature = "android")]
@@ -7,7 +7,7 @@ use std::env;
 use libc::statfs;
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::is_flag_set_u32, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct MountInfo {
     device: String,     // /dev/sda
@@ -273,7 +273,7 @@ fn get_device_name(device_name: &str) -> Option<String> {
 fn is_device_wanted(device_name: &str) -> bool {
     // WSL
     // FIXME: This is INCREDIBLY hacky
-    if env::var("WT_SESSION").is_ok() && &device_name[1..3] == ":\\" {
+    if util::in_wsl() && &device_name[1..3] == ":\\" {
         return true;
     }
 

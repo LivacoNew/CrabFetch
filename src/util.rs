@@ -69,3 +69,10 @@ pub fn cstr_from_ptr(ptr: *const c_char) -> Result<String, String> {
         Ok(str.to_string())
     }
 }
+
+/// Returns true if we're running under Window's WSL
+pub fn in_wsl() -> bool {
+    // Credit: https://superuser.com/a/1749811
+    // Using the first method
+    Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists()
+}

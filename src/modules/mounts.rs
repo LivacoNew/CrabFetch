@@ -196,7 +196,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
             continue; // bullshit
         }
 
-        let mount_point: &str = entries[1];
+        let mount_point: String = entries[1].replace("\\040", " ");
         if mount_point == "none" || mount_point == "swap" {
             continue
         }

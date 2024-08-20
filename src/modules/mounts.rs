@@ -272,6 +272,16 @@ fn get_device_name(device_name: &str) -> Option<String> {
             Err(_) => return None, // ??
         };
         dev = device.to_str().unwrap().to_string();
+    } else if let Some(partlabel) = device_name.strip_prefix("PARTLABEL=") {
+        let label_path: PathBuf = Path::new("/dev/disk/by-partlabel/").join(partlabel);
+        if !label_path.is_symlink() {
+            return None; // ???
+        }
+        let device = match fs::canonicalize(label_path) {
+            Ok(r) => r,
+            Err(_) => return None, // ??
+        };
+        dev = device.to_str().unwrap().to_string();
     } else {
         // regular old devices
         dev = device_name.to_string();

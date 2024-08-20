@@ -2,8 +2,9 @@
 
 use std::{ffi::{c_char, CStr}, fs::File, io::Read, path::{Path, PathBuf}};
 
-// Quickly read the full contents of a specified file
-// Not reccomended for large files, use a buffer instead
+/// Quickly reads the full contents of a specified file using [File::open] and [File::read_to_string]
+/// Don't use this for medium to large sized files, for performance reasons please use a buffer instead.
+/// `Err<String>` is returned on failure with the string being the error message.
 pub fn file_read(path: &Path) -> Result<String, String> {
     let mut file: File = match File::open(path) {
         Ok(r) => r,
@@ -18,8 +19,9 @@ pub fn file_read(path: &Path) -> Result<String, String> {
     Ok(contents)
 }
 
-// Select the first path in the vec that exists 
-// Used by stuff like Battery and Host
+/// Checks each [Path] in `paths` for existance, and returns the first one that exists.
+/// If none of the paths exists, returns [None]
+/// For an owned version, see [find_first_pathbuf_exists]
 pub fn find_first_path_exists(paths: Vec<&Path>) -> Option<&Path> {
     for p in paths {
         if !p.exists() {
@@ -31,8 +33,9 @@ pub fn find_first_path_exists(paths: Vec<&Path>) -> Option<&Path> {
 
     None
 }
-// Select the first path in the vec that exists 
-// Used by stuff like Battery and Host
+/// Checks each [PathBuf] in `paths` for existance, and returns the first one that exists.
+/// If none of the paths exists, returns [None]
+/// For a borrowed version, see [find_first_path_exists]
 pub fn find_first_pathbuf_exists(paths: Vec<PathBuf>) -> Option<PathBuf> {
     for p in paths {
         if !p.exists() {
@@ -45,13 +48,14 @@ pub fn find_first_pathbuf_exists(paths: Vec<PathBuf>) -> Option<PathBuf> {
     None
 }
 
-// Is a bigflag set?
+/// Checks if `value` contains the bits set in `flag`, returning true if so
+/// This is just a shorthand for `value & flag > 0`
 pub fn is_flag_set_u32(value: u32, flag: u32) -> bool {
     value & flag > 0
 }
 
-// Quickly convert a CStr to String 
-// Wrapper to make this safe
+/// Converts a C string's pointer into a rust [String].
+/// `Err<String>` is returned on failure with the string being the error message.
 pub fn cstr_from_ptr(ptr: *const c_char) -> Result<String, String> {
     if ptr.is_null() {
         return Err("Pointer is null!".to_string());

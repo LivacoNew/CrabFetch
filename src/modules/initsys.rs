@@ -91,9 +91,9 @@ pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -
             Ok(r) => r[0].to_string(),
             Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to read from root process cmdline: {}", e))),
         };
-        initsys.path = match fs::canonicalize(path) {
+        initsys.path = match fs::canonicalize(&path) {
             Ok(r) => r.display().to_string(),
-            Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize /sbin/init symlink: {}", e)))
+            Err(e) => return Err(ModuleError::new("InitSys", format!("Failed to canonicalize {} symlink: {}", path, e)))
         };
     }
     if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_NAME) {

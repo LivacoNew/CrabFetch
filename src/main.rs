@@ -208,46 +208,12 @@ macro_rules! run_generic_module {
             },
         }; 
     };
-    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr) => {
-        if $known.is_none() {
-            $known = Some($mod::$run());
-        }
-        match $known.as_ref().unwrap() {
-            Ok(x) => $out.push(x.style(&$config, $ml)),
-            Err(e) => {
-                if $err {
-                    $out.push(e.to_string());
-                } else {
-                    $out.push($type::unknown_output(&$config, $ml));
-                }
-            },
-        }; 
-    }
 }
 #[macro_export]
 macro_rules! run_multiline_module {
     ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr, $($rargs:tt)*) => {
         if $known.is_none() {
             $known = Some($mod::$run($($rargs)*));
-        }
-        match $known.as_ref().unwrap() {
-            Ok(x) => {
-                for y in x {
-                    $out.push(y.style(&$config, $ml));
-                }
-            },
-            Err(e) => {
-                if $err {
-                    $out.push(e.to_string());
-                } else {
-                    $out.push($type::unknown_output(&$config, $ml));
-                }
-            },
-        }; 
-    };
-    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr) => {
-        if $known.is_none() {
-            $known = Some($mod::$run());
         }
         match $known.as_ref().unwrap() {
             Ok(x) => {
@@ -488,7 +454,7 @@ fn main() {
             },
             "memory" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                run_generic_module!(memory, MemoryInfo, get_memory, known_outputs.memory, config, max_title_length, log_errors, output);
+                run_generic_module!(memory, MemoryInfo, get_memory, known_outputs.memory, config, max_title_length, log_errors, output, );
                 print_bench_time(args.benchmark, args.benchmark_warn, "Memory Module", bench);
             },
             "swap" => {
@@ -594,7 +560,7 @@ fn main() {
             },
             "battery" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                run_multiline_module!(battery, BatteryInfo, get_batteries, known_outputs.battery, config, max_title_length, log_errors, output);
+                run_multiline_module!(battery, BatteryInfo, get_batteries, known_outputs.battery, config, max_title_length, log_errors, output, );
                 print_bench_time(args.benchmark, args.benchmark_warn, "Battery Module", bench);
             },
             "uptime" => {
@@ -604,7 +570,7 @@ fn main() {
             },
             "locale" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                run_generic_module!(locale, LocaleInfo, get_locale, known_outputs.locale, config, max_title_length, log_errors, output);
+                run_generic_module!(locale, LocaleInfo, get_locale, known_outputs.locale, config, max_title_length, log_errors, output, );
                 print_bench_time(args.benchmark, args.benchmark_warn, "Locale Module", bench);
             },
             #[cfg(feature = "player")]
@@ -625,7 +591,7 @@ fn main() {
             },
             "processes" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                run_generic_module!(processes, ProcessesInfo, get_process_count, known_outputs.processes, config, max_title_length, log_errors, output);
+                run_generic_module!(processes, ProcessesInfo, get_process_count, known_outputs.processes, config, max_title_length, log_errors, output, );
                 print_bench_time(args.benchmark, args.benchmark_warn, "Processes Module", bench);
             },
             "datetime" => {

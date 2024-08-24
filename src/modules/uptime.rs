@@ -31,7 +31,7 @@ impl Module for UptimeInfo {
         let separator: &str = config.uptime.separator.as_ref().unwrap_or(&config.separator);
 
         let format: String = config.uptime.format.clone().unwrap_or("{time}".to_string());
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, &config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config));
 
         Self::default_style(config, max_title_size, &config.uptime.title, title_color, title_bold, title_italic, separator, &value)
     }

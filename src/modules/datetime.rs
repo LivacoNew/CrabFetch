@@ -42,7 +42,7 @@ impl Module for DateTimeInfo {
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
-        self.datetime.format(&text).to_string()
+        self.datetime.format(text).to_string()
     }
 
     fn gen_info_flags(_: &str) -> u32 {

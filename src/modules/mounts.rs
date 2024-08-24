@@ -121,6 +121,9 @@ impl Module for MountInfo {
 impl MountInfo {
     pub fn is_ignored(&self, config: &Configuration) -> bool {
         for x in &config.mounts.ignore {
+            if x.is_empty() {
+                continue;
+            }
             if self.mount.starts_with(x) || self.filesystem.starts_with(x) {
                 return true
             }

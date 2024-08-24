@@ -134,7 +134,7 @@ fn parse_os_release(os: &mut OSInfo) -> Result<(), ModuleError> {
         Ok(r) => r,
         Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
     };
-    for line in contents.trim().to_string().split('\n').collect::<Vec<&str>>() {
+    for line in contents.trim().split('\n').collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {
             os.distro = line[13..line.len() - 1].to_string();
             continue;

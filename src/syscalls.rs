@@ -95,6 +95,8 @@ impl SyscallCache {
 // Better syscall structures than the built in libc ones
 // These handle all the parsing from C to Rust stuff for us
 // Anything that doesn't need complex parsing (e.g sysinfo) just returns the original structure
+// Dead code is allowed in structs, as they may be able to be used for future things
+#[allow(dead_code)]
 pub struct Utsname {
     pub sysname: String,
     pub nodename: String,
@@ -114,6 +116,8 @@ impl Utsname {
     }
 }
 
+
+#[allow(dead_code)]
 pub struct Passwd {
     pub name: String,
     pub uid: u32,

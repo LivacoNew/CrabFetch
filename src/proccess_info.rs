@@ -4,6 +4,7 @@ use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::
 
 // https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct ProcessStatus {
     pub pid: u32,
     pub comm: String,
@@ -27,6 +28,7 @@ impl ProcessStatus {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct ProcessInfo {
     pub pid: u32,
     process_name: Option<String>,

@@ -100,7 +100,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
 
         if line.starts_with("MemTotal") {
             let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
-            var = &var[..var.len() - 3].trim();
+            var = var[..var.len() - 3].trim();
             memory.max_kb = match var.to_string().parse::<f64>() {
                 Ok(r) => (r * 1.024) as u64,
                 Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse total memory: {}", e)))
@@ -108,7 +108,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
         }
         if line.starts_with("MemAvailable") {
             let mut var: &str = line.split(": ").collect::<Vec<&str>>()[1];
-            var = &var[..var.len() - 3].trim();
+            var = var[..var.len() - 3].trim();
             mem_available = match var.to_string().parse::<f64>() {
                 Ok(r) => (r * 1.024) as u64,
                 Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse memfree memory: {}", e)))

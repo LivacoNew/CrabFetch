@@ -233,8 +233,6 @@ macro_rules! run_multiline_module {
 }
 
 
-
-
 // Stores all the module's outputs as we know them
 // This is to prevent us doing additional work when we don't need to, when modules need shared data
 struct ModuleOutputs {

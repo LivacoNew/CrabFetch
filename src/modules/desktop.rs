@@ -31,9 +31,10 @@ impl Module for DesktopInfo {
         let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = self.replace_placeholders(&config.desktop.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.desktop.format, config));
 
-        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.desktop.title_color.as_ref().unwrap_or(&config.title_color);
@@ -41,7 +42,11 @@ impl Module for DesktopInfo {
         let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.desktop.title
+            .replace("{desktop}", "Unknown")
+            .replace("{display_type}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {

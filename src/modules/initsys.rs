@@ -34,9 +34,10 @@ impl Module for InitSystemInfo {
         let title_italic: bool = config.initsys.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.initsys.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = self.replace_placeholders(&config.initsys.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.initsys.format, config));
 
-        Self::default_style(config, max_title_size, &config.initsys.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.initsys.title_color.as_ref().unwrap_or(&config.title_color);
@@ -44,7 +45,12 @@ impl Module for InitSystemInfo {
         let title_italic: bool = config.initsys.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.initsys.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.initsys.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.initsys.title
+            .replace("{name}", "Unknown")
+            .replace("{path}", "Unknown")
+            .replace("{version}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {

@@ -45,17 +45,28 @@ impl Module for CPUInfo {
         let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = self.replace_placeholders(&config.cpu.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.cpu.format, config));
 
-        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.cpu.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.cpu.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
+
+        let title: String = config.cpu.title
+            .replace("{name}", "Unknown")
+            .replace("{core_count}", "Unknown")
+            .replace("{thread_count}", "Unknown")
+            .replace("{current_clock_mhz}", "Unknown")
+            .replace("{current_clock_ghz}", "Unknown")
+            .replace("{max_clock_mhz}", "Unknown")
+            .replace("{max_clock_ghz}", "Unknown")
+            .replace("{arch}", "Unknown");
         
-        Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {

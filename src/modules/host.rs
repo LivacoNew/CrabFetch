@@ -37,9 +37,10 @@ impl Module for HostInfo {
         let title_italic: bool = config.host.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.host.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = self.replace_placeholders(&config.host.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.host.format, config));
 
-        Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.host.title_color.as_ref().unwrap_or(&config.title_color);
@@ -47,7 +48,11 @@ impl Module for HostInfo {
         let title_italic: bool = config.host.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.host.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.host.title
+            .replace("{host}", "Unknown")
+            .replace("{chassis}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {

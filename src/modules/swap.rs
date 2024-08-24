@@ -40,9 +40,10 @@ impl Module for SwapInfo {
         let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.swap.separator.as_ref().unwrap_or(&config.separator);
 
+        let title: String = self.replace_placeholders(&config.swap.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.swap.format, config));
 
-        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
     fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
         let title_color: &CrabFetchColor = config.swap.title_color.as_ref().unwrap_or(&config.title_color);
@@ -50,7 +51,12 @@ impl Module for SwapInfo {
         let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.swap.separator.as_ref().unwrap_or(&config.separator);
 
-        Self::default_style(config, max_title_size, &config.swap.title, title_color, title_bold, title_italic, separator, "Unknown")
+        let title: String = config.uptime.title
+            .replace("{used}", "Unknown")
+            .replace("{total}", "Unknown")
+            .replace("{bar}", "Unknown");
+
+        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {

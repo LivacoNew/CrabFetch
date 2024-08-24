@@ -224,6 +224,47 @@ macro_rules! run_generic_module {
         }; 
     }
 }
+#[macro_export]
+macro_rules! run_multiline_module {
+    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr, $($rargs:tt)*) => {
+        if $known.is_none() {
+            $known = Some($mod::$run($($rargs)*));
+        }
+        match $known.as_ref().unwrap() {
+            Ok(x) => {
+                for y in x {
+                    $out.push(y.style(&$config, $ml));
+                }
+            },
+            Err(e) => {
+                if $err {
+                    $out.push(e.to_string());
+                } else {
+                    $out.push($type::unknown_output(&$config, $ml));
+                }
+            },
+        }; 
+    };
+    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr) => {
+        if $known.is_none() {
+            $known = Some($mod::$run());
+        }
+        match $known.as_ref().unwrap() {
+            Ok(x) => {
+                for y in x {
+                    $out.push(y.style(&$config, $ml));
+                }
+            },
+            Err(e) => {
+                if $err {
+                    $out.push(e.to_string());
+                } else {
+                    $out.push($type::unknown_output(&$config, $ml));
+                }
+            },
+        }; 
+    };
+}
 
 
 
@@ -503,23 +544,7 @@ fn main() {
             },
             "displays" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.displays.is_none() {
-                    known_outputs.displays = Some(displays::get_displays(&config));
-                }
-                match known_outputs.displays.as_ref().unwrap() {
-                    Ok(displays) => {
-                        for display in displays {
-                            output.push(display.style(&config, max_title_length))
-                        }
-                    },
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(DisplayInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_multiline_module!(displays, DisplayInfo, get_displays, known_outputs.displays, config, max_title_length, log_errors, output, &config);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Displays Module", bench);
             },
             "os" => {
@@ -569,23 +594,7 @@ fn main() {
             },
             "battery" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.battery.is_none() {
-                    known_outputs.battery = Some(battery::get_batteries());
-                }
-                match known_outputs.battery.as_ref().unwrap() {
-                    Ok(batteries) => {
-                        for bat in batteries {
-                            output.push(bat.style(&config, max_title_length))
-                        }
-                    },
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(BatteryInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_multiline_module!(battery, BatteryInfo, get_batteries, known_outputs.battery, config, max_title_length, log_errors, output);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Battery Module", bench);
             },
             "uptime" => {
@@ -601,23 +610,7 @@ fn main() {
             #[cfg(feature = "player")]
             "player" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.player.is_none() {
-                    known_outputs.player = Some(player::get_players(&config));
-                }
-                match known_outputs.player.as_ref().unwrap() {
-                    Ok(players) => {
-                        for player in players{
-                            output.push(player.style(&config, max_title_length));
-                        }
-                    }
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(PlayerInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_multiline_module!(player, PlayerInfo, get_players, known_outputs.player, config, max_title_length, log_errors, output, &config);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Player Module", bench);
             },
             "editor" => {

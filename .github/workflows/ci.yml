@@ -17,10 +17,15 @@ jobs:
           ref: master
           path: CrabFetch
 
-      # Setup Rust + Any runtime deps for testing
+      # Setup Rust & Cargo's Cache
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: CrabFetch
+        
+      # Any deps we need, currently only libdbus-1
       - name: Install Dependencies
         run: |
           sudo apt -y update

@@ -31,7 +31,7 @@ impl Module for DesktopInfo {
         let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.desktop.format, config));
 
         Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -44,8 +44,8 @@ impl Module for DesktopInfo {
         Self::default_style(config, max_title_size, &config.desktop.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.desktop.format.replace("{desktop}", &self.desktop)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{desktop}", &self.desktop)
             .replace("{display_type}", &self.display_type)
     }
 

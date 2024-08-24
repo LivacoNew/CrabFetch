@@ -34,7 +34,7 @@ impl Module for EditorInfo {
         let title_italic: bool = config.editor.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.editor.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.editor.format, config));
 
         Self::default_style(config, max_title_size, &config.editor.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -47,8 +47,8 @@ impl Module for EditorInfo {
         Self::default_style(config, max_title_size, &config.editor.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.editor.format.replace("{name}", &self.name)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{name}", &self.name)
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }

@@ -42,9 +42,8 @@ impl Module for GPUInfo {
         let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.gpu.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.gpu.title.clone()
-            .replace("{index}", &self.index.unwrap_or(0).to_string());
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let title: String = self.replace_placeholders(&config.gpu.title, config);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.gpu.format, config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -55,18 +54,22 @@ impl Module for GPUInfo {
         let title_italic: bool = config.gpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.gpu.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.gpu.title.clone()
+        let title: String = config.gpu.title
+            .replace("{vendor}", "Unknown")
+            .replace("{model}", "Unknown")
+            .replace("{vram}", "Unknown")
             .replace("{index}", "0").to_string();
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
         let use_ibis: bool = config.gpu.use_ibis.unwrap_or(config.use_ibis);
 
-        config.gpu.format.replace("{vendor}", &self.vendor)
+        text.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
             .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
+            .replace("{index}", &self.index.unwrap_or(0).to_string())
     }
 
     fn gen_info_flags(format: &str) -> u32 {

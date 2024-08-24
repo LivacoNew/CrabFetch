@@ -37,9 +37,8 @@ impl Module for BatteryInfo {
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.battery.title.clone()
-            .replace("{index}", &self.index).to_string();
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let title: String = self.replace_placeholders(&config.battery.title, config);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.battery.format, config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -49,17 +48,19 @@ impl Module for BatteryInfo {
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.battery.title.clone()
-            .replace("{index}", "0").to_string();
+        let title: String = config.battery.title
+            .replace("{index}", "0").to_string()
+            .replace("{percentage}", "Unknown").to_string()
+            .replace("{bar}", "").to_string();
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
         let dec_places: u32 = config.battery.decimal_places.unwrap_or(config.decimal_places);
 
         let mut bar: String = String::new();
-        if config.battery.format.contains("{bar}") {
+        if text.contains("{bar}") {
             let left_border: &str = config.battery.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
             let right_border: &str = config.battery.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
             let progress: &str = config.battery.progress_progress.as_ref().unwrap_or(&config.progress_progress);
@@ -68,7 +69,7 @@ impl Module for BatteryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
-        formatter::process_percentage_placeholder(&config.battery.format, formatter::round(self.percentage as f64, dec_places) as f32, config)
+        formatter::process_percentage_placeholder(&text, formatter::round(self.percentage as f64, dec_places) as f32, config)
             .replace("{index}", &self.index)
             .replace("{percentage}", &self.percentage.to_string())
             .replace("{bar}", &bar)

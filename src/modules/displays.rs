@@ -61,10 +61,8 @@ impl Module for DisplayInfo {
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.displays.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.displays.title.clone().replace("{name}", &self.name)
-            .replace("{make}", &self.make)
-            .replace("{model}", &self.model);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let title: String = self.replace_placeholders(&config.displays.title, config);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.displays.format, config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -74,15 +72,19 @@ impl Module for DisplayInfo {
         let title_italic: bool = config.displays.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.displays.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.displays.title.clone().replace("{name}", "Unknown")
+        let title: String = config.displays.title
+            .replace("{name}", "Unknown")
             .replace("{make}", "Unknown")
-            .replace("{model}", "Unknown");
+            .replace("{model}", "Unknown")
+            .replace("{width}", "Unknown")
+            .replace("{height}", "Unknown")
+            .replace("{refresh_rate}", "Unknown");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.displays.format.replace("{name}", &self.name)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{name}", &self.name)
             .replace("{make}", &self.make)
             .replace("{model}", &self.model)
             .replace("{width}", &self.width.to_string())

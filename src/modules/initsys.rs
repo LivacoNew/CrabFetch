@@ -34,7 +34,7 @@ impl Module for InitSystemInfo {
         let title_italic: bool = config.initsys.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.initsys.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.initsys.format, config));
 
         Self::default_style(config, max_title_size, &config.initsys.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -47,8 +47,8 @@ impl Module for InitSystemInfo {
         Self::default_style(config, max_title_size, &config.initsys.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.initsys.format.replace("{name}", &self.name)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{name}", &self.name)
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }

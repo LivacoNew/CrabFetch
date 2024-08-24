@@ -52,13 +52,8 @@ impl Module for MountInfo {
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.mounts.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.mounts.title.clone()
-            .replace("{device}", &self.device)
-            .replace("{mount}", &self.mount)
-            .replace("{filesystem}", &self.filesystem);
-
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
-
+        let title: String = self.replace_placeholders(&config.mounts.title, config);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.mounts.format, config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -68,20 +63,24 @@ impl Module for MountInfo {
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.mounts.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.mounts.title.clone()
+        let title: String = config.mounts.title
             .replace("{device}", "Unknown")
             .replace("{mount}", "Unknown")
-            .replace("{filesystem}", "Unknown");
+            .replace("{filesystem}", "Unknown")
+            .replace("{space_used}", "Unknown")
+            .replace("{space_avail}", "Unknown")
+            .replace("{space_total}", "Unknown")
+            .replace("{bar}", " ");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
         let dec_places: u32 = config.mounts.decimal_places.unwrap_or(config.decimal_places);
         let use_ibis: bool = config.mounts.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
-        if config.memory.format.contains("{bar}") {
+        if text.contains("{bar}") {
             let left_border: &str = config.mounts.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
             let right_border: &str = config.mounts.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
             let progress: &str = config.mounts.progress_progress.as_ref().unwrap_or(&config.progress_progress);
@@ -90,7 +89,7 @@ impl Module for MountInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        formatter::process_percentage_placeholder(&config.mounts.format, formatter::round(self.percent as f64, dec_places) as f32, config)
+        formatter::process_percentage_placeholder(&text, formatter::round(self.percent as f64, dec_places) as f32, config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
             .replace("{filesystem}", &self.filesystem)

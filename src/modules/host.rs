@@ -37,7 +37,7 @@ impl Module for HostInfo {
         let title_italic: bool = config.host.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.host.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.host.format, config));
 
         Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -50,8 +50,8 @@ impl Module for HostInfo {
         Self::default_style(config, max_title_size, &config.host.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.host.format.replace("{host}", &self.host)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{host}", &self.host)
             .replace("{chassis}", &self.chassis)
     }
 

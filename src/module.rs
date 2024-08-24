@@ -8,7 +8,7 @@ pub trait Module {
     fn new() -> Self;
     fn style(&self, config: &Configuration, max_title_length: u64) -> String;
     fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
-    fn replace_placeholders(&self, config: &Configuration) -> String;
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String;
     fn gen_info_flags(format: &str) -> u32;
 
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks

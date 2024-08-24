@@ -41,7 +41,7 @@ impl Module for MemoryInfo {
         let title_italic: bool = config.memory.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.memory.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.memory.format, config));
 
         Self::default_style(config, max_title_size, &config.memory.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -54,12 +54,12 @@ impl Module for MemoryInfo {
         Self::default_style(config, max_title_size, &config.memory.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
         let dec_places: u32 = config.memory.decimal_places.unwrap_or(config.decimal_places);
         let use_ibis: bool = config.memory.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
-        if config.memory.format.contains("{bar}") {
+        if text.contains("{bar}") {
             let left_border: &str = config.memory.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
             let right_border: &str = config.memory.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
             let progress: &str = config.memory.progress_progress.as_ref().unwrap_or(&config.progress_progress);
@@ -68,7 +68,7 @@ impl Module for MemoryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
-        formatter::process_percentage_placeholder(&config.memory.format, formatter::round(self.percentage as f64, dec_places) as f32, config)
+        formatter::process_percentage_placeholder(&text, formatter::round(self.percentage as f64, dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())

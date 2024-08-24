@@ -34,7 +34,7 @@ impl Module for ShellInfo {
         let title_italic: bool = config.shell.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.shell.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.shell.format, config));
 
         Self::default_style(config, max_title_size, &config.shell.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -47,8 +47,8 @@ impl Module for ShellInfo {
         Self::default_style(config, max_title_size, &config.shell.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.shell.format.replace("{name}", &self.name)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{name}", &self.name)
             .replace("{path}", &self.path)
             .replace("{version}", &self.version)
     }

@@ -45,7 +45,7 @@ impl Module for CPUInfo {
         let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.cpu.format, config));
 
         Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -58,10 +58,10 @@ impl Module for CPUInfo {
         Self::default_style(config, max_title_size, &config.cpu.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
+    fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
         let dec_places: u32 = config.cpu.decimal_places.unwrap_or(config.decimal_places);
 
-        config.cpu.format.replace("{name}", &self.name)
+        text.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
             .replace("{current_clock_mhz}", &formatter::round(self.current_clock_mhz as f64, dec_places).to_string())

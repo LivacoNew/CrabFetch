@@ -40,7 +40,7 @@ impl Module for OSInfo {
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.os.format, config));
 
         Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -53,8 +53,8 @@ impl Module for OSInfo {
         Self::default_style(config, max_title_size, &config.os.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.os.format.replace("{distro}", &self.distro)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{distro}", &self.distro)
             .replace("{kernel}", &self.kernel)
     }
 

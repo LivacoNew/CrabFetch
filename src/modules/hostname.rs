@@ -31,7 +31,7 @@ impl Module for HostnameInfo {
         let title_italic: bool = config.hostname.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.hostname.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.hostname.format, config));
 
         Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -44,8 +44,8 @@ impl Module for HostnameInfo {
         Self::default_style(config, max_title_size, &config.hostname.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        config.hostname.format.replace("{username}", &self.username)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{username}", &self.username)
             .replace("{hostname}", &self.hostname)
             .to_string()
     }

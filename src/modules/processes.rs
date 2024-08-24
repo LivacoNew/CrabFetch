@@ -29,7 +29,8 @@ impl Module for ProcessesInfo {
         let title_italic: bool = config.processes.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.processes.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let format: String = config.processes.format.clone().unwrap_or("{count}".to_string());
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config));
 
         Self::default_style(config, max_title_size, &config.processes.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -42,9 +43,8 @@ impl Module for ProcessesInfo {
         Self::default_style(config, max_title_size, &config.processes.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        let format: String = config.processes.format.clone().unwrap_or("{count}".to_string());
-        format.replace("{count}", &self.count.to_string())
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{count}", &self.count.to_string())
     }
 
     fn gen_info_flags(_: &str) -> u32 {

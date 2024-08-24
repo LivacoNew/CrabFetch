@@ -28,7 +28,7 @@ impl Module for DateTimeInfo {
         let title_italic: bool = config.datetime.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.datetime.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.datetime.format, config));
 
         Self::default_style(config, max_title_size, &config.datetime.title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -41,8 +41,8 @@ impl Module for DateTimeInfo {
         Self::default_style(config, max_title_size, &config.datetime.title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        self.datetime.format(&config.datetime.format).to_string()
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        self.datetime.format(&text).to_string()
     }
 
     fn gen_info_flags(_: &str) -> u32 {

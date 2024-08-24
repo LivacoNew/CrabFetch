@@ -42,9 +42,8 @@ impl Module for PlayerInfo {
         let title_italic: bool = config.player.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.player.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.player.title.clone()
-            .replace("{player}", &self.player);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(config));
+        let title: String = self.replace_placeholders(&config.player.title, config);
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.player.format, config));
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -54,20 +53,22 @@ impl Module for PlayerInfo {
         let title_italic: bool = config.player.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.player.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.player.title.clone()
-            .replace("{player}", "Unknown");
+        let title: String = config.player.title
+            .replace("{track}", "Unknown")
+            .replace("{album}", "Unknown")
+            .replace("{album_artists}", "Unknown")
+            .replace("{track_artists}", "Unknown")
+            .replace("{player}", "Unknown")
+            .replace("{status}", "Unknown");
 
         Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
-    fn replace_placeholders(&self, config: &Configuration) -> String {
-        let album_artists: String = self.album_artists.join(" ");
-        let track_artists: String = self.track_artists.join(" ");
-
-        config.player.format.replace("{track}", &self.track)
+    fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
+        text.replace("{track}", &self.track)
             .replace("{album}", &self.album)
-            .replace("{album_artists}", &album_artists)
-            .replace("{track_artists}", &track_artists)
+            .replace("{album_artists}", &self.album_artists.join(" "))
+            .replace("{track_artists}", &self.track_artists.join(" "))
             .replace("{player}", &self.player)
             .replace("{status}", &self.status)
     }

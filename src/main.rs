@@ -190,6 +190,41 @@ fn print_bench_time(benchmarking: bool, benchmark_warn: Option<u128>, name: &str
     println!("[Benchmark] {}: {}", name, t_output);
 }
 
+// Macro for calling most module types
+#[macro_export]
+macro_rules! run_generic_module {
+    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr, $($rargs:tt)*) => {
+        if $known.is_none() {
+            $known = Some($mod::$run($($rargs)*));
+        }
+        match $known.as_ref().unwrap() {
+            Ok(x) => $out.push(x.style(&$config, $ml)),
+            Err(e) => {
+                if $err {
+                    $out.push(e.to_string());
+                } else {
+                    $out.push($type::unknown_output(&$config, $ml));
+                }
+            },
+        }; 
+    };
+    ($mod: ident, $type: ident, $run: ident, $known: expr, $config: expr, $ml: expr, $err: expr, $out: expr) => {
+        if $known.is_none() {
+            $known = Some($mod::$run());
+        }
+        match $known.as_ref().unwrap() {
+            Ok(x) => $out.push(x.style(&$config, $ml)),
+            Err(e) => {
+                if $err {
+                    $out.push(e.to_string());
+                } else {
+                    $out.push($type::unknown_output(&$config, $ml));
+                }
+            },
+        }; 
+    }
+}
+
 
 
 
@@ -377,36 +412,12 @@ fn main() {
             },
             "hostname" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.hostname.is_none() {
-                    known_outputs.hostname = Some(hostname::get_hostname(&config, &mut syscall_cache));
-                }
-                match known_outputs.hostname.as_ref().unwrap() {
-                    Ok(hostname) => output.push(hostname.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(HostnameInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                };
+                run_generic_module!(hostname, HostnameInfo, get_hostname, known_outputs.hostname, config, max_title_length, log_errors, output, &config, &mut syscall_cache);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Hostname Module", bench);
             },
             "cpu" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.cpu.is_none() {
-                    known_outputs.cpu = Some(cpu::get_cpu(&config));
-                }
-                match known_outputs.cpu.as_ref().unwrap() {
-                    Ok(cpu) => output.push(cpu.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(CPUInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(cpu, CPUInfo, get_cpu, known_outputs.cpu, config, max_title_length, log_errors, output, &config);
                 print_bench_time(args.benchmark, args.benchmark_warn, "CPU Module", bench);
             },
             "gpu" => {
@@ -436,36 +447,12 @@ fn main() {
             },
             "memory" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.memory.is_none() {
-                    known_outputs.memory = Some(memory::get_memory());
-                }
-                match known_outputs.memory.as_ref().unwrap() {
-                    Ok(memory) => output.push(memory.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(MemoryInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(memory, MemoryInfo, get_memory, known_outputs.memory, config, max_title_length, log_errors, output);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Memory Module", bench);
             },
             "swap" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.swap.is_none() {
-                    known_outputs.swap = Some(swap::get_swap(&mut syscall_cache));
-                }
-                match known_outputs.swap.as_ref().unwrap() {
-                    Ok(swap) => output.push(swap.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(SwapInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(swap, SwapInfo, get_swap, known_outputs.swap, config, max_title_length, log_errors, output, &mut syscall_cache);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Swap Module", bench);
             },
             "mounts" => {
@@ -567,53 +554,17 @@ fn main() {
             },
             "desktop" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.desktop.is_none() {
-                    known_outputs.desktop = Some(desktop::get_desktop(&config));
-                }
-                match known_outputs.desktop.as_ref().unwrap() {
-                    Ok(desktop) => output.push(desktop.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(DesktopInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(desktop, DesktopInfo, get_desktop, known_outputs.desktop, config, max_title_length, log_errors, output, &config);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Desktop Module", bench);
             },
             "terminal" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.terminal.is_none() {
-                    known_outputs.terminal = Some(terminal::get_terminal(&config, &package_managers));
-                }
-                match known_outputs.terminal.as_ref().unwrap() {
-                    Ok(terminal) => output.push(terminal.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(TerminalInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(terminal, TerminalInfo, get_terminal, known_outputs.terminal, config, max_title_length, log_errors, output, &config, &package_managers);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Terminal Module", bench);
             },
             "shell" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.shell.is_none() {
-                    known_outputs.shell = Some(shell::get_shell(&config, &package_managers));
-                }
-                match known_outputs.shell.as_ref().unwrap() {
-                    Ok(shell) => output.push(shell.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(ShellInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(shell, ShellInfo, get_shell, known_outputs.shell, config, max_title_length, log_errors, output, &config, &package_managers);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Shell Module", bench);
             },
             "battery" => {
@@ -639,36 +590,12 @@ fn main() {
             },
             "uptime" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.uptime.is_none() {
-                    known_outputs.uptime = Some(uptime::get_uptime(&mut syscall_cache));
-                }
-                match known_outputs.uptime.as_ref().unwrap() {
-                    Ok(uptime) => output.push(uptime.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(UptimeInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(uptime, UptimeInfo, get_uptime, known_outputs.uptime, config, max_title_length, log_errors, output, &mut syscall_cache);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Uptime Module", bench);
             },
             "locale" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.locale.is_none() {
-                    known_outputs.locale = Some(locale::get_locale());
-                }
-                match known_outputs.locale.as_ref().unwrap() {
-                    Ok(locale) => output.push(locale.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(LocaleInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(locale, LocaleInfo, get_locale, known_outputs.locale, config, max_title_length, log_errors, output);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Locale Module", bench);
             },
             #[cfg(feature = "player")]
@@ -695,53 +622,17 @@ fn main() {
             },
             "editor" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.editor.is_none() {
-                    known_outputs.editor = Some(editor::get_editor(&config, &package_managers));
-                }
-                match known_outputs.editor.as_ref().unwrap() {
-                    Ok(editor) => output.push(editor.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(EditorInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(editor, EditorInfo, get_editor, known_outputs.editor, config, max_title_length, log_errors, output, &config, &package_managers);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Editor Module", bench);
             },
             "initsys" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.initsys.is_none() {
-                    known_outputs.initsys = Some(initsys::get_init_system(&config, &package_managers));
-                }
-                match known_outputs.initsys.as_ref().unwrap() {
-                    Ok(init) => output.push(init.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(InitSystemInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(initsys, InitSystemInfo, get_init_system, known_outputs.initsys, config, max_title_length, log_errors, output, &config, &package_managers);
                 print_bench_time(args.benchmark, args.benchmark_warn, "InitSys Module", bench);
             },
             "processes" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                if known_outputs.processes.is_none() {
-                    known_outputs.processes = Some(processes::get_process_count());
-                }
-                match known_outputs.processes.as_ref().unwrap() {
-                    Ok(processes) => output.push(processes.style(&config, max_title_length)),
-                    Err(e) => {
-                        if log_errors {
-                            output.push(e.to_string());
-                        } else {
-                            output.push(ProcessesInfo::unknown_output(&config, max_title_length));
-                        }
-                    },
-                }; 
+                run_generic_module!(processes, ProcessesInfo, get_process_count, known_outputs.processes, config, max_title_length, log_errors, output);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Processes Module", bench);
             },
             "datetime" => {

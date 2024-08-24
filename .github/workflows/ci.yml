@@ -7,7 +7,7 @@ on:
     branches: ["master"]
 
 jobs:
-  prepare:
+  run-test-clippy:
     runs-on: ubuntu-latest
     steps:
       # Checkout

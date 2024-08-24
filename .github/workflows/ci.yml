@@ -16,11 +16,14 @@ jobs:
           repository: LivacoNew/CrabFetch
           ref: master
           path: CrabFetch
+
       - name: cargo test
+        uses: Swatinem/rust-cache@v2.7.3
         run: |
           cd CrabFetch
           cargo test
       - name: cargo run
+        uses: Swatinem/rust-cache@v2.7.3
         run: |
           cd CrabFetch
           cargo run

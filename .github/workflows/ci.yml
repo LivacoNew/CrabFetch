@@ -25,7 +25,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt -y update
-          sudo apt -y install libdbus-1-dev pkg-config
+          sudo apt -y install libdbus-1-dev
 
       # Actually run what we want to run
       - name: cargo clippy

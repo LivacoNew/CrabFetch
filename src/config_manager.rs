@@ -173,7 +173,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("separator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();
     builder = builder.set_default("title_bold", true).unwrap();
-    builder = builder.set_default("title_italic", true).unwrap();
+    builder = builder.set_default("title_italic", false).unwrap();
 
     builder = builder.set_default("decimal_places", 2).unwrap();
     builder = builder.set_default("inline_values", false).unwrap();
@@ -434,7 +434,7 @@ mod tests {
 }
 
 // The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = r#"# For more in-depth configuration docs, please view https://github.com/LivacoNew/CrabFetch/wiki
+const DEFAULT_CONFIG_CONTENTS: &str = r#"# For more in-depth configuration documentation, please view https://github.com/LivacoNew/CrabFetch/wiki
 
 
 # The modules to display and in what order.
@@ -480,7 +480,7 @@ separator = " > "
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
 title_color = "bright_magenta"
 # Whether to bold/italic the title by default too
-title_bold = false
+title_bold = true
 title_italic = false
 
 # The default decimal places to provide in a module
@@ -559,15 +559,14 @@ side = "left"
 # Also remember that you can override some stuff on these, e.g the title formatting. Again check the wiki.
 
 [hostname]
-title = ""
 # Placeholders;
 # {hostname} -> The hostname
 # {username} -> The username of the current user
+title = ""
 format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
 
 
 [cpu]
-title = "CPU"
 # Placeholders;
 # {name} -> The name of the cpu.
 # {core_count} -> The number of cores.
@@ -577,6 +576,7 @@ title = "CPU"
 # {max_clock_mhz} -> The maximum clock speed, in MHz.
 # {max_clock_ghz} -> The maximum clock speed, in GHz.
 # {arch} -> The architecture of your CPU.
+title = "CPU"
 format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
 
 # Whether to attempt to remove any trailing "x-Core Processor" left in the branding name by the manufacturer
@@ -594,41 +594,35 @@ ignore_disabled_gpus = true
 
 # Placeholders;
 # - {index} -> The index of the GPU, only useful if you have more than one GPU.
+# - {vendor} -> The vendor of the GPU, e.g AMD
+# - {model} -> The model of the GPU, e.g Radeon RX 7800XT
+# - {vram} -> The total memory of the GPU.
 title = "GPU"
-# Placeholders;
-# {vendor} -> The vendor of the GPU, e.g AMD
-# {model} -> The model of the GPU, e.g Radeon RX 7800XT
-# {vram} -> The total memory of the GPU.
 format = "{vendor} {model} ({vram})"
 
 
 [memory]
-title = "Memory"
 # Placeholders;
 # {used} -> The currently in-use memory.
 # {max} -> The maximum total memory.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of memory used
+title = "Memory"
 format = "{used} / {max} ({percent})"
 
 
 [swap]
-title = "Swap"
 # Placeholders;
 # {used} -> The currently used swap.
 # {max} -> The maximum total swap.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> Percentage of swap used
+title = "Swap"
 format = "{used} / {total} ({percent})"
 
 
 [mounts]
-# Each mount has it's own entry. Title Placeholders;
-# {device} -> Device, e.g /dev/sda
-# {mount} -> The mount point, e.g /home
-# {filesystem} -> The filesystem running on that mount.
-title = "Disk ({mount})"
-
+# This module is a multi-line module, each mount has it's own line in the output. 
 # Placeholders;
 # {device} -> Device, e.g /dev/sda
 # {mount} -> The mount point, e.g /home
@@ -638,6 +632,7 @@ title = "Disk ({mount})"
 # {filesystem} -> The filesystem running on that mount.
 # {bar} -> A progress bar representing the total space available/taken.
 # {percent} -> The percentage of the disk used.
+title = "Disk ({mount})"
 format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
 
 # A ignore list for any point points OR filesystems to ignore
@@ -647,10 +642,10 @@ ignore = []
 
 
 [host]
-title = "Host"
 # Placeholders;
 # {host} -> The name of the host, either a motherboard name or a laptop model
 # {chassis} -> The chassis type, e.g Desktop or Laptop or whatever
+title = "Host"
 format = "{host} ({chassis})"
 
 # Whether to output the chassis on it's own line to remain consistent with other fetch scripts.
@@ -661,46 +656,40 @@ chassis_format = "{chassis}"
 
 
 [displays]
-# Will make a new line per entry.
-# Title Placeholders;
-# {name} -> The monitor DRM name, e.g DP-2
-# {make} -> The monitor's make
-# {model} -> The monitor's model
-title = "Display ({make} {model})"
-
-# The format each display should be in. Placeholders;
+# This module is a multi-line module, each display will have it's own line in the output.
+# Placeholders;
 # {make} -> The monitor's make
 # {model} -> The monitor's model
 # {name} -> The monitor DRM name, e.g DP-2
 # {width} -> The monitor's width
 # {height} -> The monitor's height
 # {refresh_rate} -> The monitor's refresh rate. This won't work in x11!
+title = "Display ({make} {model})"
 format = "{width}x{height} @ {refresh_rate}Hz ({name})"
 
 # Whether to scale the width/height according to the screen's scale. Only availabe on Wayland.
-# This will output wrong with fractional scaling, as the library used to interact with Wayland doesn't support fractional scaling yet.
+# **This will output wrong with fractional scaling**, as the library we use to interact with Wayland doesn't support fractional scaling yet.
 scale_size = false
 
 
 [os]
-title = "Operating System"
 # Placeholders;
 # {distro} -> The distro name
 # {kernel} -> The kernel version
+title = "Operating System"
 format = "{distro} ({kernel})"
 
 # Display the kernel version on a newline and if so, what format to use 
-# Only {kernel} is available in format.
 newline_kernel = false
 kernel_title = "Kernel"
 kernel_format = "Linux {kernel}"
 
 
 [packages]
-title = "Packages"
 # This format is for each entry, with all entries being combined into a single string separated by a comma. Placeholders;
 # {manager} -> The name of the manager
 # {count} -> The amount of packages that manager reports
+title = "Packages"
 format = "{count} ({manager})"
 
 # List of package managers to ignore, for whatever reason you choose to
@@ -708,19 +697,19 @@ ignore = []
 
 
 [desktop]
-title = "Desktop"
 # Placeholders;
 # {desktop} -> The name of the desktop
 # {display_type} -> The type of display server, aka x11 or wayland.
+title = "Desktop"
 format = "{desktop} ({display_type})"
 
 
 [terminal]
-title = "Terminal"
 # Placeholders;
 # {name} -> The name of the terminal, e.g kitty
 # {path} -> The path of the terminal, e.g /usr/bin/kitty
 # {version} -> The version of the terminal
+title = "Terminal"
 format = "{name} {version}"
 
 # Whether to find the name of the current PTS if SSH is being used. This is a togglable option as most people probably won't care to go hunting for it.
@@ -728,11 +717,11 @@ chase_ssh_pts = false
 
 
 [shell]
-title = "Shell"
 # Placeholders;
 # {name} -> The name of the shell, e.g zsh
 # {path} -> The path of the shell, e.g /usr/bin/zsh
 # {version} -> The version of the shell.
+title = "Shell"
 format = "{name} {version}"
 
 # Whether to show your default shell, instead of your current shell.
@@ -744,11 +733,11 @@ title = "Uptime"
 
 
 [editor]
-title = "Editor"
 # Placeholders;
 # {name} -> The name of the editor
 # {path} -> The path the editor is at
 # {version} -> The version of the editor.
+title = "Editor"
 format = "{name} {version}"
 
 # Whether to turn the name into a "fancy" variant. E.g "nvim" gets turned into "NeoVim"
@@ -756,18 +745,15 @@ fancy = true
 
 
 [locale]
-title = "Locale"
 # Placeholders;
 # {language} - The selected language
 # {encoding} - The encoding selected, most likely UTF-8
+title = "Locale"
 format = "{language} ({encoding})"
 
 
 [player]
-# Creates a new line per player detected
-# Placeholders;
-# {player} -> The player currently playing
-title = "Player ({player})"
+# This is a multi-line module, each player detected will have it's own line in the output
 # Placeholders;
 # {player} -> The player currently playing
 # {track} - The name of the track
@@ -775,6 +761,7 @@ title = "Player ({player})"
 # {track_artists} - The names of all track artists
 # {album_artists} - The names of all album artists
 # {status} - The status of the player, AKA if it's playing or not.
+title = "Player ({player})"
 format = "{track} by {track_artists} ({album}) [{status}]"
 
 # Any music players to ignore
@@ -785,21 +772,18 @@ ignore = []
 [battery]
 # Placeholders;
 # {index} -> The batterys index
-title = "Battery {index}"
-
-# Placeholders;
-# {index} -> The batterys index
 # {percentage} -> The battery percentage
 # {bar} -> A progeress bar representing how full the battery is
+title = "Battery {index}"
 format = "{percentage}%"
 
 
 [initsys]
-title = "Init System"
 # Placeholders;
 # {name} -> The name of the init system
 # {path} -> The path to the init system binary
 # {version} -> The version of the init system
+title = "Init System"
 format = "{name} {version}"
 
 

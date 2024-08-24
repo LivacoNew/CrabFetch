@@ -79,3 +79,7 @@ I think that's best answered by why I made it in the first place; I was fed up o
 
 ### Do you plan on supporting other operating systems other than Linux?
 Not anytime soon, the idea of working with Windows again scares me and I only use Linux so I don't really have a reason to.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=livaconew/crabfetch&type=Date&theme=dark)](https://star-history.com/#livaconew/crabfetch&Date)

@@ -11,19 +11,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: Swatinem/rust-cache@v2.7.3            
       - uses: actions/checkout@v3
         with:
           repository: LivacoNew/CrabFetch
           ref: master
           path: CrabFetch
-
       - name: cargo test
-        uses: Swatinem/rust-cache@v2.7.3
         run: |
           cd CrabFetch
           cargo test
       - name: cargo run
-        uses: Swatinem/rust-cache@v2.7.3
         run: |
           cd CrabFetch
           cargo run

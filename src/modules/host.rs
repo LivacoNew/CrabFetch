@@ -129,7 +129,8 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
     if is_flag_set_u32(info_flags, HOST_INFOFLAG_HOST) {
         let chosen_path: &Path = match util::find_first_path_exists(vec![
             Path::new("/sys/devices/virtual/dmi/id/product_name"),
-            Path::new("/sys/devices/virtual/dmi/id/board_name")
+            Path::new("/sys/devices/virtual/dmi/id/board_name"),
+            Path::new("/sys/firmware/devicetree/base/model")
         ]) {
             Some(r) => r,
             None => return Err(ModuleError::new("Host", "Can't find an appropriate path for host.".to_string()))

@@ -48,7 +48,7 @@ impl Module for TerminalInfo {
         let title_italic: bool = config.terminal.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.terminal.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.uptime.title
+        let title: String = config.terminal.title
             .replace("{name}", "Unknown")
             .replace("{path}", "Unknown")
             .replace("{version}", "Unknown");

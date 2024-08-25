@@ -144,53 +144,55 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
 
     // Now the chassis type 
     if is_flag_set_u32(info_flags, HOST_INFOFLAG_CHASSIS) {
-        host.chassis = match util::file_read(Path::new("/sys/devices/virtual/dmi/id/chassis_type")) {
-            // http://git.savannah.nongnu.org/cgit/dmidecode.git/tree/dmidecode.c?id=d5af407ae937b0ab26b72e8c250112d5a8543a63#n602
-            // I have no idea if this is meant to be hex or decimal, so I'm taking a gamble that it's
-            // decimal
-            Ok(r) => match r.trim() {
-                "1" => "Other".to_string(),
-                "2" => "Unknown".to_string(),
-                "3" => "Desktop".to_string(),
-                "4" => "Low Profile Desktop".to_string(),
-                "5" => "Pizza Box".to_string(),
-                "6" => "Mini Tower".to_string(),
-                "7" => "Tower".to_string(),
-                "8" => "Portable".to_string(),
-                "9" => "Laptop".to_string(),
-                "10" => "Notebook".to_string(),
-                "11" => "Hand Held".to_string(),
-                "12" => "Docking Station".to_string(),
-                "13" => "All In One".to_string(),
-                "14" => "Sub Notebook".to_string(),
-                "15" => "Space-saving".to_string(),
-                "16" => "Lunch Box".to_string(),
-                "17" => "Main Server Chassis".to_string(),
-                "18" => "Expansion Chassis".to_string(),
-                "19" => "Sub Chassis".to_string(),
-                "20" => "Bus Expansion Chassis".to_string(),
-                "21" => "Peripheral Chassis".to_string(),
-                "22" => "RAID Chassis".to_string(),
-                "23" => "Rack Mount Chassis".to_string(),
-                "24" => "Sealed-case PC".to_string(),
-                "25" => "Multi-system".to_string(),
-                "26" => "CompactPCI".to_string(),
-                "27" => "AdvancedTCA".to_string(),
-                "28" => "Blade".to_string(),
-                "29" => "Blade Enclosing".to_string(),
-                "30" => "Tablet".to_string(),
-                "31" => "Convertible".to_string(),
-                "32" => "Detachable".to_string(),
-                "33" => "IoT Gateway".to_string(),
-                "34" => "Embedded PC".to_string(),
-                "35" => "Mini PC".to_string(),
-                "36" => "Stick PC".to_string(),
-                _ => "Unknown".to_string()
-            },
-            // The file may not exist on some stuff, e.g raspberry pi's don't have it
-            Err(_) => "Unknown".to_string(),
-            // Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {}", e))),
-        };
+        let p: &Path = Path::new("/sys/devices/virtual/dmi/id/chassis_type");
+        // The file may not exist on some stuff, e.g raspberry pi's don't have it
+        if p.exists() {
+            host.chassis = match util::file_read(Path::new("/sys/devices/virtual/dmi/id/chassis_type")) {
+                // http://git.savannah.nongnu.org/cgit/dmidecode.git/tree/dmidecode.c?id=d5af407ae937b0ab26b72e8c250112d5a8543a63#n602
+                // I have no idea if this is meant to be hex or decimal, so I'm taking a gamble that it's
+                // decimal
+                Ok(r) => match r.trim() {
+                    "1" => "Other".to_string(),
+                    "2" => "Unknown".to_string(),
+                    "3" => "Desktop".to_string(),
+                    "4" => "Low Profile Desktop".to_string(),
+                    "5" => "Pizza Box".to_string(),
+                    "6" => "Mini Tower".to_string(),
+                    "7" => "Tower".to_string(),
+                    "8" => "Portable".to_string(),
+                    "9" => "Laptop".to_string(),
+                    "10" => "Notebook".to_string(),
+                    "11" => "Hand Held".to_string(),
+                    "12" => "Docking Station".to_string(),
+                    "13" => "All In One".to_string(),
+                    "14" => "Sub Notebook".to_string(),
+                    "15" => "Space-saving".to_string(),
+                    "16" => "Lunch Box".to_string(),
+                    "17" => "Main Server Chassis".to_string(),
+                    "18" => "Expansion Chassis".to_string(),
+                    "19" => "Sub Chassis".to_string(),
+                    "20" => "Bus Expansion Chassis".to_string(),
+                    "21" => "Peripheral Chassis".to_string(),
+                    "22" => "RAID Chassis".to_string(),
+                    "23" => "Rack Mount Chassis".to_string(),
+                    "24" => "Sealed-case PC".to_string(),
+                    "25" => "Multi-system".to_string(),
+                    "26" => "CompactPCI".to_string(),
+                    "27" => "AdvancedTCA".to_string(),
+                    "28" => "Blade".to_string(),
+                    "29" => "Blade Enclosing".to_string(),
+                    "30" => "Tablet".to_string(),
+                    "31" => "Convertible".to_string(),
+                    "32" => "Detachable".to_string(),
+                    "33" => "IoT Gateway".to_string(),
+                    "34" => "Embedded PC".to_string(),
+                    "35" => "Mini PC".to_string(),
+                    "36" => "Stick PC".to_string(),
+                    _ => "Unknown".to_string()
+                },
+                Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {}", e))),
+            };
+        }
     }
 
     Ok(host)

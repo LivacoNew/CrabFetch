@@ -24,7 +24,7 @@ impl Module for UptimeInfo {
         }
     }
 
-    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
+    fn style(&self, config: &Configuration) -> (String, String) {
         let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
@@ -34,9 +34,9 @@ impl Module for UptimeInfo {
         let title: String = self.replace_placeholders(&config.uptime.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config));
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }
-    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+    fn unknown_output(config: &Configuration) -> (String, String) { 
         let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
@@ -44,7 +44,7 @@ impl Module for UptimeInfo {
 
         let title: String = config.uptime.title.replace("{time}", "Unknown");
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {

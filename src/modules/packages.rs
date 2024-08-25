@@ -25,14 +25,14 @@ impl Module for PackagesInfo {
         }
     }
 
-    fn style(&self, config: &Configuration, max_title_length: u64) -> String {
+    fn style(&self, config: &Configuration) -> (String, String) {
         let title_color: &CrabFetchColor = config.packages.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.packages.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.packages.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.packages.separator.as_ref().unwrap_or(&config.separator);
 
         // Full style
-        let mut str: String = String::new();
+        let mut title_final: String = String::new();
 
         // Title
         if !config.packages.title.trim().is_empty() {
@@ -44,14 +44,7 @@ impl Module for PackagesInfo {
                 title = title.italic();
             }
 
-            str.push_str(&title.to_string());
-            // Inline value stuff
-            if config.inline_values {
-                for _ in 0..(max_title_length - (title.len() as u64)) {
-                    str.push(' ');
-                }
-            }
-            str.push_str(separator);
+            title_final.push_str(&title.to_string());
         }
 
         let mut value: String = String::new();
@@ -70,10 +63,11 @@ impl Module for PackagesInfo {
             value.push_str(&config.packages.format.replace("{manager}", &manager.manager_name)
                 .replace("{count}", &manager.package_count.to_string()));
         }
-        value = self.replace_color_placeholders(&value);
-        str.push_str(&value.to_string());
 
-        str
+        let mut format_final: String = separator.to_string();
+        format_final.push_str(&self.replace_color_placeholders(&value));
+
+        (title_final, format_final)
     }
 
     fn replace_placeholders(&self, _: &str, _: &Configuration) -> String {
@@ -81,7 +75,7 @@ impl Module for PackagesInfo {
         unimplemented!()
     }
 
-    fn unknown_output(_config: &Configuration, _max_title_length: u64) -> String {
+    fn unknown_output(_config: &Configuration) -> (String, String) {
         // get_packages can't fail, so this isn't implemented
         // if it does, your fucked, and panic time ensures
         panic!("Packages should never fail, something's wrong. Report this to my GitHub please.");

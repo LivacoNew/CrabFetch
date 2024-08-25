@@ -1,4 +1,4 @@
-use std::{cmp::min, fmt::{Debug, Display}};
+use std::fmt::{Debug, Display};
 
 use colored::{ColoredString, Colorize};
 
@@ -6,14 +6,15 @@ use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}};
 
 pub trait Module {
     fn new() -> Self;
-    fn style(&self, config: &Configuration, max_title_length: u64) -> String;
-    fn unknown_output(config: &Configuration, max_title_length: u64) -> String;
+    fn style(&self, config: &Configuration) -> (String, String);
+    fn unknown_output(config: &Configuration) -> (String, String);
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String;
     fn gen_info_flags(format: &str) -> u32;
 
     // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
-    fn default_style(config: &Configuration, max_title_len: u64, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, separator: &str, value: &str) -> String {
-        let mut str: String = String::new();
+    fn default_style(_: &Configuration, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, separator: &str, value: &str) -> (String, String) {
+        let mut title_final: String = String::new();
+        let mut value_final: String = String::new();
 
         // Title
         if !title.trim().is_empty() {
@@ -25,19 +26,13 @@ pub trait Module {
                 title = title.italic();
             }
 
-            str.push_str(&title.to_string());
-            // Inline value stuff
-            if config.inline_values {
-                for _ in 0..(max_title_len - min(title.chars().count() as u64, max_title_len)) {
-                    str.push(' ');
-                }
-            }
-            str.push_str(separator);
+            title_final.push_str(&title.to_string());
+            value_final.push_str(separator)
         }
 
-        str.push_str(value);
+        value_final.push_str(value);
 
-        str
+        (title_final, value_final)
     }
     fn replace_color_placeholders(&self, str: &str) -> String {
         formatter::replace_color_placeholders(str)

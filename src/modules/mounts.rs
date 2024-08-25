@@ -46,7 +46,7 @@ impl Module for MountInfo {
         }
     }
 
-    fn style(&self, config: &Configuration, max_title_size: u64) -> String {
+    fn style(&self, config: &Configuration) -> (String, String) {
         let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
@@ -55,9 +55,9 @@ impl Module for MountInfo {
         let title: String = self.replace_placeholders(&config.mounts.title, config);
         let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.mounts.format, config));
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }
-    fn unknown_output(config: &Configuration, max_title_size: u64) -> String { 
+    fn unknown_output(config: &Configuration) -> (String, String) {
         let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
         let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
@@ -72,7 +72,7 @@ impl Module for MountInfo {
             .replace("{space_total}", "Unknown")
             .replace("{bar}", " ");
 
-        Self::default_style(config, max_title_size, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
@@ -130,14 +130,6 @@ impl MountInfo {
         }
 
         false
-    }
-    // Used by calc_max_title_length
-    pub fn get_title_size(&self, config: &Configuration) -> u64 {
-        config.mounts.title.clone()
-            .replace("{device}", &self.device)
-            .replace("{mount}", &self.mount)
-            .replace("{filesystem}", &self.filesystem)
-            .chars().count() as u64
     }
 }
 

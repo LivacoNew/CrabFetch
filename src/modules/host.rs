@@ -187,7 +187,9 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
                 "36" => "Stick PC".to_string(),
                 _ => "Unknown".to_string()
             },
-            Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {}", e))),
+            // The file may not exist on some stuff, e.g raspberry pi's don't have it
+            Err(_) => "Unknown".to_string(),
+            // Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {}", e))),
         };
     }
 

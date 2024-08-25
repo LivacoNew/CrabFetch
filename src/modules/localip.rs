@@ -100,6 +100,9 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
 
             // Ignore any virtual devices
             if virt_interfaces.contains(&interface_name) {
+                if ifaddrs.ifa_next.is_null() || inf_loop_protection > 25 {
+                    break;
+                }
                 ifaddrs = *ifaddrs.ifa_next;
                 continue;
             }

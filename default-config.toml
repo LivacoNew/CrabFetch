@@ -2,7 +2,7 @@
 
 
 # The modules to display and in what order.
-# All modules; space, underline:{length}, segment:{name}, end_segment, hostname, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, battery, uptime, locale, editor, colors, bright_colors
+# Again for a full list of modules, go to the documentation above.
 modules = [
     "hostname",
     "underline:16",
@@ -27,6 +27,7 @@ modules = [
     "initsys",
     "processes",
     "battery",
+    "localip",
 
     "space",
     "colors",
@@ -360,6 +361,14 @@ title = "Date Time"
 # Available placeholders; https://docs.rs/chrono/latest/chrono/format/strftime/index.html#specifiers
 # CrabFetch wiki page coming soon for it instead (tm)
 format = "%H:%M:%S on %e %B %G"
+
+[localip]
+# This is a multi-line module, each IP/interface detected will have it's own line in the output
+# Placeholders;
+# {interface} -> The name of the interface, along with if it's IPV4 or IPV6
+# {addr} -> The IP address
+title = "Local IP ({interface})"
+format = "{addr}"
 
 
 

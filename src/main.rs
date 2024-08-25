@@ -31,6 +31,7 @@ use package_managers::ManagerInfo;
 use syscalls::SyscallCache;
 
 use crate::ascii::get_ascii_line;
+use crate::modules::localip::{self, LocalIPInfo};
 
 mod modules;
 mod config_manager;
@@ -258,6 +259,7 @@ struct ModuleOutputs {
     initsys: Option<Result<InitSystemInfo, ModuleError>>,
     processes: Option<Result<ProcessesInfo, ModuleError>>,
     datetime: Option<DateTimeInfo>,
+    localip: Option<Result<Vec<LocalIPInfo>, ModuleError>>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -284,6 +286,7 @@ impl ModuleOutputs {
             initsys: None,
             processes: None,
             datetime: None,
+            localip: None,
         }
     }
 }
@@ -600,6 +603,11 @@ fn main() {
                 output.push(known_outputs.datetime.as_ref().unwrap().style(&config, max_title_length));
                 print_bench_time(args.benchmark, args.benchmark_warn, "Datetime Module", bench);
             },
+            "localip" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                run_multiline_module!(localip, LocalIPInfo, get_local_ips, known_outputs.localip, config, max_title_length, log_errors, output, );
+                print_bench_time(args.benchmark, args.benchmark_warn, "Local IP Module", bench);
+            }
 
             // i hate what's below as well, don't worry
             "colors" => {

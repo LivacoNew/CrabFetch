@@ -3,7 +3,7 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::localip::LocalIPConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "player")]
 use crate::player::PlayerConfiguration;
 
@@ -57,7 +57,8 @@ pub struct Configuration {
     pub editor: EditorConfiguration,
     pub initsys: InitSystemConfiguration,
     pub processes: ProcessesConfiguration,
-    pub datetime: DateTimeConfiguration
+    pub datetime: DateTimeConfiguration,
+    pub localip: LocalIPConfiguration
 }
 
 // Config Error 
@@ -136,6 +137,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         "initsys".to_string(),
         "processes".to_string(),
         "battery".to_string(),
+        "localip".to_string(),
 
         "space".to_string(),
         "colors".to_string(),
@@ -281,6 +283,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("datetime.title", "Date/Time").unwrap();
     builder = builder.set_default("datetime.format", "%H:%M:%S on %e %B %G").unwrap();
+
+    builder = builder.set_default("localip.title", "Local IP ({interface})").unwrap();
+    builder = builder.set_default("localip.format", "{addr}").unwrap();
 
     // Check for any module overrides
     if module_override.is_some() {
@@ -438,7 +443,7 @@ const DEFAULT_CONFIG_CONTENTS: &str = r#"# For more in-depth configuration docum
 
 
 # The modules to display and in what order.
-# All modules; space, underline:{length}, segment:{name}, end_segment, hostname, cpu, gpu, memory, swap, mounts, host, displays, os, packages, desktop, terminal, shell, battery, uptime, locale, editor, colors, bright_colors
+# Again for a full list of modules, go to the documentation above.
 modules = [
     "hostname",
     "underline:16",
@@ -463,6 +468,7 @@ modules = [
     "initsys",
     "processes",
     "battery",
+    "localip",
 
     "space",
     "colors",
@@ -796,6 +802,14 @@ title = "Date Time"
 # Available placeholders; https://docs.rs/chrono/latest/chrono/format/strftime/index.html#specifiers
 # CrabFetch wiki page coming soon for it instead (tm)
 format = "%H:%M:%S on %e %B %G"
+
+[localip]
+# This is a multi-line module, each IP/interface detected will have it's own line in the output
+# Placeholders;
+# {interface} -> The name of the interface, along with if it's IPV4 or IPV6
+# {addr} -> The IP address
+title = "Local IP ({interface})"
+format = "{addr}"
 
 
 

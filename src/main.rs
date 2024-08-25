@@ -73,6 +73,10 @@ pub struct Args {
     module_override: Option<String>,
 
     #[arg(long)]
+    /// Enables the inline values option.
+    inline_values: bool,
+
+    #[arg(long)]
     /// Runs CrabFetch in a "benchmark" mode, showing the total times it takes between each stage
     /// and module detection times.
     benchmark: bool,
@@ -283,6 +287,8 @@ fn main() {
 
     // if config isn't supprsesing errors, make it go down to args
     let log_errors: bool = { if !config.suppress_errors { !args.suppress_errors } else { !config.suppress_errors } };
+    // Inline values
+    let inline_values: bool = config.inline_values || args.inline_values;
 
     // Define our module outputs, and figure out the max title length
     let mut known_outputs: ModuleOutputs = ModuleOutputs::new();
@@ -663,12 +669,12 @@ fn main() {
     let mut max_title_len: usize = 0;
     let mut max_total_len: usize = 0;
     // no need to even calculate it if not
-    if config.ascii.side == "right" || config.inline_values {
+    if config.ascii.side == "right" || inline_values {
         for out in &output {
             max_title_len = max(max_title_len, strip_ansi_escapes::strip_str(&out.0).chars().count());
             max_total_len = max(max_total_len, strip_ansi_escapes::strip_str(&out.0).chars().count() + strip_ansi_escapes::strip_str(&out.1).chars().count());
         }
-        if config.inline_values {
+        if inline_values {
             max_total_len += max_title_len;
         }
     }
@@ -697,9 +703,9 @@ fn main() {
         }
 
         let title_len: usize = strip_ansi_escapes::strip_str(&out.0).chars().count();
-        let title_len_inline: usize = if config.inline_values && !out.0.is_empty() {max_title_len - title_len} else {0};
+        let title_len_inline: usize = if inline_values && !out.0.is_empty() {max_title_len - title_len} else {0};
         print!("{}", out.0); // title
-        if config.inline_values && !out.0.is_empty() {
+        if inline_values && !out.0.is_empty() {
             print!("{}", " ".repeat(title_len_inline));
         }
         print!("{}", out.1); // value

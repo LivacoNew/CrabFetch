@@ -277,9 +277,6 @@ format = "{desktop} ({display_type})"
 title = "Terminal"
 format = "{name} {version}"
 
-# Whether to find the name of the current PTS if SSH is being used. This is a togglable option as most people probably won't care to go hunting for it.
-chase_ssh_pts = false
-
 
 [shell]
 # Placeholders;

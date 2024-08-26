@@ -1,7 +1,7 @@
-use std::fs;
+use std::env;
 
 #[cfg(feature = "android")]
-use std::{path::Path, env};
+use std::path::Path;
 
 use serde::Deserialize;
 
@@ -20,7 +20,6 @@ pub struct TerminalConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
-    pub chase_ssh_pts: bool
 }
 impl Module for TerminalInfo {
     fn new() -> TerminalInfo {
@@ -134,6 +133,15 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
         return Ok(terminal);
     }
 
+    // Handle SSH
+    // https://www.oreilly.com/library/view/ssh-the-secure/0596008953/apes12.html
+    if let Ok(r) = env::var("SSH_TTY") { 
+        terminal.name = "SSH".to_string();
+        terminal.path = r;
+        terminal.version = "N/A".to_string();
+        return Ok(terminal);
+    };
+
     // This is just a rust-ified & slightly more robust solution from https://askubuntu.com/a/508047
     // Find the terminal's PID by going up through every shell level
     let mut terminal_process: Option<ProcessInfo> = None;
@@ -188,20 +196,6 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
         // Fix for elementaryos terminal being shitty
         if terminal.name.trim() == "io.elementary.terminal" {
             terminal.name = "Elementary Terminal".to_string();
-        }
-
-        if terminal.name.trim().replace('\0', "") == "sshd:" {
-            if !config.terminal.chase_ssh_pts {
-                terminal.name = "SSH Terminal".to_string();
-            } else {
-                // Find the tty number in the current /stat and just construct it from that
-                // Taken from the comment on https://unix.stackexchange.com/a/77797 by "user723" ...
-                // get a more creative username man
-                terminal.name = match fs::canonicalize("/proc/self/fd/0") {
-                    Ok(r) => r.display().to_string(),
-                    Err(e) => return Err(ModuleError::new("Terminal", format!("Failed to canonicalize /proc/self/fd/0 symlink: {}", e)))
-                };
-            }
         }
     }
 

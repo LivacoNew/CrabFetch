@@ -272,6 +272,7 @@ dependencies = [
  "hex",
  "humantime",
  "libc",
+ "raw-cpuid",
  "serde",
  "sha2",
  "shellexpand",
@@ -708,6 +709,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "raw-cpuid"
+version = "11.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb9ee317cfe3fbd54b36a511efc1edd42e216903c9cd575e686dd68a2ba90d8d"
+dependencies = [
+ "bitflags",
 ]
 
 [[package]]

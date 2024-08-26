@@ -3,6 +3,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
+use raw_cpuid::CpuId;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -252,6 +253,14 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         }
     }
 
+    #[cfg(target_arch = "x86_64")]
+    if cpu.name == "Unknown" && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
+        // This **seems** to be the only thing that can be missing, mostly on ARM
+        // So, we'll use cpuid to grab it
+        // Credit to Emma lol https://mastodon.social/@Livaco/113027370696819081
+        backup_to_cpuid(cpu);
+    }
+
     cpu.current_clock_mhz /= cpu_mhz_count as f32;
     Ok(())
 }
@@ -322,4 +331,12 @@ fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> 
     }
 
     Ok(())
+}
+
+#[cfg(target_arch = "x86_64")]
+fn backup_to_cpuid(cpu: &mut CPUInfo) {
+    let cpuid = CpuId::new();
+    if let Some(model) = cpuid.get_processor_brand_string() {
+        cpu.name = model.as_str().to_string();
+    }
 }

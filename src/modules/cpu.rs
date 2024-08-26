@@ -3,6 +3,7 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
+#[cfg(target_arch = "x86_64")]
 use raw_cpuid::CpuId;
 use serde::Deserialize;
 

@@ -135,7 +135,7 @@ side = "left"
 # {hostname} -> The hostname
 # {username} -> The username of the current user
 title = ""
-format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
+format = "{color-title}{username}{color-white}@{color-title}{hostname}"
 
 
 [cpu]

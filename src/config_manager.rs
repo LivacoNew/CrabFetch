@@ -210,7 +210,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     // Modules
     builder = builder.set_default("hostname.title", "").unwrap();
-    builder = builder.set_default("hostname.format", "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}").unwrap();
+    builder = builder.set_default("hostname.format", "{color-title}{username}{color-white}@{color-title}{hostname}").unwrap();
 
     builder = builder.set_default("cpu.title", "CPU").unwrap();
     builder = builder.set_default("cpu.format", "{name} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz").unwrap();
@@ -578,7 +578,7 @@ side = "left"
 # {hostname} -> The hostname
 # {username} -> The username of the current user
 title = ""
-format = "{color-brightmagenta}{username}{color-white}@{color-brightmagenta}{hostname}"
+format = "{color-title}{username}{color-white}@{color-title}{hostname}"
 
 
 [cpu]

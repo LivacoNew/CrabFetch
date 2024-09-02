@@ -22,6 +22,7 @@ pub struct Configuration {
     pub color_character: String,
     pub color_margin: u8,
     pub color_use_background: bool,
+    pub use_os_color: bool,
     pub segment_top: String,
     pub segment_bottom: String,
     pub progress_left_border: String,
@@ -183,6 +184,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("color_character", "   ").unwrap();
     builder = builder.set_default("color_margin", 0).unwrap();
     builder = builder.set_default("color_use_background", true).unwrap();
+
+    builder = builder.set_default("use_os_color", true).unwrap();
 
     builder = builder.set_default("segment_top", "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]").unwrap();
     builder = builder.set_default("segment_bottom", "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]").unwrap();
@@ -483,6 +486,7 @@ separator = " > "
 # The default color of a modules title
 # Can be; black, red, green, yellow, blue, magenta, cyan, white
 # All of these can be prefixed with "bright_" to be lighter versions, e.g bright_red
+# REQUIRES use_os_color TO BE OFF
 title_color = "bright_magenta"
 # Whether to bold/italic the title by default too
 title_bold = true
@@ -504,6 +508,10 @@ color_character = "   "
 color_margin = 0
 # And if to set the color to the background instead of on the character
 color_use_background = true
+
+# Whether to use the distro's preferred color for the title and ASCII displays
+# Disable to use custom default title colors, or custom ASCII colors
+use_os_color = true
 
 # Format of segments
 # Segments can be defined in the modules array
@@ -548,6 +556,8 @@ display = true
 # This array can be as long as the actual ASCII. Each entry represents the color at a certain %
 # E.g ["red", "green"] would render the top half as red and the bottom half as green.
 # ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
+#
+# REQUIRES use_os_color TO BE OFF
 colors = ["bright_magenta"]
 
 # The amount of space to put between the ASCII and the info

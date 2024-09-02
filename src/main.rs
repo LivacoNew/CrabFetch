@@ -1,6 +1,7 @@
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
 
+use formatter::CrabFetchColor;
 use module::{Module, ModuleError};
 use modules::battery::{self, BatteryInfo};
 use modules::cpu::{self, CPUInfo};
@@ -276,7 +277,7 @@ fn main() {
         exit(0);
     }
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
-    let config: Configuration = match config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file) {
+    let mut config: Configuration = match config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file) {
         Ok(r) => r,
         Err(e) => {
             println!("{}", e);
@@ -302,6 +303,26 @@ fn main() {
 
     // Setup our syscall cache
     let mut syscall_cache: SyscallCache = SyscallCache::new();
+
+    // Set the title color if we're usign os colors
+    if config.use_os_color {
+        let id: &str = if let Some(ref x) = args.distro_override {
+            x
+        } else {
+            if known_outputs.os.is_none() {
+                let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
+                known_outputs.os = Some(os::get_os(&config, &mut syscall_cache));
+                print_bench_time(args.benchmark, args.benchmark_warn, "OS (for OS Color)", os_bench);
+            }
+            &known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id
+        };
+
+        let c: CrabFetchColor = formatter::find_os_color(&id);
+        config.title_color = c.clone();
+        if config.ascii.display {
+            config.ascii.colors = vec![c];
+        }
+    }
 
     // 
     //  Detect

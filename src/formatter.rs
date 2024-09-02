@@ -297,3 +297,37 @@ mod tests {
         assert_eq!(bar_str, "");
     }
 }
+
+// A list of OS ID's + Their recommended colors for use_os_color 
+// TODO: Backup to ANSI_COLOR in os-release?
+pub fn find_os_color(os_id: &str) -> CrabFetchColor {
+    for x in OS_COLOR {
+        if x.0 != os_id {
+            continue;
+        }
+        
+        return x.1.clone();
+    }
+
+    CrabFetchColor::Clear
+}
+pub const OS_COLOR: &[(&str, CrabFetchColor)] = &[
+    ("arch", CrabFetchColor::BrightCyan),
+    ("debian", CrabFetchColor::BrightRed),
+    ("ubuntu", CrabFetchColor::Red),
+    ("fedora", CrabFetchColor::BrightBlue),
+    ("void", CrabFetchColor::Green),
+    ("endeavouros", CrabFetchColor::BrightMagenta),
+    ("linuxmint", CrabFetchColor::BrightGreen),
+    ("elementary", CrabFetchColor::BrightCyan),
+    ("zorin", CrabFetchColor::BrightCyan),
+    ("manjaro", CrabFetchColor::BrightGreen),
+    ("pop", CrabFetchColor::BrightCyan),
+    ("opensuse-tumbleweed", CrabFetchColor::BrightGreen),
+    ("opensuse-leap", CrabFetchColor::BrightGreen),
+    ("rocky", CrabFetchColor::BrightGreen),
+    ("kali", CrabFetchColor::BrightBlue),
+    ("almalinux", CrabFetchColor::BrightBlue),
+    ("android", CrabFetchColor::BrightGreen),
+    ("garuda", CrabFetchColor::Red),
+];

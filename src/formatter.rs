@@ -79,7 +79,7 @@ impl CrabFetchColor {
     }
 }
 
-pub fn replace_color_placeholders(str: &str) -> String { // out of place here?
+pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String { 
     let mut new_string = String::new();
     let split: Vec<&str> = str.split("{color-").collect();
     if split.len() <= 1 {
@@ -96,7 +96,9 @@ pub fn replace_color_placeholders(str: &str) -> String { // out of place here?
         let color_str: String = s[..len].to_string();
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
-            Err(_) => continue,
+            Err(_) => if color_str == "title" {
+                config.title_color.clone()
+            } else {continue},
         };
         new_string.push_str(&color.color_string(&s[len + 1..]).to_string());
     }

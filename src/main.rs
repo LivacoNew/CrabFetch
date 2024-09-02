@@ -350,7 +350,7 @@ fn main() {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 let segment_name: &str = module_split[1];  
                 let segment_string: String = config.segment_top.replace("{name}", segment_name);
-                output.push((String::new(), formatter::replace_color_placeholders(&segment_string)));
+                output.push((String::new(), formatter::replace_color_placeholders(&segment_string, &config)));
                 cur_segment_length = segment_name.len();
                 print_bench_time(args.benchmark, args.benchmark_warn, "Segment Start", bench);
             },
@@ -363,7 +363,7 @@ fn main() {
 
                 let target = format!("{{name_sized_gap:{}}}", char);
                 let segment_string: String = config.segment_bottom.replace(&target, &char.to_string().repeat(cur_segment_length + 2));
-                output.push((String::new(), formatter::replace_color_placeholders(&segment_string)));
+                output.push((String::new(), formatter::replace_color_placeholders(&segment_string, &config)));
                 print_bench_time(args.benchmark, args.benchmark_warn, "Segment End", bench);
             },
             "hostname" => {
@@ -645,7 +645,7 @@ fn main() {
             _ => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if config.unknown_as_text {
-                    output.push((String::new(), formatter::replace_color_placeholders(module_name)));
+                    output.push((String::new(), formatter::replace_color_placeholders(module_name, &config)));
                 } else {
                     output.push((String::new(), format!("Unknown module: {}", module_name)));
                 }

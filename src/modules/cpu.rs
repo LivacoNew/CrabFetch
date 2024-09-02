@@ -48,7 +48,7 @@ impl Module for CPUInfo {
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.cpu.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.cpu.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.cpu.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

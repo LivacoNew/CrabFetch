@@ -34,8 +34,8 @@ pub trait Module {
 
         (title_final, value_final)
     }
-    fn replace_color_placeholders(&self, str: &str) -> String {
-        formatter::replace_color_placeholders(str)
+    fn replace_color_placeholders(&self, str: &str, config: &Configuration) -> String {
+        formatter::replace_color_placeholders(str, config)
     }
 }
 

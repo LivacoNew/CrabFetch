@@ -42,7 +42,7 @@ impl Module for MemoryInfo {
         let separator: &str = config.memory.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.memory.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.memory.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.memory.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

@@ -43,7 +43,7 @@ impl Module for GPUInfo {
         let separator: &str = config.gpu.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.gpu.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.gpu.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.gpu.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

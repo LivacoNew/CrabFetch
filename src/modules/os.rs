@@ -41,7 +41,7 @@ impl Module for OSInfo {
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.os.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.os.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.os.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }
@@ -84,7 +84,7 @@ impl OSInfo {
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&config.os.kernel_format.replace("{kernel}", &self.kernel));
+        let value: String = self.replace_color_placeholders(&config.os.kernel_format.replace("{kernel}", &self.kernel), config);
 
         Self::default_style(config, &config.os.kernel_title, title_color, title_bold, title_italic, separator, &value)
     }

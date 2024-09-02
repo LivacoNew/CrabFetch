@@ -28,7 +28,7 @@ impl Module for DateTimeInfo {
         let title_italic: bool = config.datetime.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.datetime.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.datetime.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.datetime.format, config), config);
 
         Self::default_style(config, &config.datetime.title, title_color, title_bold, title_italic, separator, &value)
     }

@@ -32,7 +32,7 @@ impl Module for UptimeInfo {
 
         let format: String = config.uptime.format.clone().unwrap_or("{time}".to_string());
         let title: String = self.replace_placeholders(&config.uptime.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

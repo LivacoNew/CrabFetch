@@ -32,7 +32,7 @@ impl Module for LocalIPInfo {
         let separator: &str = config.localip.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.localip.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.localip.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.localip.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

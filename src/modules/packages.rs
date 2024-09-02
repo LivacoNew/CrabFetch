@@ -65,7 +65,7 @@ impl Module for PackagesInfo {
         }
 
         let mut format_final: String = separator.to_string();
-        format_final.push_str(&self.replace_color_placeholders(&value));
+        format_final.push_str(&self.replace_color_placeholders(&value, config));
 
         (title_final, format_final)
     }

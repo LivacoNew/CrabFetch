@@ -31,7 +31,7 @@ impl Module for ProcessesInfo {
 
         let title: String = self.replace_placeholders(&config.processes.title, config);
         let format: String = config.processes.format.clone().unwrap_or("{count}".to_string());
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

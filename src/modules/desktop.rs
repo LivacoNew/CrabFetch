@@ -32,7 +32,7 @@ impl Module for DesktopInfo {
         let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.desktop.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.desktop.format, config));
+        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.desktop.format, config), config);
 
         Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
     }

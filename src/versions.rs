@@ -130,6 +130,8 @@ fn substitite_package_name(name: &str) -> &str {
     // E.g turns nvim to neovim 
     match name {
         "nvim" => "neovim",
+        "weston-terminal" => "weston",  // TODO: Depends on distro!!! Fix for others later
+                                        // please!!!!
         _ => name
     }
 }

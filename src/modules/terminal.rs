@@ -103,6 +103,7 @@ const KNOWN_TERMS: &[&str] = &[
     "wezterm",
     "gnome-terminal-server",
     "qterminal",
+    "weston-terminal",
     "tmux"
 ];
 

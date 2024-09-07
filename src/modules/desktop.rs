@@ -93,21 +93,16 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     }
 
     if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DISPLAY_TYPE) {
-        desktop.display_type = match env::var("XDG_SESSION_TYPE") {
-            Ok(r) => r,
-            Err(_) => {
-                // Check if WAYLAND_DISPLAY is set 
-                // If not, we'll check if DISPLAY is set 
-                // Otherwise we have no idea
-                if env::var("WAYLAND_DISPLAY").is_ok() {
-                    "wayland".to_string()
-                } else if env::var("DISPLAY").is_ok() {
-                    "x11".to_string()
-                } else {
-                    return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()));
-                }
+        desktop.display_type = if env::var("WAYLAND_DISPLAY").is_ok() {
+            "wayland".to_string()
+        } else if env::var("DISPLAY").is_ok() {
+            "x11".to_string()
+        } else {
+            match env::var("XDG_SESSION_TYPE") {
+                Ok(r) => r,
+                Err(_) => return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()))
             }
-        };
+        }
     }
 
     Ok(desktop)

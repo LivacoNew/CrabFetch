@@ -3,7 +3,7 @@ use core::str;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, package_managers::{self, MANAGER_DPKG, MANAGER_PACMAN, MANAGER_XBPS}, module::Module};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::{self, MANAGER_DPKG, MANAGER_HOMEBREW, MANAGER_PACMAN, MANAGER_XBPS}};
 
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
@@ -105,6 +105,7 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("dpkg", package_managers.find_all_packages_from(MANAGER_DPKG).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("xbps", package_managers.find_all_packages_from(MANAGER_XBPS).values().len() as u64));
+    packages.packages.push(ManagerInfo::fill("brew", package_managers.find_all_packages_from(MANAGER_HOMEBREW).values().len() as u64));
 
     if let Some(r) = package_managers.process_flatpak_packages_count() {
         packages.packages.push(ManagerInfo::fill("flatpak", r));
@@ -113,10 +114,6 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     #[cfg(feature = "rpm_packages")]
     if let Some(r) = process_rpm_packages() {
         packages.packages.push(ManagerInfo::fill("rpm", r));
-    }
-
-    if let Some(r) = package_managers.process_homebrew_packages_count() {
-        packages.packages.push(ManagerInfo::fill("brew", r))
     }
 
     packages
@@ -148,3 +145,7 @@ fn process_rpm_packages() -> Option<u64> {
         Err(_) => None,
     }
 }
+
+
+
+

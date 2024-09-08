@@ -1,0 +1,35 @@
+name: Audit for vulnerabilities
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@v3
+        with:
+          repository: LivacoNew/CrabFetch
+          ref: master
+          path: CrabFetch
+
+      # Setup Rust & Cargo's Cache
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: CrabFetch
+        
+      # Install cargo audit
+      - name: Install Cargo Audit
+        run: |
+          cargo install cargo-audit --locked
+    
+      # Run it
+      - name: cargo audit
+        run: |
+          cd CrabFetch
+          cargo audit

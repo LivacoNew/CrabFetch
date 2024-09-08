@@ -1,7 +1,7 @@
 // Queries and caches package manager entries to prevent duplicate work between Packages module and
 // Version detection 
 
-use std::{collections::HashMap, ffi::OsStr, fs::{read_dir, DirEntry, File, ReadDir}, io::{BufRead, BufReader}};
+use std::{collections::HashMap, ffi::OsStr, fs::{read_dir, DirEntry, File, ReadDir}, io::{BufRead, BufReader}, path::PathBuf};
 
 pub struct PackageInfo {
     pub name: String,
@@ -42,6 +42,10 @@ impl ManagerInfo {
         if let Some(xbps) = Self::process_xbps_packages() {
             self.available_managers += MANAGER_XBPS;
             self.packages.extend(xbps);
+        }
+        if let Some(brew) = Self::process_homebrew_packages() {
+            self.available_managers += MANAGER_HOMEBREW;
+            self.packages.extend(brew);
         }
     }
 
@@ -250,6 +254,48 @@ impl ManagerInfo {
 
         Some(result as u64)
     }
+
+    pub fn process_homebrew_packages() -> Option<HashMap<String, PackageInfo>> {
+        let homebrew_dirs = vec![
+            PathBuf::from("/home/linuxbrew/.linuxbrew/Cellar"), 
+            PathBuf::from("/home/linuxbrew/.linuxbrew/Caskroom")
+        ];
+
+        let homebrew_dirs: Vec<PathBuf> = homebrew_dirs.into_iter().filter(|it| it.exists() && it.is_dir()).collect();
+        if homebrew_dirs.is_empty() {
+            return None;
+        }
+
+        let mut packages: HashMap<String, PackageInfo> = HashMap::new();
+
+        homebrew_dirs.into_iter().for_each(|homebrew_package_dir| {
+            homebrew_package_dir
+                .read_dir()
+                .expect("Already checked")
+                .filter_map(|it| it.ok())
+                .filter_map(|package_dir| {
+                    let name = package_dir.file_name().into_string().ok()?;
+                    let versions = package_dir.path().read_dir().unwrap();
+                    let mut versions: Vec<String> = versions
+                        .into_iter()
+                        .filter_map(|it|it.ok())
+                        .filter_map(|it| it.file_name().into_string().ok())
+                        .collect();
+                    versions.sort();
+                    let version = versions.last().expect("There is a version").to_owned();
+                    Some((name.clone(), PackageInfo {
+                        name,
+                        version,
+                        manager: MANAGER_HOMEBREW,
+                    }))
+                }).for_each(|(name, package)| {
+                    packages.insert(name, package);
+                });
+                
+            });
+        
+        Some(packages)
+    }
 }
 
 // Const numbers for each package manager supported by CrabFetch
@@ -259,3 +305,4 @@ pub const MANAGER_DPKG: u8 = 2;
 pub const MANAGER_XBPS: u8 = 4;
 // pub const MANAGER_RPM: u8 = 8;
 // pub const MANAGER_FLATPAK: u8 = 16;
+pub const MANAGER_HOMEBREW: u8 = 32;

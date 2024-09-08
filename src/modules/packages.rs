@@ -145,7 +145,3 @@ fn process_rpm_packages() -> Option<u64> {
         Err(_) => None,
     }
 }
-
-
-
-

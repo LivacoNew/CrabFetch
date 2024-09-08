@@ -109,9 +109,14 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     if let Some(r) = package_managers.process_flatpak_packages_count() {
         packages.packages.push(ManagerInfo::fill("flatpak", r));
     }
+
     #[cfg(feature = "rpm_packages")]
     if let Some(r) = process_rpm_packages() {
         packages.packages.push(ManagerInfo::fill("rpm", r));
+    }
+
+    if let Some(r) = package_managers.process_homebrew_packages_count() {
+        packages.packages.push(ManagerInfo::fill("brew", r))
     }
 
     packages

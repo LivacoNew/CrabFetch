@@ -250,6 +250,27 @@ impl ManagerInfo {
 
         Some(result as u64)
     }
+
+    pub fn process_homebrew_packages_count(&self) -> Option<u64> {
+        let mut result: usize = 0;
+        let mut has_brew = false;
+
+        if let Ok(homebrew_formulae_dir) = read_dir("/home/linuxbrew/.linuxbrew/Cellar") {
+            has_brew = true;
+            result += homebrew_formulae_dir.count();
+        }
+
+        if let Ok(homebrew_cask_dir) = read_dir("/home/linuxbrew/.linuxbrew/Caskroom") {
+            has_brew = true;
+            result += homebrew_cask_dir.count();
+        }
+
+        if has_brew {
+            Some(result as u64)
+        } else {
+            None
+        }
+    }
 }
 
 // Const numbers for each package manager supported by CrabFetch
@@ -259,3 +280,4 @@ pub const MANAGER_DPKG: u8 = 2;
 pub const MANAGER_XBPS: u8 = 4;
 // pub const MANAGER_RPM: u8 = 8;
 // pub const MANAGER_FLATPAK: u8 = 16;
+// pub const MANAGER_HOMEBREW: u8 = 32;

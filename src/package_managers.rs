@@ -219,27 +219,6 @@ impl ManagerInfo {
         self.available_managers += MANAGER_XBPS;
     }
 
-    pub fn process_flatpak_packages_count(&self) -> Option<u64> {
-        // This counts everything in /app and /runtime
-        // This does NOT get full information, as I don't care enough about flatpak to figure out
-        // how to process it. It's simply used in the packages module and nowhere else for now
-        let mut result: usize = 0;
-
-        let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
-            Ok(r) => r,
-            Err(_) => return None,
-        };
-        result += flatpak_apps_dir.count();
-
-        let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
-            Ok(r) => r,
-            Err(_) => return None,
-        };
-        result += flatpak_runtime_dir.count();
-
-        Some(result as u64)
-    }
-
     pub fn process_homebrew_packages(&mut self) {
         let homebrew_dirs = vec![
             PathBuf::from("/home/linuxbrew/.linuxbrew/Cellar"), 

@@ -1,4 +1,5 @@
 use core::str;
+use std::fs::{read_dir, ReadDir};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -107,7 +108,7 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     packages.packages.push(ManagerInfo::fill("xbps", package_managers.find_all_packages_from(MANAGER_XBPS).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("brew", package_managers.find_all_packages_from(MANAGER_HOMEBREW).values().len() as u64));
 
-    if let Some(r) = package_managers.process_flatpak_packages_count() {
+    if let Some(r) = process_flatpak_packages() {
         packages.packages.push(ManagerInfo::fill("flatpak", r));
     }
 
@@ -144,4 +145,25 @@ fn process_rpm_packages() -> Option<u64> {
         Ok(_) => Some(result),
         Err(_) => None,
     }
+}
+
+pub fn process_flatpak_packages() -> Option<u64> {
+    // This counts everything in /app and /runtime
+    // This does NOT get full information, as I don't care enough about flatpak to figure out
+    // how to process it. It's simply used in the packages module and nowhere else for now
+    let mut result: usize = 0;
+
+    let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+    result += flatpak_apps_dir.count();
+
+    let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+    result += flatpak_runtime_dir.count();
+
+    Some(result as u64)
 }

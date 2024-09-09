@@ -31,22 +31,10 @@ impl ManagerInfo {
     }
 
     pub fn probe_and_cache(&mut self) {
-        if let Some(pacman) = Self::process_pacman_packages() {
-            self.available_managers += MANAGER_PACMAN;
-            self.packages.extend(pacman);
-        }
-        if let Some(dpkg) = Self::process_dpkg_packages() {
-            self.available_managers += MANAGER_DPKG;
-            self.packages.extend(dpkg);
-        }
-        if let Some(xbps) = Self::process_xbps_packages() {
-            self.available_managers += MANAGER_XBPS;
-            self.packages.extend(xbps);
-        }
-        if let Some(brew) = Self::process_homebrew_packages() {
-            self.available_managers += MANAGER_HOMEBREW;
-            self.packages.extend(brew);
-        }
+        self.process_pacman_packages();
+        self.process_dpkg_packages();
+        self.process_xbps_packages();
+        self.process_homebrew_packages();
     }
 
     pub fn find_all_packages_from(&self, manager: u8) -> HashMap<&String, &PackageInfo> {
@@ -56,13 +44,12 @@ impl ManagerInfo {
     }
 
     // Credit for Pacman, Flatpak and DPKG detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
-    fn process_pacman_packages() -> Option<HashMap<String, PackageInfo>> {
+    fn process_pacman_packages(&mut self) {
         let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
             Ok(r) => r,
-            Err(_) => return None,
+            Err(_) => return,
         };
 
-        let mut packages: HashMap<String, PackageInfo> = HashMap::new();
         for x in dir {
             // Bit messy
             if x.is_err() {
@@ -91,12 +78,12 @@ impl ManagerInfo {
                 None => package_name,
             };
             let package_version: &str = package_split[package_split.len() - 2];
-            packages.insert(package_name.to_string(), PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
+            self.add_package_to_cache(PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
         }
 
-        Some(packages)
+        self.available_managers += MANAGER_PACMAN;
     }
-    fn process_dpkg_packages() -> Option<HashMap<String, PackageInfo>> {
+    fn process_dpkg_packages(&mut self) {
         let file_path: &str = if cfg!(not(feature = "android")) { 
             "/var/lib/dpkg/status"
         } else {
@@ -104,11 +91,10 @@ impl ManagerInfo {
         };
         let file: File = match File::open(file_path) {
             Ok(r) => r,
-            Err(_) => return None,
+            Err(_) => return,
         };
 
         let buffer: BufReader<File> = BufReader::new(file);
-        let mut packages: HashMap<String, PackageInfo> = HashMap::new();
         let mut cur_package: String = String::new();
         let mut cur_package_info: PackageInfo = PackageInfo::new("", "", MANAGER_DPKG);
         for line in buffer.lines() {
@@ -117,7 +103,7 @@ impl ManagerInfo {
             }
             let line = line.unwrap();
             if line.is_empty() {
-                packages.insert(cur_package, cur_package_info);
+                self.add_package_to_cache(cur_package_info);
                 cur_package = String::new();
                 cur_package_info = PackageInfo::new("", "", MANAGER_DPKG);
                 continue;
@@ -145,16 +131,15 @@ impl ManagerInfo {
             }
         }
 
-        Some(packages)
+        self.available_managers += MANAGER_DPKG;
     }
-    fn process_xbps_packages() -> Option<HashMap<String, PackageInfo>> {
+    fn process_xbps_packages(&mut self) {
         let file: File = match File::open("/var/db/xbps/pkgdb-0.38.plist") {
             Ok(r) => r,
-            Err(_) => return None,
+            Err(_) => return,
         };
 
         let buffer: BufReader<File> = BufReader::new(file);
-        let mut packages: HashMap<String, PackageInfo> = HashMap::new();
         let mut cur_package: String = String::new();
         let mut cur_package_info: PackageInfo = PackageInfo::new("", "", MANAGER_XBPS);
 
@@ -198,7 +183,7 @@ impl ManagerInfo {
                 dict_level -= 1;
                 if dict_level == 1 {
                     // Exiting package
-                    packages.insert(cur_package, cur_package_info);
+                    self.add_package_to_cache(cur_package_info);
                     cur_package = String::new();
                     cur_package_info = PackageInfo::new("", "", MANAGER_XBPS);
                     next_line_is_key = true;
@@ -231,7 +216,7 @@ impl ManagerInfo {
             }
         }
 
-        Some(packages)
+        self.available_managers += MANAGER_XBPS;
     }
 
     pub fn process_flatpak_packages_count(&self) -> Option<u64> {
@@ -255,7 +240,7 @@ impl ManagerInfo {
         Some(result as u64)
     }
 
-    pub fn process_homebrew_packages() -> Option<HashMap<String, PackageInfo>> {
+    pub fn process_homebrew_packages(&mut self) {
         let homebrew_dirs = vec![
             PathBuf::from("/home/linuxbrew/.linuxbrew/Cellar"), 
             PathBuf::from("/home/linuxbrew/.linuxbrew/Caskroom")
@@ -263,10 +248,8 @@ impl ManagerInfo {
 
         let homebrew_dirs: Vec<PathBuf> = homebrew_dirs.into_iter().filter(|it| it.exists() && it.is_dir()).collect();
         if homebrew_dirs.is_empty() {
-            return None;
+            return;
         }
-
-        let mut packages: HashMap<String, PackageInfo> = HashMap::new();
 
         homebrew_dirs.into_iter().for_each(|homebrew_package_dir| {
             homebrew_package_dir
@@ -282,23 +265,34 @@ impl ManagerInfo {
                     let versions = package_dir.path().read_dir().unwrap();
                     let mut versions: Vec<String> = versions
                         .into_iter()
-                        .filter_map(|it|it.ok())
+                        .filter_map(|it| it.ok())
                         .filter_map(|it| it.file_name().into_string().ok())
                         .collect();
                     versions.sort();
                     let version = versions.last().expect("There is a version").to_owned();
-                    Some((name.clone(), PackageInfo {
+                    Some(PackageInfo {
                         name,
                         version,
                         manager: MANAGER_HOMEBREW,
-                    }))
-                }).for_each(|(name, package)| {
-                    packages.insert(name, package);
+                    })
+                }).for_each(|package| {
+                    self.add_package_to_cache(package);
                 });
-                
             });
         
-        Some(packages)
+        self.available_managers += MANAGER_HOMEBREW;
+    }
+
+    /// Add a package to cache, or if it already exists add the manager to the list
+    /// If it adds the manager to the list, it will **not** account for differing versions and will
+    /// simply leave it as is.
+    fn add_package_to_cache(&mut self, package_info: PackageInfo) {
+        if let Some(x) = self.packages.get_mut(&package_info.name) {
+            x.manager |= package_info.manager;
+            return;
+        }
+
+        self.packages.insert(package_info.name.to_string(), package_info);
     }
 }
 

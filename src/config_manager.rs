@@ -2,6 +2,8 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, 
 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 
 use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::{icon_theme::IconThemeConfiguration, localip::LocalIPConfiguration, theme::ThemeConfiguration}, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, preset_configs, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "player")]
@@ -10,6 +12,7 @@ use crate::player::PlayerConfiguration;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct Configuration {
     pub modules: Vec<String>,
     pub unknown_as_text: bool,

@@ -1,5 +1,6 @@
 use std::{fs::{self, ReadDir}, mem, net::{IpAddr, Ipv4Addr, Ipv6Addr}};
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util, ModuleError};
@@ -8,7 +9,7 @@ pub struct LocalIPInfo {
     interface: String,
     ip_addr: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct LocalIPConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

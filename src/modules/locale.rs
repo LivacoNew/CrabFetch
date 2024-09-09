@@ -1,5 +1,6 @@
 use std::env;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
@@ -8,7 +9,7 @@ pub struct LocaleInfo {
     language: String,
     encoding: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct LocaleConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

@@ -4,6 +4,7 @@ use std::path::Path;
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util::{self, is_flag_set_u32}, ModuleError};
@@ -13,7 +14,7 @@ pub struct OSInfo {
     pub distro_id: String,
     kernel: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct OSConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

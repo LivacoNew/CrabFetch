@@ -1,5 +1,6 @@
 use std::env;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -8,7 +9,7 @@ pub struct DesktopInfo {
     desktop: String,
     display_type: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct DesktopConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

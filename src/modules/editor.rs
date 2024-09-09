@@ -1,5 +1,6 @@
 use std::env;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::package_managers::ManagerInfo, util::is_flag_set_u32, versions, ModuleError};
@@ -9,7 +10,7 @@ pub struct EditorInfo {
     path: String,
     version: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct EditorConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

@@ -1,5 +1,6 @@
 use core::str;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, common_sources::syscalls::SyscallCache, ModuleError};
@@ -9,7 +10,7 @@ pub struct SwapInfo {
     total_kb: u64,
     percent: f32
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct SwapConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{formatter::{self, CrabFetchColor}, config_manager::Configuration, module::Module, ModuleError};
@@ -10,7 +11,7 @@ pub struct MemoryInfo {
     max_kb: u64,
     percentage: f32
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct MemoryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

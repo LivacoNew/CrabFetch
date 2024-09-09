@@ -5,6 +5,7 @@ use std::mem;
 use std::env;
 
 use libc::statfs;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -17,7 +18,7 @@ pub struct MountInfo {
     space_total_kb: u64,
     percent: f32
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct MountConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

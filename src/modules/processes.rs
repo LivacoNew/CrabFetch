@@ -1,5 +1,6 @@
 use std::fs::{read_dir, ReadDir};
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
@@ -7,7 +8,7 @@ use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Mo
 pub struct ProcessesInfo {
     count: u32 // god forbid someone manages to hit this limit
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct ProcessesConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

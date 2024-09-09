@@ -2,13 +2,14 @@
 use std::str::FromStr;
 
 use colored::{ColoredString, Colorize};
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::config_manager::Configuration;
 
 // This is a hack to get the color deserializaton working
 // Essentially it uses my own enum, and to print it you need to call color_string
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
     Black,

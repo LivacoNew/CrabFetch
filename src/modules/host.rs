@@ -3,6 +3,7 @@ use std::path::Path;
 
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -11,7 +12,7 @@ pub struct HostInfo {
     host: String,
     chassis: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct HostConfiguration {
     pub title: String,
     pub format: String,

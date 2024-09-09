@@ -1,11 +1,12 @@
 use std::cmp::min;
 
 use colored::ColoredString;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFetchColor};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct AsciiConfiguration {
     pub display: bool,
     pub side: String,

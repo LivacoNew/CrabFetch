@@ -66,6 +66,9 @@ pub struct Args {
     /// Generates a default config file
     generate_config_file: bool,
 
+    #[arg(short('G'), long)]
+    generate_config_json_schema: bool,
+
     #[arg(short, long)]
     /// Overrides the distro ASCII to another distro.
     distro_override: Option<String>,
@@ -293,6 +296,14 @@ fn main() {
         let bench: Option<Instant> = benchmark_point(args.benchmark); 
         config_manager::generate_config_file(args.config.clone());
         print_bench_time(args.benchmark, args.benchmark_warn, "Generating Config File", bench);
+        exit(0);
+    }
+    if args.generate_config_json_schema {
+        let bench: Option<Instant> = benchmark_point(args.benchmark);
+        let schema_gen = schemars::gen::SchemaGenerator::default();
+        let schema = schema_gen.into_root_schema_for::<Configuration>();
+        println!("{}", schemars::_serde_json::to_string(&schema).unwrap());
+        print_bench_time(args.benchmark, args.benchmark_warn, "Generating Config JSON Schema", bench);
         exit(0);
     }
     let bench: Option<Instant> = benchmark_point(args.benchmark); 

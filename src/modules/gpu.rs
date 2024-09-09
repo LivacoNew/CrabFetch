@@ -1,6 +1,7 @@
 use core::str;
 use std::{fs::{self, DirEntry, File, ReadDir}, io::{BufRead, BufReader}, path::Path};
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -12,7 +13,7 @@ pub struct GPUInfo {
     model: String,
     vram_mb: u32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct GPUConfiguration {
     pub amd_accuracy: bool,
     pub ignore_disabled_gpus: bool,

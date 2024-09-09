@@ -1,4 +1,5 @@
 use chrono::{DateTime, Local};
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module};
@@ -6,7 +7,7 @@ use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Mo
 pub struct DateTimeInfo {
     datetime: DateTime<Local>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct DateTimeConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

@@ -1,6 +1,7 @@
 use core::str;
 use std::fs;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
@@ -10,7 +11,7 @@ pub struct InitSystemInfo {
     path: String,
     version: String
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct InitSystemConfiguration {
     pub title: String,
     pub format: String,

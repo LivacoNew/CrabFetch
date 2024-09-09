@@ -274,6 +274,10 @@ impl ManagerInfo {
                 .expect("Already checked")
                 .filter_map(|it| it.ok())
                 .filter_map(|package_dir| {
+                    if !package_dir.path().is_dir() {
+                        return None;
+                    }
+
                     let name = package_dir.file_name().into_string().ok()?;
                     let versions = package_dir.path().read_dir().unwrap();
                     let mut versions: Vec<String> = versions

@@ -317,7 +317,7 @@ fn main() {
             &known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id
         };
 
-        let c: CrabFetchColor = formatter::find_os_color(&id);
+        let c: CrabFetchColor = formatter::find_os_color(id);
         config.title_color = c.clone();
         if config.ascii.display {
             config.ascii.colors = vec![c];

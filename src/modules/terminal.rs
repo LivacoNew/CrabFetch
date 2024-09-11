@@ -99,6 +99,7 @@ const KNOWN_TERMS: &[&str] = &[
     "xterm",
     "yakuake",
     "tilix",
+    "st",
     "hyper",
     "wezterm",
     "gnome-terminal-server",

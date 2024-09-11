@@ -15,13 +15,13 @@ What makes CrabFetch different is that _it aims to be as performant as possible_
 ## Performance Showcase
 We'll compare the performance of; [NeoFetch](https://github.com/dylanaraps/neofetch), [FastFetch](https://github.com/fastfetch-cli/fastfetch) and CrabFetch.  
 Configs were created to match up as closely as possible, with these benchmarks being taken by `hyperfine 1.18.0`.  
-![Screenshot showing each fetch, running with as close of a configs as possible given it's features](https://i.imgur.com/TqT92jM.png)  
+![Screenshot showing each fetch, running with as close of a configs as possible given it's features](https://i.imgur.com/kWafK3J.png)  
 
 <sub>**NOTE 1:** NeoFetch did not let me disable my CPU's integrated GPU, so it is the only one that displays the "Raphiel" GPU. While CrabFetch can be toggled to display it, I could't find a way to tell FastFetch to, so I opted to leave it as the odd one out.</sub><br>
 <sub>**NOTE 2:** NeoFetch also does not find my `/hdd` mount.</sub>
   
 The following screenshot shows the results;  
-![Screenshot showing CrabFetch runs the fastest.](https://i.imgur.com/qETW6EI.png)  
+![Screenshot showing CrabFetch runs the fastest.](https://i.imgur.com/2rezkQv.png)  
   
 Try this benchmark yourself! If you don't get as good performance please [make a performance issue](https://github.com/LivacoNew/CrabFetch/issues/new?assignees=&labels=performance&projects=&template=performance-issue.md&title=) and let me know so I can investigate.
 

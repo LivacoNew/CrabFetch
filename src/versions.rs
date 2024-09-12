@@ -10,7 +10,6 @@ pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, pac
     // If it's located in /usr/bin, go to the package manager caches and search for it
     // If not (or not found), check the known checksums 
     // If not found either, ONLY THEN go to {command} --version parsing 
-
     let name: &str = name.unwrap_or(exe_path.split('/').last().unwrap());
 
     // We'll try app specific stuff first 

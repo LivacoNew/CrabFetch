@@ -110,7 +110,12 @@ pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -
     }
 
     if is_flag_set_u32(info_flags, INITSYS_INFOFLAG_VERSION) {
-        initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+        if initsys.name == "init" {
+            // Likely sysvinit, which can't be version detected
+            initsys.version = "Unknown".to_string();
+        } else {
+            initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+        }
     }
 
     Ok(initsys)

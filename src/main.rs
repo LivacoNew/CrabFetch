@@ -68,6 +68,7 @@ pub struct Args {
 
     #[cfg(feature = "jsonschema")]
     #[arg(short('G'), long)]
+    /// Generates & Outputs the JSON Schema for the configuration
     generate_config_json_schema: bool,
 
     #[arg(short, long)]

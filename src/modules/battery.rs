@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
 
 pub struct BatteryInfo {
-    index: String,
+    model_name: String,
     percentage: f32,
 }
 #[derive(Deserialize)]
@@ -26,7 +26,7 @@ pub struct BatteryConfiguration {
 impl Module for BatteryInfo {
     fn new() -> BatteryInfo {
         BatteryInfo {
-            index: "Unknown".to_string(),
+            model_name: "Unknown".to_string(),
             percentage: 0.0
         }
     }
@@ -49,7 +49,7 @@ impl Module for BatteryInfo {
         let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = config.battery.title
-            .replace("{index}", "0").to_string()
+            .replace("{model_name}", "Unknown").to_string()
             .replace("{percentage}", "Unknown").to_string()
             .replace("{bar}", "").to_string();
 
@@ -70,7 +70,7 @@ impl Module for BatteryInfo {
         }
 
         formatter::process_percentage_placeholder(text, formatter::round(self.percentage as f64, dec_places) as f32, config)
-            .replace("{index}", &self.index)
+            .replace("{model_name}", &self.model_name)
             .replace("{percentage}", &self.percentage.to_string())
             .replace("{bar}", &bar)
     }
@@ -105,16 +105,16 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
             // Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
             Err(_) => continue,
         };
-        let id: String = match path.file_name() {
-            Some(r) => match r.to_str() {
-                Some(r) => r.strip_prefix("BAT").unwrap_or(r).to_string(),
+        let model_name: String = match util::file_read(&path.join("model_name")) {
+            Ok(r) => r.trim().to_string(),
+            Err(_) => match path.file_name() {
+                Some(r) => r.to_str().unwrap_or("Unknown").to_string(),
                 None => continue,
             },
-            None => continue,
         };
 
         batteries.push(BatteryInfo {
-            index: id,
+            model_name,
             percentage
         })
     }

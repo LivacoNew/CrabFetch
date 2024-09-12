@@ -264,7 +264,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("uptime.title", "Uptime").unwrap();
 
-    builder = builder.set_default("battery.title", "Battery {index}").unwrap();
+    builder = builder.set_default("battery.title", "Battery ({model_name})").unwrap();
     builder = builder.set_default("battery.format", "{percentage}%").unwrap();
 
     builder = builder.set_default("editor.title", "Editor").unwrap();
@@ -783,10 +783,10 @@ ignore = []
 
 [battery]
 # Placeholders;
-# {index} -> The batterys index
+# {model_name} -> The battery model name
 # {percentage} -> The battery percentage
 # {bar} -> A progeress bar representing how full the battery is
-title = "Battery {index}"
+title = "Battery {model_name}"
 format = "{percentage}%"
 
 

@@ -340,10 +340,10 @@ ignore = []
 
 [battery]
 # Placeholders;
-# {index} -> The batterys index
+# {model_name} -> The battery model name
 # {percentage} -> The battery percentage
 # {bar} -> A progeress bar representing how full the battery is
-title = "Battery {index}"
+title = "Battery ({model_name})"
 format = "{percentage}%"
 
 

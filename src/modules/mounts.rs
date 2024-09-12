@@ -5,6 +5,7 @@ use std::mem;
 use std::env;
 
 use libc::statfs;
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -18,7 +19,8 @@ pub struct MountInfo {
     space_total_kb: u64,
     percent: f32
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct MountConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

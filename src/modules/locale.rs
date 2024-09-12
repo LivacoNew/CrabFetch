@@ -1,5 +1,6 @@
 use std::env;
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -9,7 +10,8 @@ pub struct LocaleInfo {
     language: String,
     encoding: String,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct LocaleConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

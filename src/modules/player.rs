@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use dbus::{arg, blocking::{stdintf::org_freedesktop_dbus::Properties, Connection, Proxy}};
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -14,7 +15,8 @@ pub struct PlayerInfo {
     track_artists: Vec<String>,
     status: String,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct PlayerConfiguration {
     pub title: String,
     pub ignore: Vec<String>,

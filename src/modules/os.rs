@@ -4,6 +4,7 @@ use std::path::Path;
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -14,7 +15,8 @@ pub struct OSInfo {
     pub distro_id: String,
     kernel: String,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct OSConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

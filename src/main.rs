@@ -66,6 +66,7 @@ pub struct Args {
     /// Generates a default config file
     generate_config_file: bool,
 
+    #[cfg(feature = "jsonschema")]
     #[arg(short('G'), long)]
     generate_config_json_schema: bool,
 
@@ -298,6 +299,7 @@ fn main() {
         print_bench_time(args.benchmark, args.benchmark_warn, "Generating Config File", bench);
         exit(0);
     }
+    #[cfg(feature = "jsonschema")]
     if args.generate_config_json_schema {
         let bench: Option<Instant> = benchmark_point(args.benchmark);
         let schema_gen = schemars::gen::SchemaGenerator::default();

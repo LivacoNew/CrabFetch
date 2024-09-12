@@ -2,6 +2,7 @@ use core::str;
 use std::fs::{read_dir, ReadDir};
 
 use colored::{ColoredString, Colorize};
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -10,7 +11,8 @@ use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Mo
 pub struct PackagesInfo {
     packages: Vec<ManagerInfo>
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct PackagesConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

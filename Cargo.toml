@@ -13,6 +13,7 @@ player = ["dep:dbus"]
 music = ["player"]
 android = ["dep:android_system_properties"]
 rpm_packages = ["dep:sqlite"]
+jsonschema = ["dep:schemars", "dep:serde_json"]
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }
@@ -33,5 +34,5 @@ sha2 = "0.10.8"
 hex = "0.4.3"
 strip-ansi-escapes = "0.2.0"
 raw-cpuid = "11.1.0"
-schemars = "0.8.21"
-serde_json = "1.0.128"
+schemars = { version = "0.8.21", optional = true }
+serde_json = { version = "1.0.128", optional = true }

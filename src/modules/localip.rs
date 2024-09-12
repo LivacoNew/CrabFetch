@@ -1,5 +1,6 @@
 use std::{fs::{self, ReadDir}, mem, net::{IpAddr, Ipv4Addr, Ipv6Addr}};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -9,7 +10,8 @@ pub struct LocalIPInfo {
     interface: String,
     ip_addr: String,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct LocalIPConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

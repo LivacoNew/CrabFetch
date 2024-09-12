@@ -1,6 +1,7 @@
 use core::str;
 use std::{collections::HashMap, env, fs::{self, read_dir, ReadDir}};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 use wayland_client::{protocol::{wl_output::{self, Transform}, wl_registry}, ConnectError, Connection, Dispatch, QueueHandle, WEnum};
@@ -32,7 +33,8 @@ impl DisplayInfo {
     }
 }
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct DisplayConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

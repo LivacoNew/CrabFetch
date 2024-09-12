@@ -1,5 +1,6 @@
 use core::str;
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -10,7 +11,8 @@ pub struct SwapInfo {
     total_kb: u64,
     percent: f32
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct SwapConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

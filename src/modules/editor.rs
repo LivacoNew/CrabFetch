@@ -1,5 +1,6 @@
 use std::env;
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -10,7 +11,8 @@ pub struct EditorInfo {
     path: String,
     version: String
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct EditorConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

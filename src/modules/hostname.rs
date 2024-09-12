@@ -1,6 +1,7 @@
 use core::str;
 use std::{env, process::Command};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -10,7 +11,8 @@ pub struct HostnameInfo {
     username: String,
     hostname: String,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct HostnameConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

@@ -1,6 +1,7 @@
 use core::str;
 use std::fs;
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -11,7 +12,8 @@ pub struct InitSystemInfo {
     path: String,
     version: String
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct InitSystemConfiguration {
     pub title: String,
     pub format: String,

@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -11,7 +12,8 @@ pub struct MemoryInfo {
     max_kb: u64,
     percentage: f32
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct MemoryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

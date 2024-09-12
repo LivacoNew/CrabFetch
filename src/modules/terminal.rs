@@ -3,6 +3,7 @@ use std::env;
 #[cfg(feature = "android")]
 use std::path::Path;
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -13,7 +14,8 @@ pub struct TerminalInfo {
     path: String,
     version: String
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct TerminalConfiguration {
     pub title: String,
     pub format: String,

@@ -1,6 +1,7 @@
 use core::str;
 use std::{fs::{self, DirEntry, File, ReadDir}, io::{BufRead, BufReader}, path::Path};
 
+#[cfg(feature = "jsonschema")]
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -13,7 +14,8 @@ pub struct GPUInfo {
     model: String,
     vram_mb: u32,
 }
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct GPUConfiguration {
     pub amd_accuracy: bool,
     pub ignore_disabled_gpus: bool,

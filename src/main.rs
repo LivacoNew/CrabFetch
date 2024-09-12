@@ -107,7 +107,7 @@ fn print_bench_time(benchmarking: bool, benchmark_warn: Option<u128>, name: &str
 
     // This is different to module bench times fyi
     let t: Duration = time.unwrap().elapsed();
-    let mut t_output: String = format!("{:2?}", t);
+    let mut t_output: String = format!("{:.3} ms", t.as_micros() as f64 / 1000.);
     if let Some(threshold) = benchmark_warn {
         if t.as_micros() > ((threshold as f64 * 1.5) as u128) {
             t_output = t_output.bright_red().to_string();

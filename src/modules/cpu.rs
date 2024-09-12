@@ -384,7 +384,7 @@ fn backup_to_cpuid(cpu: &mut CPUInfo) {
 // I love how Rust can't tell the array length itself at compile time... when it could just count
 // the elements lmfao
 #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-const ARM_LOOKUP: [(&str, &str); 193] = [
+const ARM_LOOKUP: &[(&str, &str)] = &[
     // ARM 
     ("0x41-0x810", "ARM810"),
     ("0x41-0x920", "ARM920"),

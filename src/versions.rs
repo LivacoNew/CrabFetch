@@ -51,6 +51,13 @@ fn use_package_manager(name: &str, package_managers: &ManagerInfo) -> Option<Str
     if let Some(package) = package_managers.packages.get(name) {
         return Some(package.version.to_string());
     }
+
+    if name == "weston-terminal" {
+        if let Some(package) = package_managers.packages.get("weston") {
+            return Some(package.version.to_string());
+        }
+    }
+
     None
 }
 fn match_checksum(path: &str) -> Option<String> {
@@ -129,8 +136,6 @@ fn substitite_package_name(name: &str) -> &str {
     // E.g turns nvim to neovim 
     match name {
         "nvim" => "neovim",
-        "weston-terminal" => "weston",  // TODO: Depends on distro!!! Fix for others later
-                                        // please!!!!
         _ => name
     }
 }

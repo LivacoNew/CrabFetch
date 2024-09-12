@@ -333,4 +333,5 @@ pub const OS_COLOR: &[(&str, CrabFetchColor)] = &[
     ("android", CrabFetchColor::BrightGreen),
     ("garuda", CrabFetchColor::Red),
     ("bazzite", CrabFetchColor::BrightCyan),
+    ("linux", CrabFetchColor::White),
 ];

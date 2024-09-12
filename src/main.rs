@@ -306,18 +306,27 @@ fn main() {
 
     // Set the title color if we're usign os colors
     if config.use_os_color {
-        let id: &str = if let Some(ref x) = args.distro_override {
-            x
+        let c: CrabFetchColor = if let Some(ref x) = args.distro_override {
+            formatter::find_os_color(x)
         } else {
             if known_outputs.os.is_none() {
                 let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
                 known_outputs.os = Some(os::get_os(&config, &mut syscall_cache));
                 print_bench_time(args.benchmark, args.benchmark_warn, "OS (for OS Color)", os_bench);
             }
-            &known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id
+            let mut temp: CrabFetchColor = formatter::find_os_color(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
+            if temp == CrabFetchColor::Clear {
+                temp = formatter::find_os_color(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id_like)
+            }
+
+            #[cfg(target_os = "linux")]
+            if temp == CrabFetchColor::Clear {
+                temp = formatter::find_os_color("linux")
+            }
+
+            temp
         };
 
-        let c: CrabFetchColor = formatter::find_os_color(id);
         config.title_color = c.clone();
         if config.ascii.display {
             config.ascii.colors = vec![c];
@@ -677,7 +686,16 @@ fn main() {
             let ascii: (String, u16) = if args.distro_override.is_some() {
                 ascii::get_ascii(&args.distro_override.clone().unwrap())
             } else {
-                ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
+                let mut temp: (String, u16) = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id);
+                if temp.0.is_empty() {
+                    temp = ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id_like);
+                }
+                #[cfg(target_os = "linux")]
+                if temp.0.is_empty() {
+                    temp = ascii::get_ascii("linux");
+                }
+
+                temp
             };
             fuck_off_borrow_checker = ascii.0;
             ascii_split = fuck_off_borrow_checker.split('\n').filter(|x| x.trim() != "").collect();

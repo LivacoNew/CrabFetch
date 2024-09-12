@@ -11,6 +11,7 @@ use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Mo
 pub struct OSInfo {
     distro: String,
     pub distro_id: String,
+    pub distro_id_like: String,
     kernel: String,
 }
 #[derive(Deserialize)]
@@ -30,6 +31,7 @@ impl Module for OSInfo {
         OSInfo {
             distro: "Unknown".to_string(),
             distro_id: "Unknown".to_string(),
+            distro_id_like: "Unknown".to_string(),
             kernel: "Unknown".to_string(),
         }
     }
@@ -146,6 +148,10 @@ fn parse_os_release(os: &mut OSInfo) -> Result<(), ModuleError> {
         }
         if line.starts_with("ID=") {
             os.distro_id = line[3..line.len()].trim().to_string();
+            continue;
+        }
+        if line.starts_with("ID_LIKE=") {
+            os.distro_id_like = line[8..line.len()].trim().to_string();
             continue;
         }
     }

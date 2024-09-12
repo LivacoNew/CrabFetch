@@ -1,5 +1,5 @@
 use core::str;
-use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader}, path::Path};
+use std::{fs::{self, File, ReadDir}, io::{BufRead, BufReader, ErrorKind}, path::Path, process::Command};
 
 use serde::Deserialize;
 
@@ -108,6 +108,13 @@ pub fn get_gpus(config: &Configuration) -> Result<Vec<GPUInfo>, ModuleError> {
     match fill_from_pcisysfile(&mut gpus, config.gpu.amd_accuracy, config.gpu.ignore_disabled_gpus, info_flags) {
         Ok(_) => {},
         Err(e) => return Err(e)
+    }
+
+    if gpus.is_empty() {
+        match fill_from_glxinfo(&mut gpus) {
+            Ok(_) => {},
+            Err(e) => return Err(e)
+        }
     }
 
     Ok(gpus)
@@ -303,4 +310,54 @@ fn search_amd_model(device: &str) -> Result<Option<String>, ModuleError> {
     }
 
     Ok(Some(device_result.to_string()))
+}
+
+fn fill_from_glxinfo(gpus: &mut Vec<GPUInfo>) -> Result<(), ModuleError> {
+    let output: Vec<u8> = match Command::new("glxinfo")
+        .args(["-B"])
+        .output() {
+            Ok(r) => r.stdout,
+            Err(e) => {
+                if ErrorKind::NotFound == e.kind() {
+                    return Err(ModuleError::new("GPU", "GPU requires the 'glxinfo' command, which is not present!".to_string()));
+                } else {
+                    return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e)));
+                }
+            },
+        };
+
+    let contents: String = match String::from_utf8(output) {
+        Ok(r) => r,
+        Err(e) => return Err(ModuleError::new("GPU", format!("Unknown error while fetching GPU: {}", e))),
+    };
+
+    // Vendor is got from whatever line starts with "OpenGL vendor string"
+    // Model is from line starting with "OpenGL renderer string", this will automatically search
+    // for the vendor and remove it from the output
+    // VRam is from line starting "Dedicated video memory"
+
+    let mut gpu: GPUInfo = GPUInfo::new();
+
+    for line in contents.split('\n').collect::<Vec<&str>>() {
+        let line: &str = line.trim();
+        if line.starts_with("OpenGL vendor string:") {
+            // E.g OpenGL vendor string: AMD
+            gpu.vendor = line[22..line.len()].to_string()
+        }
+        if line.starts_with("OpenGL renderer string:") {
+            // E.g OpenGL renderer string: AMD Radeon RX 7800 XT (radeonsi, navi32, LLVM 17.0.6, DRM 3.57, 6.8.1-arch1-1)
+            // Looks for the first ( and takes from there back
+            gpu.model = line[24..line.find('(').unwrap()].replace(&gpu.vendor, "").trim().to_string()
+        }
+        if line.starts_with("Dedicated video memory:") {
+            // E.g Dedicated video memory: 16384 MB
+            gpu.vram_mb = match line[24..line.len() - 3].parse::<u32>() {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("GPU", format!("Unable to parse GPU memory: {}", e))),
+            };
+        }
+    }
+    gpus.push(gpu);
+
+    Ok(())
 }

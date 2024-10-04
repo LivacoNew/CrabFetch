@@ -20,6 +20,7 @@ pub fn find_version(exe_path: &str, name: Option<&str>, use_checksums: bool, pac
         "bash" => bash_version(),
         "fish" => fish_version(),
         "zsh" => zsh_version(),
+        "nu" => nushell_version(),
 
         _ => None
     };
@@ -208,6 +209,12 @@ fn zsh_version() -> Option<String> {
 }
 fn fish_version() -> Option<String> {
     match env::var("FISH_VERSION") {
+        Ok(r) => Some(r),
+        Err(_) => None,
+    }
+}
+fn nushell_version() -> Option<String> {
+    match env::var("NU_VERSION") {
         Ok(r) => Some(r),
         Err(_) => None,
     }

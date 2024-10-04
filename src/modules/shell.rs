@@ -101,6 +101,7 @@ pub const KNOWN_SHELLS: &[&str] = &[
     "closh",
     "elvish",
     "fish",
+    "nu",
     "ion",
     "murex",
     "nushell",

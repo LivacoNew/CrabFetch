@@ -106,7 +106,8 @@ const KNOWN_TERMS: &[&str] = &[
     "qterminal",
     "terminology",
     "weston-terminal",
-    "tmux"
+    "tmux",
+    "ghostty"
 ];
 
 const TERM_INFOFLAG_NAME: u32 = 1;

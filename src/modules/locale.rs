@@ -68,8 +68,8 @@ pub fn get_locale() -> Result<LocaleInfo, ModuleError> {
         Err(e) => return Err(ModuleError::new("Locale", format!("Could not parse $LANG env variable: {}", e)))
     };
     let raw_split: Vec<&str> = raw.split('.').collect();
-    locale.language = raw_split[0].to_string();
-    locale.encoding = raw_split[1].to_string();
+    locale.language = raw_split.first().unwrap_or(&locale.language.as_ref()).to_string();
+    locale.encoding = raw_split.get(1).unwrap_or(&locale.encoding.as_ref()).to_string();
 
     Ok(locale)
 }

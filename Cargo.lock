@@ -264,7 +264,7 @@ dependencies = [
 
 [[package]]
 name = "crabfetch"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "android_system_properties",
  "chrono",

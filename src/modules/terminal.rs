@@ -101,7 +101,7 @@ const KNOWN_TERMS: &[&str] = &[
     "tilix",
     "st",
     "hyper",
-    "wezterm",
+    "wezterm-gui",
     "gnome-terminal-server",
     "qterminal",
     "terminology",
@@ -200,6 +200,10 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
         // Fix for elementaryos terminal being shitty
         if terminal.name.trim() == "io.elementary.terminal" {
             terminal.name = "Elementary Terminal".to_string();
+        }
+        // Fix for wezterm CLI being a proxy for wezterm GUI
+        if terminal.name.trim() == "wezterm-gui" {
+            terminal.name = "wezterm".to_string();
         }
     }
 

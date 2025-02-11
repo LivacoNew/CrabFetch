@@ -178,24 +178,21 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                 Ok(r) => r[2..].trim().to_string(),
                 Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
             };
-            let device_data: (String, String) = match search_pci_ids(&vendor_id, &device_id) {
-                Ok(r) => r,
-                Err(e) => return Err(e)
-            };
-
-            // TODO: Just directly search AMD, not the first pci.ids file
-            gpu.vendor = device_data.0;
             if vendor_id == "1002" && amd_accuracy { // AMD
+                gpu.vendor = String::from("Advanced Micro Devices, Inc. [AMD/ATI]");
                 let revision_id: String = match util::file_read(&d.path().join("revision")) {
                     Ok(r) => r[2..].trim().to_string(),
                     Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
                 };
-                gpu.model = match search_amd_model(&device_id, &revision_id)? {
-                    Some(r) => r,
-                    None => device_data.1,
-                };
-            } else {
-                gpu.model = device_data.1;
+                if let Some(r) = search_amd_model(&device_id, &revision_id)? {
+                    gpu.model = r;
+                }
+            }
+            if gpu.model == "Unknown" {
+                (gpu.vendor, gpu.model) = match search_pci_ids(&vendor_id, &device_id) {
+                    Ok(r) => r,
+                    Err(e) => return Err(e),
+                }
             }
         }
 

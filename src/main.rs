@@ -1,3 +1,4 @@
+use std::process::{Command, Output};
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
 
@@ -642,13 +643,38 @@ fn main() {
                 output.push((String::new(), str));
                 print_bench_time(args.benchmark, args.benchmark_warn, "Bright Colors Module", bench);
             }
+            "command" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                if !config.allow_commands {
+                    output.push((String::new(), "Commands are not allowed in CrabFetch's config.".to_string()));
+                } else if module_split.len() <= 1 {
+                    output.push((String::new(), "Command module invoked, but no command to run.".to_string()));
+                } else {
+                    let command: Output = Command::new("sh")
+                        .arg("-c")
+                        .arg(module_split[1])
+                        .output()
+                        .expect("Failed to execute command.");
+
+                    if !command.status.success() {
+                        output.push((String::new(), format!("Command failed: {}", String::from_utf8(command.stderr).unwrap_or("Unknown command.".to_string()))));
+                    } else {
+                        let result = String::from_utf8(command.stdout).unwrap_or("Command failed: Unable to parse output.".to_string());
+                        output.push((String::new(), result));
+                    }
+                }
+
+                print_bench_time(args.benchmark, args.benchmark_warn, &format!("Command: {}", ""), bench);
+            }
             _ => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
+
                 if config.unknown_as_text {
                     output.push((String::new(), formatter::replace_color_placeholders(module_name, &config)));
                 } else {
                     output.push((String::new(), format!("Unknown module: {}", module_name)));
                 }
+
                 print_bench_time(args.benchmark, args.benchmark_warn, "Unknown Module / Custom Text", bench);
             }
         }

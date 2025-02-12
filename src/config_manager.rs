@@ -12,6 +12,7 @@ use crate::player::PlayerConfiguration;
 pub struct Configuration {
     pub modules: Vec<String>,
     pub unknown_as_text: bool,
+    pub allow_commands: bool,
     pub separator: String,
     pub title_color: CrabFetchColor,
     pub title_bold: bool,
@@ -172,6 +173,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         ]).unwrap();
     }
     builder = builder.set_default("unknown_as_text", false).unwrap();
+    builder = builder.set_default("allow_commands", false).unwrap();
 
     builder = builder.set_default("separator", " > ").unwrap();
     builder = builder.set_default("title_color", "bright_magenta").unwrap();

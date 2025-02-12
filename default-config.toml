@@ -37,6 +37,9 @@ modules = [
 # Whether to treat unknown modules as a raw text output, allowing you to use custom strings n stuff.
 # Yes, these support color placeholders.
 unknown_as_text = false
+# Allows custom commands modules to be ran above, by specifying "command:{command}"
+# ENABLE THIS WITH CARE! Remember that it's possible to run modules with command-line arguments, so if someone can run CrabFetch they can run any arbitrary command!
+allow_commands = false
 
 # The default separator between a modules title and it's value
 separator = " > "

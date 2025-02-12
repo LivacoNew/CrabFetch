@@ -60,11 +60,11 @@ inline_values = false
 underline_character = '―'
 
 # The character for each color in the colors module
-color_character = "   "
+color_character = "   "  # circle: ""
 # Margin between each character
 color_margin = 0
 # And if to set the color to the background instead of on the character
-color_use_background = true
+color_use_background = true # Set to false if using something like the circle above
 
 # Whether to use the distro's preferred color for the title and ASCII displays
 # Disable to use custom default title colors, or custom ASCII colors

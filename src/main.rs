@@ -50,12 +50,9 @@ mod syscalls;
 #[command(about, long_about = None)]
 pub struct Args {
     #[arg(short, long)]
-    /// Sets a custom config file. This file MUST be a .toml file.
+    /// Sets a custom config file. 
+    /// Specifiy "none" to use the default config.
     config: Option<String>,
-
-    #[arg(short, long)]
-    /// Ignores a config file if present, and sticks to the default configuration.
-    ignore_config_file: bool,
 
     #[arg(short, long)]
     /// Generates a default config file
@@ -278,7 +275,7 @@ fn main() {
         exit(0);
     }
     let bench: Option<Instant> = benchmark_point(args.benchmark); 
-    let mut config: Configuration = match config_manager::parse(&args.config, &args.module_override, &args.ignore_config_file) {
+    let mut config: Configuration = match config_manager::parse(&args.config, &args.module_override) {
         Ok(r) => r,
         Err(e) => {
             println!("{}", e);

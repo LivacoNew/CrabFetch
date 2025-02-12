@@ -87,32 +87,30 @@ impl Debug for ConfigurationError {
     }
 }
 
-pub fn parse(location_override: &Option<String>, module_override: &Option<String>, ignore_file: &bool) -> Result<Configuration, ConfigurationError> {
+pub fn parse(location_override: &Option<String>, module_override: &Option<String>) -> Result<Configuration, ConfigurationError> {
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     let mut config_path_str: Option<String> = None;
-    if !ignore_file {
-        if location_override.is_some() {
-            config_path_str = Some(shellexpand::tilde(&location_override.clone().unwrap()).to_string());
+    if location_override.is_some() {
+        let location_override: String = location_override.clone().unwrap();
+        if location_override != "none" {
+            config_path_str = Some(shellexpand::tilde(&location_override).to_string());
             let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
-            // Config won't be happy unless it ends with .toml
-            if !config_path_str.ends_with(".toml") {
-                return Err(ConfigurationError::new(Some(config_path_str), "Config path MUST end with '.toml'".to_string()));
-            }
 
             // Verify it exists
             let path: &Path = Path::new(&config_path_str);
             if !path.exists() {
                 return Err(ConfigurationError::new(Some(config_path_str), "Unable to find config file.".to_string()));
             }
-        } else {
-            // Find the config path
-            config_path_str = find_file_in_config_dir("config.toml").map(|x| x.display().to_string());
         }
-
-        if config_path_str.is_some() {
-            builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
-        }
+    } else {
+        // Find the config path
+        config_path_str = find_file_in_config_dir("config.toml").map(|x| x.display().to_string());
     }
+
+    if config_path_str.is_some() {
+        builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
+    }
+
     // Set the defaults here
     // General
     builder = builder.set_default("modules", vec![
@@ -408,8 +406,8 @@ mod tests {
         assert!(Path::new(&location).exists());
 
         // Attempt to parse it
-        let parse = crate::config_manager::parse(&Some(location.clone()), &None, &false);
-        assert!(crate::config_manager::parse(&Some(location.clone()), &None, &false).is_ok(), "{:?}", parse.err());
+        let parse = crate::config_manager::parse(&Some(location.clone()), &None);
+        assert!(crate::config_manager::parse(&Some(location.clone()), &None).is_ok(), "{:?}", parse.err());
         
         // Finally, we remove the tmp config file 
         let removed: Result<(), Error> = fs::remove_file(location);

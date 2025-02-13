@@ -1,9 +1,12 @@
 use colored::ColoredString;
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::{self, Configuration}, formatter::CrabFetchColor};
 
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct AsciiConfiguration {
     pub display: bool,
     pub side: String,

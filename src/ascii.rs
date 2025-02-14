@@ -1,7 +1,6 @@
-use colored::ColoredString;
 use serde::Deserialize;
 
-use crate::{config_manager::{self, Configuration}, formatter::CrabFetchColor};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor};
 
 #[derive(Deserialize)]
 pub struct AsciiConfiguration {
@@ -13,65 +12,14 @@ pub struct AsciiConfiguration {
 
 // Return type is the ascii & the maximum length of it
 pub fn get_ascii(os: &str) -> (String, u16) {
-    // Will first confirm if theres a ascii override file
-    let user_override: Option<String> = config_manager::check_for_ascii_override();
-    if user_override.is_some() {
-        let mut length: u16 = 0;
-        user_override.as_ref().unwrap().split('\n').for_each(|x| {
-            let len: usize = x.chars().count();
-            if len > length as usize { length = len as u16 }
-        });
-        return (user_override.unwrap(), length)
-    }
-    let os: &str = &os.replace('"', "").to_lowercase();
-
-    let ascii: (&str, u16) = match os {
-        "arch" => ARCH,
-        "debian" => DEBIAN,
-        "ubuntu" => UBUNTU,
-        "fedora" => FEDORA,
-        "void" => VOID,
-        "endeavouros" => ENDEAVOUR,
-        "linuxmint" => MINT,
-        "elementary" => ELEMENTARY,
-        "zorin" => ZORIN,
-        "manjaro" => MANJARO,
-        "pop" => POPOS,
-        "opensuse-tumbleweed" => OPENSUSE,
-        "opensuse-leap" => OPENSUSE,
-        "bazzite" => BAZZITE,
-        "rocky" => ROCKYLINUX,
-        "kali" => KALI,
-        "almalinux" => ALMA,
-        "android" => ANDROID,
-        "garuda" => GARUDA,
-        _ => ("", 0)
-    };
-
-    // I blame rust not letting me make const strings
-    let ascii_string: String = ascii.0.to_string();
-    (ascii_string, ascii.1)
+    (String::new(), 0)
 }
 
 pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: &u16, config: &Configuration) -> String {
-    let percentage: f32 = current_line as f32 / ascii_split.len() as f32;
-    let index: u8 = (((config.ascii.colors.len() - 1) as f32) * percentage).round() as u8;
-
-    let mut line = String::new();
-    if ascii_split.len() > current_line {
-        line = ascii_split[current_line].to_string();
-    }
-    let remainder: u16 = target_length - (line.chars().count() as u16);
-    for _ in 0..remainder {
-        line.push(' ');
-    }
-
-    if current_line < ascii_split.len() {
-        let colored: ColoredString = config.ascii.colors.get(index as usize).unwrap().color_string(&line);
-        return colored.to_string();
-    }
-    line
+    String::new()
 }
+
+
 
 // Define art down below here
 // All distro ASCII's are generated from here; https://www.text-image.com/convert/ascii.html

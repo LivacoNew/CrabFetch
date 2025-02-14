@@ -1,3 +1,6 @@
+use std::{cmp::min, collections::HashMap};
+
+use colored::ColoredString;
 use serde::Deserialize;
 
 use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFetchColor};
@@ -6,15 +9,20 @@ use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFet
 pub struct AsciiConfiguration {
     pub display: bool,
     pub side: String,
-    pub colors: Vec<CrabFetchColor>,
     pub margin: u16,
+    pub mode: AsciiMode,
+    // Coloring options 
+    // Done this way because I kid you not I could not find a way to make an multi-type thing for
+    // the Config crate
+    pub solid_color: CrabFetchColor,
+    pub band_colors: Vec<CrabFetchColor>
 }
-#[derive(Debug)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum AsciiMode {
     Raw,
+    OS,
     Solid,
-    Band,
-    BandVertical,
+    Band
 }
 
 // Return type is the ascii & the maximum length of it
@@ -69,5 +77,27 @@ pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: 
         line.push_str(&" ".repeat(*target_length as usize - line.chars().count()));
     }
 
+    if config.ascii.mode != AsciiMode::Raw {
+        line = match config.ascii.mode {
+            AsciiMode::Raw => line,
+            AsciiMode::OS => color_solid(&line, config), // main func sets the solid color to be the os color in this case
+            AsciiMode::Solid => color_solid(&line, config),
+            AsciiMode::Band => color_band_vertical(&line, current_line, ascii_split.len(), config)
+        }
+    }
+
     line
+}
+
+fn color_solid(line: &str, config: &Configuration) -> String {
+    config.ascii.solid_color.color_string(line).to_string()
+}
+
+fn color_band_vertical(line: &str, current_line: usize, ascii_length: usize, config: &Configuration) -> String {
+    let percentage: f32 = current_line as f32 / (ascii_length - 1) as f32;
+    let total_colors: usize = config.ascii.band_colors.len();
+    let index: usize = min((((total_colors - 1) as f32) * percentage).round() as usize, total_colors - 1);
+
+    let colored: ColoredString = config.ascii.band_colors.get(index as usize).unwrap().color_string(line);
+    colored.to_string()
 }

@@ -2,6 +2,7 @@ use std::process::{Command, Output};
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
 
+use ascii::AsciiMode;
 use formatter::CrabFetchColor;
 use module::{Module, ModuleError};
 use modules::battery::{self, BatteryInfo};
@@ -304,7 +305,7 @@ fn main() {
     let mut syscall_cache: SyscallCache = SyscallCache::new();
 
     // Set the title color if we're usign os colors
-    if config.use_os_color {
+    if config.use_os_color || (config.ascii.display && config.ascii.mode == AsciiMode::OS) {
         let id: &str = if let Some(ref x) = args.distro_override {
             x
         } else {
@@ -317,9 +318,11 @@ fn main() {
         };
 
         let c: CrabFetchColor = formatter::find_os_color(id);
-        config.title_color = c.clone();
-        if config.ascii.display {
-            config.ascii.colors = vec![c];
+        if config.use_os_color {
+            config.title_color = c.clone();
+        }
+        if config.ascii.display && config.ascii.mode == AsciiMode::OS {
+            config.ascii.solid_color = c;
         }
     }
 

@@ -111,20 +111,31 @@ percentage_color_thresholds = [
 [ascii]
 # If to display the ASCII distro art or not
 display = true
-
-# The colors to render the ASCII in
-# This array can be as long as the actual ASCII. Each entry represents the color at a certain %
-# E.g ["red", "green"] would render the top half as red and the bottom half as green.
-# ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
-#
-# REQUIRES use_os_color TO BE OFF
-colors = ["bright_magenta"]
-
+# Which side of the modules to display the ASCII on, left, right, top or bottom
+side = "left"
 # The amount of space to put between the ASCII and the info
 margin = 4
 
-# Which side of the modules to display the ASCII on, left, right, top or bottom
-side = "left"
+# The coloring mode to use;
+# - "raw" leaves the coloring alone, letting it be uncolored, or lets you use escape codes in the ascii override.
+# - "os" uses the OS color to color the ASCII in a solid color.
+# - "solid" fills the ASCII with a solid color.
+# - "band" colors the ascii in a band/flag format.
+# - "bandhorizontal" is the same as above, but horizontally.
+mode = "os"
+
+# ONLY REQUIRED IF YOU SET THE MODE TO BE "solid"
+# The color to fill the ASCII with.
+solid_color = "bright_magenta"
+
+# ONLY REQUIRED IF YOU SET THE MODE TO BE "band" OR "bandhorizontal"
+# The array of colors to fill the ASCII with.
+# "band" is top to bottom, "bandhorizontal" is left to right.
+# 
+# This array can be as long as the actual ASCII. Each entry represents the color at a certain %
+# E.g ["red", "green"] would render the top half as red and the bottom half as green.
+# ["yellow", "blue", "magenta"] would render 33.33% as yellow, then blue, than magenta.
+band_colors = ["bright_magenta", "bright_cyan", "bright_white", "bright_cyan", "bright_magenta"]
 
 
 

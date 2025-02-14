@@ -90,11 +90,6 @@ progress_target_length = 20
 # E.g use Gibibytes (GiB) opposed to Gigabytes (GB)
 use_ibis = false
 
-# Whether to use known checksums to attempt to find the version of some stuff e.g terminal/shell/editor
-# Disabled by default as it was seen as "too cheaty"
-# If your benchmarking, disable it as well. If your a end user, you likely won't care if it's on or not.
-use_version_checksums = false
-
 # Whether to supress any errors that come or not
 suppress_errors = true
 

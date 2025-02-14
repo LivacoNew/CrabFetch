@@ -114,7 +114,7 @@ pub fn get_init_system(config: &Configuration, package_managers: &ManagerInfo) -
             // Likely sysvinit, which can't be version detected
             initsys.version = "Unknown".to_string();
         } else {
-            initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+            initsys.version = versions::find_version(&initsys.path, Some(&initsys.name), package_managers).unwrap_or("Unknown".to_string());
         }
     }
 

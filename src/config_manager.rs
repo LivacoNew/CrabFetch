@@ -33,7 +33,6 @@ pub struct Configuration {
     pub progress_target_length: u8,
     pub percentage_color_thresholds: Vec<String>,
     pub use_ibis: bool,
-    pub use_version_checksums: bool,
     pub suppress_errors: bool,
 
     pub ascii: AsciiConfiguration,
@@ -197,7 +196,6 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("progress_target_length", 20).unwrap();
 
     builder = builder.set_default("use_ibis", false).unwrap();
-    builder = builder.set_default("use_version_checksums", false).unwrap();
     builder = builder.set_default("suppress_errors", true).unwrap();
 
     builder = builder.set_default("percentage_color_thresholds", vec!["75:brightgreen", "85:brightyellow", "90:brightred"]).unwrap();

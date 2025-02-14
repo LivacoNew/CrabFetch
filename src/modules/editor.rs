@@ -108,7 +108,7 @@ pub fn get_editor(config: &Configuration, package_managers: &ManagerInfo) -> Res
         editor.name = editor.path.split('/').last().unwrap().to_string();
     }
     if is_flag_set_u32(info_flags, EDITOR_INFOFLAG_VERSION) {
-        editor.version = versions::find_version(&editor.path, Some(&editor.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+        editor.version = versions::find_version(&editor.path, Some(&editor.name), package_managers).unwrap_or("Unknown".to_string());
     }
 
     // Convert the name to a fancy variant

@@ -215,7 +215,7 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
     }
 
     if is_flag_set_u32(info_flags, TERM_INFOFLAG_VERSION) {
-        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+        terminal.version = versions::find_version(&terminal.path, Some(&terminal.name), package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(terminal)

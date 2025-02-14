@@ -116,7 +116,7 @@ pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Resu
     let info_flags: u32 = ShellInfo::gen_info_flags(&config.shell.format);
 
     if config.shell.show_default_shell {
-        return get_default_shell(info_flags, config.use_version_checksums, package_managers);
+        return get_default_shell(info_flags, package_managers);
     }
 
     // Goes up until we hit one of our known shells
@@ -177,13 +177,13 @@ pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Resu
     }
 
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_VERSION) {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name), config.use_version_checksums, package_managers).unwrap_or("Unknown".to_string());
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)
 }
 
-fn get_default_shell(info_flags: u32, use_checksums: bool, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
+fn get_default_shell(info_flags: u32, package_managers: &ManagerInfo) -> Result<ShellInfo, ModuleError> {
     let mut shell: ShellInfo = ShellInfo::new();
 
     // This is mostly here for terminal detection, but there's a config option to use this instead
@@ -208,7 +208,7 @@ fn get_default_shell(info_flags: u32, use_checksums: bool, package_managers: &Ma
     }
 
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_VERSION) {
-        shell.version = versions::find_version(&shell.path, Some(&shell.name), use_checksums, package_managers).unwrap_or("Unknown".to_string());
+        shell.version = versions::find_version(&shell.path, Some(&shell.name), package_managers).unwrap_or("Unknown".to_string());
     }
 
     Ok(shell)

@@ -3,7 +3,7 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::localip::LocalIPConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
+use crate::{ascii::{AsciiConfiguration, AsciiMode}, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::localip::LocalIPConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "player")]
 use crate::player::PlayerConfiguration;
 
@@ -204,9 +204,11 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     // ASCII
     builder = builder.set_default("ascii.display", true).unwrap();
-    builder = builder.set_default("ascii.colors", vec!["bright_magenta"]).unwrap();
-    builder = builder.set_default("ascii.margin", 4).unwrap();
     builder = builder.set_default("ascii.side", "left").unwrap();
+    builder = builder.set_default("ascii.margin", 4).unwrap();
+    builder = builder.set_default("ascii.mode", "os").unwrap();
+    builder = builder.set_default("ascii.solid_color", "bright_magenta").unwrap();
+    builder = builder.set_default("ascii.band_colors", vec!["bright_magenta", "bright_cyan", "bright_white", "bright_cyan", "bright_magenta"]).unwrap();
 
     // Modules
     builder = builder.set_default("hostname.title", "").unwrap();

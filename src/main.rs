@@ -2,6 +2,7 @@ use std::process::{Command, Output};
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
 
+use ascii::AsciiMode;
 use formatter::CrabFetchColor;
 use module::{Module, ModuleError};
 use modules::battery::{self, BatteryInfo};
@@ -45,6 +46,7 @@ mod package_managers;
 mod module;
 mod util;
 mod syscalls;
+mod ascii_art;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -303,7 +305,7 @@ fn main() {
     let mut syscall_cache: SyscallCache = SyscallCache::new();
 
     // Set the title color if we're usign os colors
-    if config.use_os_color {
+    if config.use_os_color || (config.ascii.display && config.ascii.mode == AsciiMode::OS) {
         let id: &str = if let Some(ref x) = args.distro_override {
             x
         } else {
@@ -316,9 +318,11 @@ fn main() {
         };
 
         let c: CrabFetchColor = formatter::find_os_color(id);
-        config.title_color = c.clone();
-        if config.ascii.display {
-            config.ascii.colors = vec![c];
+        if config.use_os_color {
+            config.title_color = c.clone();
+        }
+        if config.ascii.display && config.ascii.mode == AsciiMode::OS {
+            config.ascii.solid_color = c;
         }
     }
 
@@ -698,9 +702,9 @@ fn main() {
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
             let ascii: (String, u16) = if args.distro_override.is_some() {
-                ascii::get_ascii(&args.distro_override.clone().unwrap())
+                ascii::find_ascii(&args.distro_override.clone().unwrap())
             } else {
-                ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
+                ascii::find_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
             };
             fuck_off_borrow_checker = ascii.0;
             ascii_split = fuck_off_borrow_checker.split('\n').filter(|x| x.trim() != "").collect();

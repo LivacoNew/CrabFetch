@@ -45,6 +45,7 @@ mod package_managers;
 mod module;
 mod util;
 mod syscalls;
+mod ascii_art;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -698,9 +699,9 @@ fn main() {
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
             let ascii: (String, u16) = if args.distro_override.is_some() {
-                ascii::get_ascii(&args.distro_override.clone().unwrap())
+                ascii::find_ascii(&args.distro_override.clone().unwrap())
             } else {
-                ascii::get_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
+                ascii::find_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
             };
             fuck_off_borrow_checker = ascii.0;
             ascii_split = fuck_off_borrow_checker.split('\n').filter(|x| x.trim() != "").collect();

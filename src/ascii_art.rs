@@ -1,7 +1,7 @@
 // Define art down below here
 // All distro ASCII's are generated from here; https://www.text-image.com/convert/ascii.html
 // I suck at ASCII art, and want to use smaller ones than the other fetch defaults.
-const ARCH: (&str, u16) =  (
+pub const ARCH: (&str, u16) =  (
 "             ~!
             ^YY^
            :JYYY^
@@ -16,7 +16,7 @@ const ARCH: (&str, u16) =  (
  ^JY?7~^..        ..^~7?YY^
 ^7~:                    :~7^", 28);
 
-const DEBIAN: (&str, u16) = (
+pub const DEBIAN: (&str, u16) = (
 "         .^!7!~~~^:
       :!JPPP55YY5555Y?!:
     ^YPG5?!:.    .:~?PGPJ:
@@ -33,7 +33,7 @@ const DEBIAN: (&str, u16) = (
      !Y?^
        ~??~^.
          .^~~:..            ", 28);
-const UBUNTU: (&str, u16) = (
+pub const UBUNTU: (&str, u16) = (
 "           .^~7?JJYYYYJJ?7~^.
         :!?JYYYYYYYYYYYYY55YY?!:
      .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
@@ -53,7 +53,7 @@ JYYY7^:^7~  ~5YYYYYYYYYYYY5~   7YYYYYYYJ
      .~?YYYYYYYYYYYYYYYYY?7?JYYY?~.
         :!?JYYYYYYYYYYYYY55YY?!:
            .^~7?JJYYYYJJ?7~^.           ", 40);
-const FEDORA: (&str, u16) = ( 
+pub const FEDORA: (&str, u16) = ( 
 "      .^7J5PGGGGGPY7~.
     ^JPGGGGGGGP5J??J5PJ^
   ^YGBGGGGGGP!.   . ^5PGY^
@@ -68,7 +68,7 @@ GG5Y55Y55J~  :5GGGGGGGBGY^
 PGGP5!     :7PGGGGGGGPJ^
 ~YGGGPYJJY5GGGGGP5J7^.      ", 28);
 
-const VOID: (&str, u16) = (
+pub const VOID: (&str, u16) = (
 "             ..::::::::::..             
            ::::::::::::::::::.          
             .:::::....::::::::::.       
@@ -86,7 +86,7 @@ J555B5YYY:.~7!7Y5YY5PP?::Y557^5PP5YY55Y!
          :!JY55555555555555Y?.          
             :~!?JYYYYYYJ?!^:            ", 40);
 
-const ENDEAVOUR: (&str, u16) = (
+pub const ENDEAVOUR: (&str, u16) = (
 "                            
               .!J^          
              ^J555J^        
@@ -100,7 +100,7 @@ const ENDEAVOUR: (&str, u16) = (
 ..:7JJJYYYYYYYYY55555YYJ??7^
   ~777777777777!!!!!~~~^:.  ", 28);
 
-const MINT: (&str, u16) = (
+pub const MINT: (&str, u16) = (
 "              .::^^^^^^::.              
           .^!7????????????7!^.          
         ^!????????????????????!^        
@@ -119,7 +119,7 @@ const MINT: (&str, u16) = (
           .^!7????????????7!^.          
               .::^^^^^^::.              ", 40);
 
-const ELEMENTARY: (&str, u16) = (
+pub const ELEMENTARY: (&str, u16) = (
 "         :!J5PPP555PPPP5?~.         
       :JPPY!^.:^~~~~^::~?5P5!.      
     ^PGJ^  .7YY?!!!7JPY.  .!5BJ.    
@@ -138,7 +138,7 @@ Y&:   ~@#.            J@^        B@^
       .!YPPJ7~^:....:^!?YPP?^       
           ^!JY5PPPPPP5Y?~.          ", 36);
 
-const ZORIN: (&str, u16) = (
+pub const ZORIN: (&str, u16) = (
 "        !JJJJJJJJJJJJJJJJJJ!        
       .!JJJJJJJJJJJJJJJJJJJJ!.      
        ......................       
@@ -155,7 +155,7 @@ const ZORIN: (&str, u16) = (
       .7JJJJJJJJJJJJJJJJJJJJ7.      
         !JJJJJJJJJJJJJJJJJJ!        ", 36);
 
-const MANJARO: (&str, u16) = (
+pub const MANJARO: (&str, u16) = (
 "???????????????????????. :J?????????
 ???????????????????????. :J?????????
 ???????????????????????. :J?????????
@@ -174,7 +174,7 @@ const MANJARO: (&str, u16) = (
 ?????????J: .??????????. :J?????????
 ?????????J: .??????????. :J?????????", 36);
 
-const POPOS: (&str, u16) = (
+pub const POPOS: (&str, u16) = (
 "           .:~!!77777777!!~:.           
         :~!7????????7777????7!~:        
      .^7???7!~^::^~!7?7777777???7^.     
@@ -195,7 +195,7 @@ const POPOS: (&str, u16) = (
         :~!7????????????????7!~:        
            .:~!!77777777!!~:.           ", 40);
 
-const OPENSUSE: (&str, u16) = (
+pub const OPENSUSE: (&str, u16) = (
 "           ^7YG#&@@@@@@&#GY7^           
        .~5#@&BPJ7!~~~~!7JPB&@#5~.       
      :J#@#Y~.              .~Y#@#J:     
@@ -216,7 +216,7 @@ Y@@@@@@@@@@@@@#5?~^~?YPGB##BPJ!~:   :&@Y
        .~5#@&BPJ7!~~~~!7JPB&@#5~.       
            ^7YG#&@@@@@@&#GY7^           ", 40);
 
-const ROCKYLINUX: (&str, u16) = (
+pub const ROCKYLINUX: (&str, u16) = (
 "      :!YG#&@@@@&#GY!:      
    .!5#@@@@@@@@@@@@@@#5!.   
   ~G&@@@@@@@@@@@@@@@@@@&G~  
@@ -231,7 +231,7 @@ const ROCKYLINUX: (&str, u16) = (
    ..   .!P&@@@@@@@@@#5!.   
         ~P#&@@@@&#GY!:      ", 28);
 
-const KALI: (&str, u16) = (
+pub const KALI: (&str, u16) = (
 "   ....::^^~~!!77!~^:                   
    ..::^~~~!!!!!!7?Y55.                 
  .:::::....:^~!77??JJJ!                 
@@ -247,7 +247,7 @@ const KALI: (&str, u16) = (
                                      !: 
                                      .: ", 40);
 
-const ALMA: (&str, u16) = (
+pub const ALMA: (&str, u16) = (
 "       .5&@&G~ ..       ..   ~??~       
        ~@@@@@5J##B~  :JG##B~5@@@@G.     
        .JGBBPG@@@5. ?&@@@@@BP&@@@G.     
@@ -267,7 +267,7 @@ P@@@@GB@@^    :7G&7    P@J  .JG&@#5GBBP!
                 B@@@@#..                
                 7B&@B7                  ", 40);
 
-const GARUDA: (&str, u16) = (
+pub const GARUDA: (&str, u16) = (
 "             ^Y#&&&&&&&&&&#J:       
            ~5&@&PY55YY55YG@@#Y^     
          !G@@&Y^     .    ^Y&@@5~   
@@ -281,7 +281,7 @@ const GARUDA: (&str, u16) = (
        ~P@@&P55555555B@@B?:         
          ^5#&&&&&&&&&&G7.           ", 36);
 
-const BAZZITE: (&str, u16) = (
+pub const BAZZITE: (&str, u16) = (
 "     %%%%%%====%%%%%%%%%%            
    %%%%%%%%    %%%%%%%%%%%%%%        
   %%%%%%%%%    %%%%%%%%%%%%%%%%      
@@ -302,7 +302,7 @@ const BAZZITE: (&str, u16) = (
           ###################        
               ###########           ", 36);
 
-const ANDROID: (&str, u16) = (
+pub const ANDROID: (&str, u16) = (
 "          .^^  ........  ^:  
            .~~~!!!!!!!!~~~.   
           :~!!77!!!!!!!!7!!!~:  

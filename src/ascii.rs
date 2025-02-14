@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashMap};
+use std::cmp::min;
 
 use colored::ColoredString;
 use serde::Deserialize;

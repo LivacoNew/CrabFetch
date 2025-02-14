@@ -118,7 +118,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         "vim" => Some(raw.split(' ').collect::<Vec<&str>>()[4].to_string()),
         "nvim" => Some(raw.split(' ').collect::<Vec<&str>>()[1].split('\n').next().unwrap()[1..].to_string()),
         // Init Systems
-        "systemd" => Some(raw.split(' ').collect::<Vec<&str>>()[2].split('\n').next().unwrap().trim_matches(&['(', ')']).to_string()),
+        "systemd" => Some(raw.split(' ').collect::<Vec<&str>>()[2].split('\n').next().unwrap().trim_matches(['(', ')']).to_string()),
 
         _ => {
             let raw_split: Vec<&str> = raw.split(' ').collect();

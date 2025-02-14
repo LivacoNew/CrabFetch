@@ -122,10 +122,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
 
         _ => {
             let raw_split: Vec<&str> = raw.split(' ').collect();
-            let attempted_ver: &str = match raw_split.get(1) {
-                Some(r) => r,
-                None => return None,
-            };
+            let attempted_ver: &str = raw_split.get(1)?;
             Some(attempted_ver.to_string())
         },
     }

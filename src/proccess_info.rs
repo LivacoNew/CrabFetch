@@ -143,10 +143,7 @@ impl ProcessInfo {
     }
 
     pub fn get_parent_process(&mut self) -> Result<ProcessInfo, String> {
-        let pid: u32 = match self.get_parent_pid() {
-            Ok(r) => r,
-            Err(e) => return Err(e),
-        };
+        let pid: u32 = self.get_parent_pid()?;
 
         let process: ProcessInfo = ProcessInfo::new(pid);
         if !process.is_valid() {

@@ -333,10 +333,7 @@ fn find_file_in_config_dir(path: &str) -> Option<PathBuf> {
 }
 
 pub fn check_for_ascii_override() -> Option<String> {
-    let path: PathBuf = match find_file_in_config_dir("ascii") {
-        Some(r) => r,
-        None => return None
-    };
+    let path: PathBuf = find_file_in_config_dir("ascii")?;
     if !path.exists() {
         return None;
     }

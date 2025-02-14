@@ -189,10 +189,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                 }
             }
             if gpu.model == "Unknown" {
-                (gpu.vendor, gpu.model) = match search_pci_ids(&vendor_id, &device_id) {
-                    Ok(r) => r,
-                    Err(e) => return Err(e),
-                }
+                (gpu.vendor, gpu.model) = search_pci_ids(&vendor_id, &device_id)?
             }
         }
 

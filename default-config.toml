@@ -121,7 +121,6 @@ margin = 4
 # - "os" uses the OS color to color the ASCII in a solid color.
 # - "solid" fills the ASCII with a solid color.
 # - "band" colors the ascii in a band/flag format.
-# - "bandhorizontal" is the same as above, but horizontally.
 mode = "os"
 
 # ONLY REQUIRED IF YOU SET THE MODE TO BE "solid"

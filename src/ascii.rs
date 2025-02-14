@@ -32,7 +32,8 @@ pub fn find_ascii(os: &str) -> (String, u16) {
     if user_override.is_some() {
         let mut length: u16 = 0;
         user_override.as_ref().unwrap().split('\n').for_each(|x| {
-            let len: usize = x.chars().count();
+            let stripped = strip_ansi_escapes::strip_str(x);
+            let len: usize = stripped.chars().count();
             if len > length as usize { length = len as u16 }
         });
         return (user_override.unwrap(), length)
@@ -73,8 +74,10 @@ pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: 
     if ascii_split.len() > current_line {
         line.push_str(ascii_split[current_line]);
     }
-    if line.chars().count() < *target_length as usize {
-        line.push_str(&" ".repeat(*target_length as usize - line.chars().count()));
+
+    let ansi_stripped = strip_ansi_escapes::strip_str(&line);
+    if ansi_stripped.chars().count() < *target_length as usize {
+        line.push_str(&" ".repeat(*target_length as usize - ansi_stripped.chars().count()));
     }
 
     if config.ascii.mode != AsciiMode::Raw {

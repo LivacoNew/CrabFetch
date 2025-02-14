@@ -23,7 +23,6 @@ serde = "1.0.197"
 libc = "0.2.153"
 humantime = "2.1.0"
 wayland-client = "0.31.3"
-
 x11rb = { version = "0.13.1", features = ["randr"] }
 dbus = { version = "0.9.7", optional = true }
 chrono = { version = "0.4.38", features = ["alloc", "android-tzdata", "clock", "iana-time-zone", "now", "std"] }

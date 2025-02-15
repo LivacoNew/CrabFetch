@@ -171,7 +171,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
         let entries: Vec<&str> = line.split([' ', '\t'])
             .map(str::trim)
-            .filter(|x| x.is_empty())
+            .filter(|x| !x.is_empty())
             .collect();
     
         let mut mount: MountInfo = MountInfo::new();

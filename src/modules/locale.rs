@@ -65,7 +65,7 @@ pub fn get_locale() -> Result<LocaleInfo, ModuleError> {
 
     let raw: String = match env::var("LANG") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Locale", format!("Could not parse $LANG env variable: {}", e)))
+        Err(e) => return Err(ModuleError::new("Locale", format!("Could not parse $LANG env variable: {e}")))
     };
     let raw_split: Vec<&str> = raw.split('.').collect();
     locale.language = raw_split.first().unwrap_or(&locale.language.as_ref()).to_string();

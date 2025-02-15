@@ -28,7 +28,7 @@ fn main() {
     let mut first_line: bool = true;
     for line in &output_lines {
         if let Some(commit_hash) = line.trim().strip_prefix("commit ") {
-            println!("cargo:rustc-env=GIT_HASH={}", &commit_hash);
+            println!("cargo:rustc-env=GIT_HASH={commit_hash}");
         }
         if let Some(commit_date) = line.trim().strip_prefix("Date: ") {
             println!("cargo:rustc-env=GIT_DATE={}", &commit_date.trim());
@@ -48,5 +48,5 @@ fn main() {
         }
     }
 
-    println!("cargo:rustc-env=GIT_MESSAGE={}", message);
+    println!("cargo:rustc-env=GIT_MESSAGE={message}");
 }

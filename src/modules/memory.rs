@@ -94,7 +94,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
     // Fetches from /proc/meminfo
     let file: File = match File::open("/proc/meminfo") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Memory", format!("Can't read from /proc/meminfo - {}", e))),
+        Err(e) => return Err(ModuleError::new("Memory", format!("Can't read from /proc/meminfo - {e}"))),
     };
 
     let mut mem_available: u64 = 0;
@@ -110,7 +110,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
             var = var[..var.len() - 3].trim();
             memory.max_kb = match var.to_string().parse::<f64>() {
                 Ok(r) => (r * 1.024) as u64,
-                Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse total memory: {}", e)))
+                Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse total memory: {e}")))
             }
         }
         if line.starts_with("MemAvailable") {
@@ -118,7 +118,7 @@ pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
             var = var[..var.len() - 3].trim();
             mem_available = match var.to_string().parse::<f64>() {
                 Ok(r) => (r * 1.024) as u64,
-                Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse memfree memory: {}", e)))
+                Err(e) => return Err(ModuleError::new("Memory", format!("Could not parse memfree memory: {e}")))
             }
         }
         if memory.max_kb != 0 && mem_available != 0 {

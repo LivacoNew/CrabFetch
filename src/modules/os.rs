@@ -137,7 +137,7 @@ pub fn get_os(config: &Configuration, syscall_cache: &mut SyscallCache) -> Resul
 fn parse_os_release(os: &mut OSInfo) -> Result<(), ModuleError> {
     let contents = match util::file_read(Path::new("/etc/os-release")) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {}", e))),
+        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {e}"))),
     };
     for line in contents.trim().split('\n').collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {

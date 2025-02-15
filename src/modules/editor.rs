@@ -93,7 +93,7 @@ pub fn get_editor(config: &Configuration, package_managers: &ManagerInfo) -> Res
         Err(_) => {
             match env::var("VISUAL") {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Editor", format!("Could not parse $EDITOR or $VISUAL variable: {}", e)))
+                Err(e) => return Err(ModuleError::new("Editor", format!("Could not parse $EDITOR or $VISUAL variable: {e}")))
             }
         },
     };
@@ -101,7 +101,7 @@ pub fn get_editor(config: &Configuration, package_managers: &ManagerInfo) -> Res
     if is_flag_set_u32(info_flags, EDITOR_INFOFLAG_PATH) {
         editor.path = match which::which(&env_value) {
             Ok(r) => r.display().to_string(),
-            Err(e) => return Err(ModuleError::new("Editor", format!("Could not find 'which' for {}: {}", env_value, e)))
+            Err(e) => return Err(ModuleError::new("Editor", format!("Could not find 'which' for {env_value}: {e}")))
         };
     }
     if is_flag_set_u32(info_flags, EDITOR_INFOFLAG_NAME) {

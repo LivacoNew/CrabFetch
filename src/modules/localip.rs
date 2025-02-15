@@ -69,12 +69,12 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
     let mut virt_interfaces: Vec<String> = Vec::new();
     let dir: ReadDir = match fs::read_dir("/sys/devices/virtual/net") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("LocalIP", format!("Can't read from /sys/devices/virtual/net: {}", e))),
+        Err(e) => return Err(ModuleError::new("LocalIP", format!("Can't read from /sys/devices/virtual/net: {e}"))),
     };
     for dev in dir {
         let d = match dev {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("LocalIP", format!("Failed to open directory: {}", e))),
+            Err(e) => return Err(ModuleError::new("LocalIP", format!("Failed to open directory: {e}"))),
         };
         virt_interfaces.push(d.file_name().into_string().unwrap());
     }
@@ -95,7 +95,7 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
             inf_loop_protection += 1;
             let interface_name: String = match util::cstr_from_ptr(ifaddrs.ifa_name) {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("LocalIP", format!("Failed to convert interface name into Rust string: {}", e)))
+                Err(e) => return Err(ModuleError::new("LocalIP", format!("Failed to convert interface name into Rust string: {e}")))
             };
 
             // Ignore any virtual devices

@@ -364,7 +364,7 @@ pub fn generate_config_file(location_override: Option<String>) {
                 // Let's try the home directory
                 let mut home_dir: String = match env::var("HOME") {
                     Ok(r) => r,
-                    Err(e) => panic!("Unable to find suitable config folder; {}", e)
+                    Err(e) => panic!("Unable to find suitable config folder; {e}")
                 };
                 home_dir.push_str("/.config/CrabFetch/config.toml");
                 home_dir
@@ -378,18 +378,18 @@ pub fn generate_config_file(location_override: Option<String>) {
     }
     match fs::create_dir_all(config_path.parent().unwrap()) {
         Ok(_) => {},
-        Err(e) => panic!("Unable to create directory: {}", e),
+        Err(e) => panic!("Unable to create directory: {e}"),
     };
 
     let mut file: File = match File::create(config_path) {
         Ok(r) => r,
-        Err(e) => panic!("Unable to create file; {}", e),
+        Err(e) => panic!("Unable to create file; {e}"),
     };
     match file.write_all(DEFAULT_CONFIG_CONTENTS.as_bytes()) {
         Ok(_) => {},
-        Err(e) => panic!("Unable to write to file; {}", e),
+        Err(e) => panic!("Unable to write to file; {e}"),
     };
-    println!("Created default config file at {}", path);
+    println!("Created default config file at {path}");
 }
 
 mod tests {

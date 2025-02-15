@@ -151,7 +151,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     // Wayland yet, it's so much more convoluted at times compared to X11
     let (conn, screen_num) = match x11rb::connect(None) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Display", format!("Can't connect to X11 server: {}", e))),
+        Err(e) => return Err(ModuleError::new("Display", format!("Can't connect to X11 server: {e}"))),
     };
 
     let screen: &Screen = &x11rb::connection::Connection::setup(&conn).roots[screen_num];
@@ -163,9 +163,9 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
     let monitors: Vec<MonitorInfo> = match randr::get_monitors(&conn, screen.root, true) {
         Ok(r) => match r.reply() {
             Ok(r) => r.monitors,
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {e}"))),
         },
-        Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {}", e))),
+        Err(e) => return Err(ModuleError::new("Display", format!("Failed to get monitors from randr: {e}"))),
     };
     let mut displays: Vec<DisplayInfo> = Vec::new();
     for monitor in monitors {
@@ -175,9 +175,9 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             drm_name = match xproto::get_atom_name(&conn, monitor.name) {
                 Ok(r) => match r.reply() {
                     Ok(r) => String::from_utf8(r.name).unwrap(),
-                    Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
+                    Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {e}", monitor.name))),
                 },
-                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {}", monitor.name, e))),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get atomic name for monitor {}: {e}", monitor.name))),
             };
         }
         // Find the make/model from the EDID
@@ -185,7 +185,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
         if is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MAKE) || is_flag_set_u32(info_flags, DISPLAYS_INFOFLAG_MODEL) {
             (make, model) = match get_edid_makemodel(&drm_name) {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get make/model for monitor {}: {}", monitor.name, e))),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get make/model for monitor {}: {e}", monitor.name))),
             };
         }
 
@@ -193,9 +193,9 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
         let resources: GetScreenResourcesCurrentReply = match conn.randr_get_screen_resources_current(screen.root) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {e}"))),
             },
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {}", e))),
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get screen resources: {e}"))),
         };
 
         let output: u32 = match monitor.outputs.first() {
@@ -206,17 +206,17 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
         let output_info: GetOutputInfoReply = match conn.randr_get_output_info(output, resources.config_timestamp) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {e}"))),
             }
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {}", e))),
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get output info: {e}"))),
         };
 
         let crtc: GetCrtcInfoReply = match conn.randr_get_crtc_info(output_info.crtc, resources.config_timestamp) {
             Ok(r) => match r.reply() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
+                Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {e}"))),
             }
-            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {}", e))),
+            Err(e) => return Err(ModuleError::new("Display", format!("Failed to get crtc info: {e}"))),
         };
 
         // And finally
@@ -255,7 +255,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
     // DRM names should be repeated. If they can, I'll need to revisit this func.
     let dir: ReadDir = match read_dir("/sys/class/drm") {
         Ok(r) => r,
-        Err(e) => return Err(format!("Unable to open /sys/class/drm: {}", e)),
+        Err(e) => return Err(format!("Unable to open /sys/class/drm: {e}")),
     };
 
     let mut make: String = "Unknown".to_string();
@@ -276,9 +276,9 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
 
         // Found it
         // Get the EDID now
-        let edid_bytes: Vec<u8> = match fs::read(format!("/sys/class/drm/{}/edid", dir_name)) {
+        let edid_bytes: Vec<u8> = match fs::read(format!("/sys/class/drm/{dir_name}/edid")) {
             Ok(r) => r,
-            Err(e) => return Err(format!("Unable to open /sys/class/drm/{}/edid: {}", dir_name, e)),
+            Err(e) => return Err(format!("Unable to open /sys/class/drm/{dir_name}/edid: {e}")),
         };
         if edid_bytes.is_empty() {
             continue; // Can happen with VM's, ignore it
@@ -412,7 +412,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
                 ConnectError::NoCompositor => "Unable to find a Wayland compositor.",
                 ConnectError::InvalidFd => "Found a Wayland compositor, but the socket contained garbage."
             };
-            return Err(ModuleError::new("Display", format!("Failed to connect to Wayland compositor: {}", msg)));
+            return Err(ModuleError::new("Display", format!("Failed to connect to Wayland compositor: {msg}")));
         },
     };
     let display = conn.display();
@@ -431,7 +431,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
     while !data.complete {
         match event_queue.roundtrip(&mut data) {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Display", format!("Compositor roundtrip returned error: {}", e)))
+            Err(e) => return Err(ModuleError::new("Display", format!("Compositor roundtrip returned error: {e}")))
         };
         loops += 1;
         if loops > 1000 {

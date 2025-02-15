@@ -130,7 +130,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
 
     let dir: ReadDir = match fs::read_dir("/sys/bus/pci/devices") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from /sys/bus/pci/devices: {}", e))),
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from /sys/bus/pci/devices: {e}"))),
     };
     for dev_dir in dir {
         // This does the following;
@@ -140,7 +140,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
         // needs
         let d = match dev_dir {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {}", e))),
+            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {e}"))),
         };
         // println!("{}", d.path().to_str().unwrap());
 
@@ -153,7 +153,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                     continue
                 }
             },
-            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
         };
 
         if ignore_disabled {
@@ -163,7 +163,7 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                         continue;
                     }
                 },
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
             };
         }
 
@@ -172,17 +172,17 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
         if is_flag_set_u32(info_flags, GPU_INFOFLAG_MODEL) || is_flag_set_u32(info_flags, GPU_INFOFLAG_VENDOR) {
             let vendor_id: String = match util::file_read(&d.path().join("vendor")) {
                 Ok(r) => r[2..].trim().to_string(),
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
             };
             let device_id: String = match util::file_read(&d.path().join("device")) {
                 Ok(r) => r[2..].trim().to_string(),
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
             };
             if vendor_id == "1002" && amd_accuracy { // AMD
                 gpu.vendor = String::from("Advanced Micro Devices, Inc. [AMD/ATI]");
                 let revision_id: String = match util::file_read(&d.path().join("revision")) {
                     Ok(r) => r[2..].trim().to_string(),
-                    Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {}", e))),
+                    Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
                 };
                 if let Some(r) = search_amd_model(&device_id, &revision_id)? {
                     gpu.model = r;
@@ -217,7 +217,7 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
 
     let file: File = match File::open(ids_path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.display(), e))),
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {e}", ids_path.display()))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 
@@ -273,12 +273,12 @@ fn search_amd_model(device: &str, revision: &str) -> Result<Option<String>, Modu
 
     let file: File = match File::open(ids_path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {}", ids_path.display(), e))),
+        Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {} - {e}", ids_path.display()))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
 
     let mut device_result: String = String::new();
-    let dev_term: String = format!("{},\t{},\t", device, revision).to_lowercase().to_string();
+    let dev_term: String = format!("{device},\t{revision},\t").to_lowercase().to_string();
     for line in buffer.lines() { 
         if line.is_err() {
             continue;

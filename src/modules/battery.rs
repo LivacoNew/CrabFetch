@@ -85,7 +85,7 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
 
     let dir: ReadDir = match fs::read_dir("/sys/class/power_supply/") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from /sys/class/power_supply: {}", e))),
+        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from /sys/class/power_supply: {e}"))),
     };
     for d in dir {
         if d.is_err() {

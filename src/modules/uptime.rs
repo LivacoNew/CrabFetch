@@ -70,7 +70,7 @@ pub fn get_uptime(syscall_cache: &mut SyscallCache) -> Result<UptimeInfo, Module
     };
     uptime.uptime = match contents.split(' ').collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
-        Err(e) => return Err(ModuleError::new("Uptime", format!("Could not parse /proc/uptime: {}", e))),
+        Err(e) => return Err(ModuleError::new("Uptime", format!("Could not parse /proc/uptime: {e}"))),
     };
 
     Ok(uptime)

@@ -61,7 +61,7 @@ pub fn get_process_count() -> Result<ProcessesInfo, ModuleError> {
     // Scans /proc and simply checks if it's a number 
     let dir: ReadDir = match read_dir("/proc") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Processes", format!("Failed to read /proc: {}", e)))
+        Err(e) => return Err(ModuleError::new("Processes", format!("Failed to read /proc: {e}")))
     };
 
     for x in dir {

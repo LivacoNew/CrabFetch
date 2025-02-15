@@ -107,7 +107,7 @@ fn print_bench_time(benchmarking: bool, benchmark_warn: Option<u128>, name: &str
 
     // This is different to module bench times fyi
     let t: Duration = time.unwrap().elapsed();
-    let mut t_output: String = format!("{:2?}", t);
+    let mut t_output: String = format!("{t:2?}");
     if let Some(threshold) = benchmark_warn {
         if t.as_micros() > ((threshold as f64 * 1.5) as u128) {
             t_output = t_output.bright_red().to_string();
@@ -115,7 +115,7 @@ fn print_bench_time(benchmarking: bool, benchmark_warn: Option<u128>, name: &str
             t_output = t_output.bright_yellow().to_string();
         }
     }
-    println!("[Benchmark] {}: {}", name, t_output);
+    println!("[Benchmark] {name}: {t_output}");
 }
 
 // Macro for calling most module types
@@ -280,7 +280,7 @@ fn main() {
     let mut config: Configuration = match config_manager::parse(&args.config, &args.module_override) {
         Ok(r) => r,
         Err(e) => {
-            println!("{}", e);
+            println!("{e}");
             exit(-1);
         },
     };
@@ -363,7 +363,7 @@ fn main() {
                 let split: &Vec<char> = &config.segment_bottom[index+16..].chars().collect::<Vec<char>>();
                 let char: &char = split.first().unwrap();
 
-                let target = format!("{{name_sized_gap:{}}}", char);
+                let target = format!("{{name_sized_gap:{char}}}");
                 let segment_string: String = config.segment_bottom.replace(&target, &char.to_string().repeat(cur_segment_length + 2));
                 output.push((String::new(), formatter::replace_color_placeholders(&segment_string, &config)));
                 print_bench_time(args.benchmark, args.benchmark_warn, "Segment End", bench);
@@ -673,7 +673,7 @@ fn main() {
                 if config.unknown_as_text {
                     output.push((String::new(), formatter::replace_color_placeholders(module_name, &config)));
                 } else {
-                    output.push((String::new(), format!("Unknown module: {}", module_name)));
+                    output.push((String::new(), format!("Unknown module: {module_name}")));
                 }
 
                 print_bench_time(args.benchmark, args.benchmark_warn, "Unknown Module / Custom Text", bench);

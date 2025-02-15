@@ -161,13 +161,13 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
 
         terminal.name = match parent_process.get_process_name() {
             Ok(r) => r.to_string(),
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {e}"))),
         };
         if !KNOWN_TERMS.contains(&terminal.name.as_str()) {
             // go up a level
             parent_process = match parent_process.get_parent_process() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get parent process: {}", e))),
+                Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get parent process: {e}"))),
             };
 
             continue;
@@ -190,7 +190,7 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
     if is_flag_set_u32(info_flags, TERM_INFOFLAG_NAME) {
         terminal.name = match terminal_process.get_process_name() {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {}", e))),
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process name: {e}"))),
         };
 
         // Fix for gnome terminal coming out as gnome-terminal-server
@@ -210,7 +210,7 @@ pub fn get_terminal(config: &Configuration, package_managers: &ManagerInfo) -> R
     if is_flag_set_u32(info_flags, TERM_INFOFLAG_PATH) {
         terminal.path = match terminal_process.get_exe(true) {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {}", e))),
+            Err(e) => return Err(ModuleError::new("Terminal", format!("Can't get process exe: {e}"))),
         };
     }
 

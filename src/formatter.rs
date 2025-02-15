@@ -163,7 +163,7 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     result = round(result, dec_places);
 
     let dec_places: usize = dec_places as usize;
-    let mut res: String = format!("{:.dec_places$}", result).to_string();
+    let mut res: String = format!("{result:.dec_places$}").to_string();
     res.push_str(match steps {
         0 => if ibis {" KiB"} else {" KB"},
         1 => if ibis {" MiB"} else {" MB"},

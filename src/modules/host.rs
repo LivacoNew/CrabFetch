@@ -190,7 +190,7 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
                     "36" => "Stick PC".to_string(),
                     _ => "Unknown".to_string()
                 },
-                Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {}", e))),
+                Err(e) => return Err(ModuleError::new("Host", format!("Can't read from /sys/devices/virtual/dmi/id/chassis_type - {e}"))),
             };
         }
     }

@@ -155,7 +155,7 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
     let file: File = match File::open(path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {}", e))),
+        Err(e) => return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {e}"))),
     };
     let buffer: BufReader<File> = BufReader::new(file);
     let mut device_cache: Vec<String> = Vec::new();
@@ -232,7 +232,7 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
                 Some(r) => r.to_string(),
                 None => "N/A".to_string(),
             };
-            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {} (code {})", path, c)))
+            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {path} (code {c})")))
         }
 
         mount.space_total_kb = (buffer.f_blocks * buffer.f_bsize as u64) / 1000;

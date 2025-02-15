@@ -47,7 +47,7 @@ impl ProcessInfo {
             cmdline: None,
             stat: None,
 
-            path: Path::new(&format!("/proc/{}", pid)).to_owned()
+            path: Path::new(&format!("/proc/{pid}")).to_owned()
         }
     }
     pub fn new_from_parent() -> Self {
@@ -77,7 +77,7 @@ impl ProcessInfo {
 
                         Ok(self.exe.as_ref().unwrap().to_string())
                     },
-                    Err(e) => Err(format!("Unable to canonicalize /exe, is this process still valid? ({})", e))
+                    Err(e) => Err(format!("Unable to canonicalize /exe, is this process still valid? ({e})"))
                 }
             }
         }
@@ -91,7 +91,7 @@ impl ProcessInfo {
                         self.process_name = Some(r.split('/').last().unwrap().to_string());
                         Ok(self.process_name.as_ref().unwrap().to_string())
                     },
-                    Err(e) => Err(format!("Unable to get exe path: {}", e))
+                    Err(e) => Err(format!("Unable to get exe path: {e}"))
                 }
             }
         }
@@ -103,12 +103,12 @@ impl ProcessInfo {
             None => {
                 let mut file: File = match File::open(self.path.join("cmdline")) {
                     Ok(r) => r,
-                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({})", e))
+                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
                 };
                 let mut contents: String = String::new();
                 match file.read_to_string(&mut contents) {
                     Ok(_) => {},
-                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({})", e))
+                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
                 }
                 
                 self.cmdline = Some(contents.split('\0').map(|x| x.to_string()).collect());
@@ -123,12 +123,12 @@ impl ProcessInfo {
             None => {
                 let mut file: File = match File::open(self.path.join("stat")) {
                     Ok(r) => r,
-                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({})", e))
+                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
                 };
                 let mut contents: String = String::new();
                 match file.read_to_string(&mut contents) {
                     Ok(_) => {},
-                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({})", e))
+                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
                 }
                 
                 self.stat = Some(ProcessStatus::from_stat_file(contents));

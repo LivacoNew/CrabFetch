@@ -87,7 +87,7 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
             Ok(r) => r,
                 Err(_) => match env::var("DESKTOP_SESSION") {
                     Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP or $DESKTOP_SESSION env variable: {}", e)))
+                    Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP or $DESKTOP_SESSION env variable: {e}")))
             }
         };
     }

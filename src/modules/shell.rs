@@ -149,14 +149,14 @@ pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Resu
         {
             shell.name = match parent_process.get_process_name() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {}", e)))
+                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find process name: {e}")))
             };
         }
 
         if !KNOWN_SHELLS.contains(&shell.name.to_lowercase().as_str()) {
             parent_process = match parent_process.get_parent_process() {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Shell", format!("Unable to get parent process: {}", e)))
+                Err(e) => return Err(ModuleError::new("Shell", format!("Unable to get parent process: {e}")))
             };
             continue;
         }
@@ -171,7 +171,7 @@ pub fn get_shell(config: &Configuration, package_managers: &ManagerInfo) -> Resu
         if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
             shell.path = match parent_process.get_exe(true) {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {}", e)))
+                Err(e) => return Err(ModuleError::new("Shell", format!("Failed to find exe path: {e}")))
             };
         }
     }
@@ -192,11 +192,11 @@ fn get_default_shell(info_flags: u32, package_managers: &ManagerInfo) -> Result<
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_PATH) {
         shell.path = match env::var("SHELL") {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {}", e)))
+            Err(e) => return Err(ModuleError::new("Shell", format!("Could not parse $SHELL env variable: {e}")))
         };
         shell.path = match which::which(&shell.path) {
             Ok(r) => r.display().to_string(),
-            Err(e) => return Err(ModuleError::new("Shell", format!("Could not find 'which' for {}: {}", shell.path, e)))
+            Err(e) => return Err(ModuleError::new("Shell", format!("Could not find 'which' for {}: {e}", shell.path)))
         };
     }
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_NAME) {

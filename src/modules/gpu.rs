@@ -68,7 +68,7 @@ impl Module for GPUInfo {
 
         text.replace("{vendor}", &self.vendor)
             .replace("{model}", &self.model)
-            .replace("{vram}", &formatter::auto_format_bytes((self.vram_mb * 1000) as u64, use_ibis, 0))
+            .replace("{vram}", &formatter::auto_format_bytes(u64::from(self.vram_mb * 1000), use_ibis, 0))
             .replace("{index}", &self.index.unwrap_or(0).to_string())
     }
 

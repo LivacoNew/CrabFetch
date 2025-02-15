@@ -108,7 +108,7 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
             }
 
             // the spooky part, at least for me
-            if (*ifaddrs.ifa_addr).sa_family as i32 == libc::AF_INET {
+            if i32::from((*ifaddrs.ifa_addr).sa_family) == libc::AF_INET {
                 // ipv4
                 let addr: libc::sockaddr_in = *((ifaddrs.ifa_addr) as *mut libc::sockaddr_in);
                 let ipaddr: Ipv4Addr = Ipv4Addr::from((addr).sin_addr.s_addr.to_be());
@@ -118,7 +118,7 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
                     ip_addr: IpAddr::V4(ipaddr).to_string()
                 };
                 addrs.push(data);
-            } else if (*ifaddrs.ifa_addr).sa_family as i32 == libc::AF_INET6 {
+            } else if i32::from((*ifaddrs.ifa_addr).sa_family) == libc::AF_INET6 {
                 // ipv6
                 let addr: libc::sockaddr_in6 = *((ifaddrs.ifa_addr) as *mut libc::sockaddr_in6);
                 // https://man7.org/linux/man-pages/man7/ipv6.7.html

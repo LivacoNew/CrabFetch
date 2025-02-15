@@ -152,7 +152,7 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     }
 
     for _ in 0..3 {
-        let cur_step: f64 = result / divider as f64;
+        let cur_step: f64 = result / f64::from(divider);
         if cur_step <= 1.0 {
             break; // Use current 
         }
@@ -178,7 +178,7 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
 // Rust is a great language, but when I need to start re-implementing the most basic of functions
 // into your language, you know you've fucked up specing your language... badly.
 pub fn round(number: f64, places: u32) -> f64 {
-    let power: f64 = 10_u32.pow(places) as f64;
+    let power: f64 = f64::from(10_u32.pow(places));
     (number * power).round() / power
 }
 
@@ -191,7 +191,7 @@ pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progres
     bar.push_str(left_border);
     let bar_length: u8 = length - 2;
     for x in 0..(bar_length) {
-        if target_percentage as u8 > ((x as f32 / bar_length as f32) * 100.0) as u8 {
+        if target_percentage as u8 > ((f32::from(x) / f32::from(bar_length)) * 100.0) as u8 {
             bar.push_str(progress_char);
         } else {
             bar.push_str(empty_char);

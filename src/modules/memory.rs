@@ -75,7 +75,7 @@ impl Module for MemoryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
-        formatter::process_percentage_placeholder(text, formatter::round(self.percentage as f64, dec_places) as f32, config)
+        formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percentage), dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
             .replace("{bar}", &bar.to_string())

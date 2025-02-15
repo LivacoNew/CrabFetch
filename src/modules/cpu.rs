@@ -77,10 +77,10 @@ impl Module for CPUInfo {
         text.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
-            .replace("{current_clock_mhz}", &formatter::round(self.current_clock_mhz as f64, dec_places).to_string())
-            .replace("{current_clock_ghz}", &formatter::round((self.current_clock_mhz / 1000.0) as f64, dec_places).to_string())
-            .replace("{max_clock_mhz}", &formatter::round(self.max_clock_mhz as f64, dec_places).to_string())
-            .replace("{max_clock_ghz}", &formatter::round((self.max_clock_mhz / 1000.0) as f64, dec_places).to_string())
+            .replace("{current_clock_mhz}", &formatter::round(f64::from(self.current_clock_mhz), dec_places).to_string())
+            .replace("{current_clock_ghz}", &formatter::round(f64::from(self.current_clock_mhz / 1000.0), dec_places).to_string())
+            .replace("{max_clock_mhz}", &formatter::round(f64::from(self.max_clock_mhz), dec_places).to_string())
+            .replace("{max_clock_ghz}", &formatter::round(f64::from(self.max_clock_mhz / 1000.0), dec_places).to_string())
             .replace("{arch}", &self.arch.to_string())
     }
 
@@ -291,7 +291,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         cpu.arch = "AArch64".to_string();
     }
 
-    cpu.current_clock_mhz /= cpu_mhz_count as f32;
+    cpu.current_clock_mhz /= f32::from(cpu_mhz_count);
     Ok(())
 }
 fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {

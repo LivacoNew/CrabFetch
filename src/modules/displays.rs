@@ -232,7 +232,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             width: mode.width,
             height: mode.height,
             scale: 1,
-            refresh_rate: (mode.dot_clock / (mode.htotal as u32 * mode.vtotal as u32)) as u16,
+            refresh_rate: (mode.dot_clock / (u32::from(mode.htotal) * u32::from(mode.vtotal))) as u16,
             rotation: match crtc.rotation & 0b111 {
                 Rotation::ROTATE90 => 90,
                 Rotation::ROTATE180 => 180,
@@ -292,7 +292,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
         // Display model name itself is somewhere buried within a display descriptor, which I have
         // to go through and find
 
-        let manuid: u16 = ((edid_bytes[8] as u16) << 8) | (edid_bytes[9] as u16);
+        let manuid: u16 = (u16::from(edid_bytes[8]) << 8) | u16::from(edid_bytes[9]);
         // + 64 to convert em to uppercase ascii
         let char1: char = (((manuid & 0b011111_00000000) >> 10) as u8 + 64) as char;
         let char2: char = (((manuid & 0b00000011_11100000) >> 5) as u8 + 64) as char;
@@ -303,7 +303,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
         // Byte 48 is where this starts
         let mut starting_byte: usize = 54;
         for _ in 0..3 {
-            let is_display: u16 = ((edid_bytes[starting_byte] as u16) << 8) | edid_bytes[starting_byte + 1] as u16;
+            let is_display: u16 = (u16::from(edid_bytes[starting_byte]) << 8) | u16::from(edid_bytes[starting_byte + 1]);
             if is_display != 0 {
                 starting_byte += 18;
                 continue;
@@ -331,7 +331,7 @@ fn get_edid_makemodel(drm_name: &str) -> Result<(String, String), String> {
             // This appends the manufacturer on the front as this seems to be the common strategy
             // for these, tested by my laptop as well as well as this issue's laptop screen
             // https://github.com/LivacoNew/CrabFetch/issues/21
-            model = format!("{}{:X}", make, edid_bytes[10] as u16 | (edid_bytes[11] as u16) << 8);
+            model = format!("{}{:X}", make, u16::from(edid_bytes[10]) | u16::from(edid_bytes[11]) << 8);
         }
 
         break;

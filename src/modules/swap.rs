@@ -73,7 +73,7 @@ impl Module for SwapInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
-        formatter::process_percentage_placeholder(text, formatter::round(self.percent as f64, dec_places) as f32, config)
+        formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percent), dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
             .replace("{bar}", &bar)
@@ -90,8 +90,8 @@ pub fn get_swap(syscall_cache: &mut SyscallCache) -> Result<SwapInfo, ModuleErro
 
     let sysinfo: libc::sysinfo = syscall_cache.get_sysinfo_cached();
 
-    swap.total_kb = (sysinfo.totalswap * sysinfo.mem_unit as u64) / 1000;
-    swap.used_kb = swap.total_kb - ((sysinfo.freeswap * sysinfo.mem_unit as u64) / 1000);
+    swap.total_kb = (sysinfo.totalswap * u64::from(sysinfo.mem_unit)) / 1000;
+    swap.used_kb = swap.total_kb - ((sysinfo.freeswap * u64::from(sysinfo.mem_unit)) / 1000);
 
     if swap.total_kb != 0 {
         swap.percent = (swap.used_kb as f32 / swap.total_kb as f32) * 100.0;

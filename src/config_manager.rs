@@ -349,7 +349,7 @@ pub fn generate_config_file(location_override: Option<String>) {
     if location_override.is_some() {
         path = shellexpand::tilde(&location_override.unwrap()).to_string();
         // Config won't be happy unless it ends with .toml
-        assert!(Path::new(&path).extension().is_some_and(|x| x.eq_ignore_ascii_case(".toml")), "Config path must end with '.toml'");
+        assert!(Path::new(&path).extension().is_some_and(|x| x.eq_ignore_ascii_case("toml")), "Config path must end with '.toml'");
     } else {
         // Find the config path
         // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
@@ -368,7 +368,7 @@ pub fn generate_config_file(location_override: Option<String>) {
     }
     let config_path: &Path = Path::new(&path);
 
-    assert!(config_path.exists(), "Path already exists: {}", config_path.display());
+    assert!(!config_path.exists(), "Path already exists: {}", config_path.display());
     match fs::create_dir_all(config_path.parent().unwrap()) {
         Ok(_) => {},
         Err(e) => panic!("Unable to create directory: {e}"),

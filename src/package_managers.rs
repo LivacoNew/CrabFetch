@@ -60,25 +60,23 @@ impl ManagerInfo {
                 if !filetype.is_dir() {
                     continue
                 }
-            } else {
-                continue
-            }
 
-            let raw_name: &OsStr = &x.file_name();
-            let file_name: &str = match raw_name.to_str() {
-                Some(r) => r,
-                None => continue,
-            };
-            // {name, may include -}-{version}-{rev}
-            let package_split: Vec<&str> = file_name.split('-').collect();
-            let package_name: &str = &package_split[0..package_split.len() - 2].join("-");
-            // Strip -git suffix for AUR packages
-            let package_name: &str = match package_name.strip_suffix("-git") {
-                Some(r) => r,
-                None => package_name,
-            };
-            let package_version: &str = package_split[package_split.len() - 2];
-            self.add_package_to_cache(PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
+                let raw_name: &OsStr = &x.file_name();
+                let file_name: &str = match raw_name.to_str() {
+                    Some(r) => r,
+                    None => continue,
+                };
+                // {name, may include -}-{version}-{rev}
+                let package_split: Vec<&str> = file_name.split('-').collect();
+                let package_name: &str = &package_split[0..package_split.len() - 2].join("-");
+                // Strip -git suffix for AUR packages
+                let package_name: &str = match package_name.strip_suffix("-git") {
+                    Some(r) => r,
+                    None => package_name,
+                };
+                let package_version: &str = package_split[package_split.len() - 2];
+                self.add_package_to_cache(PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
+            }
         }
 
         self.available_managers += MANAGER_PACMAN;
@@ -121,7 +119,7 @@ impl ManagerInfo {
                     // https://developer.bigfix.com/relevance/reference/debian-package-version.html
                     let split: Vec<&str> = version.split(':').collect();
                     let version = match split.get(1) {
-                        Some(r) => r.to_string(),
+                        Some(r) => String::from(*r),
                         None => split[0].to_string()
                     };
                     let final_version: String = version.split('-').next().unwrap().to_string();
@@ -230,11 +228,10 @@ impl ManagerInfo {
             return;
         }
 
-        homebrew_dirs.into_iter().for_each(|homebrew_package_dir| {
-            homebrew_package_dir
-                .read_dir()
+        for homebrew_package_dir in homebrew_dirs {
+            homebrew_package_dir.read_dir()
                 .expect("Already checked")
-                .filter_map(|it| it.ok())
+                .filter_map(Result::ok)
                 .filter_map(|package_dir| {
                     if !package_dir.path().is_dir() {
                         return None;
@@ -244,7 +241,7 @@ impl ManagerInfo {
                     let versions = package_dir.path().read_dir().unwrap();
                     let mut versions: Vec<String> = versions
                         .into_iter()
-                        .filter_map(|it| it.ok())
+                        .filter_map(Result::ok)
                         .filter_map(|it| it.file_name().into_string().ok())
                         .collect();
                     versions.sort();
@@ -257,7 +254,7 @@ impl ManagerInfo {
                 }).for_each(|package| {
                     self.add_package_to_cache(package);
                 });
-            });
+        };
         
         self.available_managers += MANAGER_HOMEBREW;
     }

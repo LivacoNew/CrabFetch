@@ -58,10 +58,10 @@ impl Module for DesktopInfo {
         let mut info_flags: u32 = 0;
 
         if format.contains("{desktop}") {
-            info_flags |= DESKTOP_INFOFLAG_DESKTOP
+            info_flags |= DESKTOP_INFOFLAG_DESKTOP;
         }
         if format.contains("{display_type}") {
-            info_flags |= DESKTOP_INFOFLAG_DISPLAY_TYPE
+            info_flags |= DESKTOP_INFOFLAG_DISPLAY_TYPE;
         }
 
         info_flags

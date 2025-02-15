@@ -8,6 +8,7 @@ use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUCo
 use crate::player::PlayerConfiguration;
 
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Deserialize)]
 pub struct Configuration {
     pub modules: Vec<String>,
@@ -86,6 +87,7 @@ impl Debug for ConfigurationError {
     }
 }
 
+#[allow(clippy::ref_option)]
 pub fn parse(location_override: &Option<String>, module_override: &Option<String>) -> Result<Configuration, ConfigurationError> {
     let mut builder: ConfigBuilder<DefaultState> = Config::builder();
     let mut config_path_str: Option<String> = None;
@@ -347,35 +349,26 @@ pub fn generate_config_file(location_override: Option<String>) {
     if location_override.is_some() {
         path = shellexpand::tilde(&location_override.unwrap()).to_string();
         // Config won't be happy unless it ends with .toml
-        if !path.ends_with(".toml") {
-            // Simply crash, to avoid confusing the user as to why the default config is being used
-            // instead of their custom one.
-            panic!("Config path must end with '.toml'");
-        }
+        assert!(Path::new(&path).extension().is_some_and(|x| x.eq_ignore_ascii_case(".toml")), "Config path must end with '.toml'");
     } else {
         // Find the config path
         // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-        path = match env::var("XDG_CONFIG_HOME") {
-            Ok(mut r) => {
-                r.push_str("/CrabFetch/config.toml");
-                r
-            }
-            Err(_) => {
-                // Let's try the home directory
-                let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => r,
-                    Err(e) => panic!("Unable to find suitable config folder; {e}")
-                };
-                home_dir.push_str("/.config/CrabFetch/config.toml");
-                home_dir
-            }
-        };
+        path = if let Ok(mut r) = env::var("XDG_CONFIG_HOME") {
+            r.push_str("/CrabFetch/config.toml");
+            r
+        } else {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => r,
+                Err(e) => panic!("Unable to find suitable config folder; {e}")
+            };
+            home_dir.push_str("/.config/CrabFetch/config.toml");
+            home_dir
+        }
     }
     let config_path: &Path = Path::new(&path);
 
-    if config_path.exists() {
-        panic!("Path already exists: {}", config_path.display());
-    }
+    assert!(config_path.exists(), "Path already exists: {}", config_path.display());
     match fs::create_dir_all(config_path.parent().unwrap()) {
         Ok(_) => {},
         Err(e) => panic!("Unable to create directory: {e}"),

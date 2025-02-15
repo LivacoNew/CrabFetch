@@ -73,6 +73,7 @@ impl Module for SwapInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
+        #[allow(clippy::cast_possible_truncation)]
         formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percent), dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
@@ -84,6 +85,7 @@ impl Module for SwapInfo {
     }
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::cast_precision_loss)]
 pub fn get_swap(syscall_cache: &mut SyscallCache) -> Result<SwapInfo, ModuleError> {
     let mut swap: SwapInfo = SwapInfo::new();
     // no info flags here as it's all dependent on eachother

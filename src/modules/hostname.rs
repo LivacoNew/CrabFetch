@@ -73,6 +73,7 @@ impl Module for HostnameInfo {
 const HOSTNAME_INFOFLAG_HOSTNAME: u32 = 1;
 const HOSTNAME_INFOFLAG_USERNAME: u32 = 2;
 
+#[allow(clippy::unnecessary_wraps)]
 pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
     let info_flags: u32 = HostnameInfo::gen_info_flags(&config.hostname.format);

@@ -89,6 +89,7 @@ impl Module for MountInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
         }
 
+        #[allow(clippy::cast_possible_truncation)]
         formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percent), dec_places) as f32, config)
             .replace("{device}", &self.device)
             .replace("{mount}", &self.mount)
@@ -169,8 +170,8 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         }
 
         let entries: Vec<&str> = line.split([' ', '\t'])
-            .filter(|x| x.trim() != "")
-            .map(|x| x.trim())
+            .map(str::trim)
+            .filter(|x| x.is_empty())
             .collect();
     
         let mut mount: MountInfo = MountInfo::new();
@@ -221,12 +222,13 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 // Credit to sysinfo crate for letting me see how to impl this in Rust (and no it's not just copy
 // pasted i swear)
 // https://github.com/GuillaumeGomez/sysinfo/blob/master/src/unix/linux/disk.rs#L96
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation, clippy::cast_precision_loss)]
 fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
     let mut bytes: Vec<u8> = path.as_bytes().to_vec();
     bytes.push(0);
     unsafe { // spooky
         let mut buffer: statfs = mem::zeroed();
-        let x: i32 = statfs(bytes.as_ptr() as *const _, &mut buffer);
+        let x: i32 = statfs(bytes.as_ptr().cast(), &mut buffer);
         if x != 0 {
             let c: String = match Error::last_os_error().raw_os_error() {
                 Some(r) => r.to_string(),
@@ -251,30 +253,21 @@ fn get_device_name(device_name: &str) -> Option<String> {
         if !uuid_path.is_symlink() {
             return None; // ???
         }
-        let device = match fs::canonicalize(uuid_path) {
-            Ok(r) => r,
-            Err(_) => return None, // ??
-        };
+        let Ok(device) = fs::canonicalize(uuid_path) else { return None };
         dev = device.to_str().unwrap().to_string();
     } else if let Some(label) = device_name.strip_prefix("LABEL=") {
         let label_path: PathBuf = Path::new("/dev/disk/by-label/").join(label);
         if !label_path.is_symlink() {
             return None; // ???
         }
-        let device = match fs::canonicalize(label_path) {
-            Ok(r) => r,
-            Err(_) => return None, // ??
-        };
+        let Ok(device) = fs::canonicalize(label_path) else { return None };
         dev = device.to_str().unwrap().to_string();
     } else if let Some(partlabel) = device_name.strip_prefix("PARTLABEL=") {
         let label_path: PathBuf = Path::new("/dev/disk/by-partlabel/").join(partlabel);
         if !label_path.is_symlink() {
             return None; // ???
         }
-        let device = match fs::canonicalize(label_path) {
-            Ok(r) => r,
-            Err(_) => return None, // ??
-        };
+        let Ok(device) = fs::canonicalize(label_path) else { return None };
         dev = device.to_str().unwrap().to_string();
     } else {
         // regular old devices

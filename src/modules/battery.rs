@@ -69,6 +69,7 @@ impl Module for BatteryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
+        #[allow(clippy::cast_possible_truncation)]
         formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percentage), dec_places) as f32, config)
             .replace("{index}", &self.index)
             .replace("{percentage}", &self.percentage.to_string())
@@ -116,7 +117,7 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
         batteries.push(BatteryInfo {
             index: id,
             percentage
-        })
+        });
     }
 
 

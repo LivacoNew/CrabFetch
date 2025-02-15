@@ -153,7 +153,6 @@ pub fn get_host(config: &Configuration) -> Result<HostInfo, ModuleError> {
                 // decimal
                 Ok(r) => match r.trim() {
                     "1" => "Other".to_string(),
-                    "2" => "Unknown".to_string(),
                     "3" => "Desktop".to_string(),
                     "4" => "Low Profile Desktop".to_string(),
                     "5" => "Pizza Box".to_string(),

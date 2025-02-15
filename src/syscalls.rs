@@ -52,11 +52,9 @@ impl SyscallCache {
         unsafe { 
             let user_id: u32 = self.get_euid_cached();
             let buffer_ptr: *mut libc::passwd = getpwuid(user_id);
-            if buffer_ptr.is_null() {
-                // Null pointer, this is a crash as we have no error handling for the time being
-                // TODO: Handle this properly
-                panic!("passwd buffer pointer is null (No error handling for this is implemented yet)");
-            }
+            // Null pointer, this is a crash as we have no error handling for the time being
+            // TODO: Handle this properly
+            assert!(buffer_ptr.is_null(), "passwd buffer pointer is null (No error handling for this is implemented yet)");
             passwd_buffer = *buffer_ptr;
         }
         self.passwd = Some(passwd_buffer);
@@ -74,7 +72,7 @@ impl SyscallCache {
             self.cache_uname();
         }
 
-        Utsname::from_libc(self.uname.unwrap())
+        Utsname::from_libc(&self.uname.unwrap())
     }
     pub fn get_euid_cached(&mut self) -> u32 {
         if self.euid.is_none() {
@@ -105,7 +103,7 @@ pub struct Utsname {
     pub machine: String
 }
 impl Utsname {
-    pub fn from_libc(utsname: libc::utsname) -> Self {
+    pub fn from_libc(utsname: &libc::utsname) -> Self {
         Self {
             sysname: util::cstr_from_ptr(utsname.sysname.as_ptr()).expect("Unable to convert CStr to Rust String"),
             nodename: util::cstr_from_ptr(utsname.nodename.as_ptr()).expect("Unable to convert CStr to Rust String"),

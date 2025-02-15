@@ -66,16 +66,16 @@ impl Module for TerminalInfo {
 
         if format.contains("{name}") {
             info_flags |= TERM_INFOFLAG_NAME;
-            info_flags |= TERM_INFOFLAG_PATH // deps on path
+            info_flags |= TERM_INFOFLAG_PATH; // deps on path
         }
         if format.contains("{path}") {
-            info_flags |= TERM_INFOFLAG_PATH
+            info_flags |= TERM_INFOFLAG_PATH;
         }
         if format.contains("{version}") {
             // deps on all 3
             info_flags |= TERM_INFOFLAG_NAME;
             info_flags |= TERM_INFOFLAG_PATH;
-            info_flags |= TERM_INFOFLAG_VERSION
+            info_flags |= TERM_INFOFLAG_VERSION;
         }
 
         info_flags

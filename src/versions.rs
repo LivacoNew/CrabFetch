@@ -62,9 +62,7 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
         Ok(r) => r,
         Err(_) => return None // Would rather play it safe
     };
-    if parent_name == name && !KNOWN_SHELLS.contains(&parent_name.as_str()) {
-        panic!("DANGER: Parent process re-invoked for version checking, without it being a known shell. This has the possibility to create a mini-fork bomb! Called {parent_name} vs {name} \nStopping before I break something...");
-    }
+    assert!(parent_name == name && !KNOWN_SHELLS.contains(&parent_name.as_str()), "DANGER: Parent process re-invoked for version checking, without it being a known shell. This has the possibility to create a mini-fork bomb! Called {parent_name} vs {name} \nStopping before I break something...");
 
     let mut command: Command = Command::new(path);
     if name == "xterm" || name == "elvish" {
@@ -85,18 +83,13 @@ fn parse_command(path: &str, name: &str) -> Option<String> {
     // Fixes for different outputs
     // Warning: Messy 1-liners
     match name {
-        // Terminals
-        "xterm" => Some(raw.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
-        "foot" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
-        // Shells
         "bash" => Some(raw.split(' ').collect::<Vec<&str>>()[3].split('(').next().unwrap().trim().to_string()),
-        "fish" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
         "elvish" => Some(raw.split('+').collect::<Vec<&str>>()[0].trim().to_string()),
-        // Editors
-        "vim" => Some(raw.split(' ').collect::<Vec<&str>>()[4].to_string()),
+        "foot" | "fish" => Some(raw.split(' ').collect::<Vec<&str>>()[2].trim().to_string()),
         "nvim" => Some(raw.split(' ').collect::<Vec<&str>>()[1].split('\n').next().unwrap()[1..].to_string()),
-        // Init Systems
         "systemd" => Some(raw.split(' ').collect::<Vec<&str>>()[2].split('\n').next().unwrap().trim_matches(['(', ')']).to_string()),
+        "vim" => Some(raw.split(' ').collect::<Vec<&str>>()[4].to_string()),
+        "xterm" => Some(raw.split('(').collect::<Vec<&str>>()[1].split(')').next().unwrap().to_string()),
 
         _ => {
             let raw_split: Vec<&str> = raw.split(' ').collect();

@@ -27,7 +27,7 @@ pub trait Module {
             }
 
             title_final.push_str(&title.to_string());
-            value_final.push_str(separator)
+            value_final.push_str(separator);
         }
 
         value_final.push_str(value);

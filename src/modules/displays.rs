@@ -26,8 +26,8 @@ impl DisplayInfo {
         }
     }
     fn scale_resolution(&mut self) {
-        self.width /= self.scale as u16;
-        self.height /= self.scale as u16;
+        self.width /= u16::try_from(self.scale).expect("Cannot convert scale to u16");
+        self.height /= u16::try_from(self.scale).expect("Cannot convert scale to u16");
     }
 }
 
@@ -96,24 +96,24 @@ impl Module for DisplayInfo {
         let mut info_flags: u32 = 0;
 
         if format.contains("{name}") {
-            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME;
         }
         if format.contains("{make}") {
             info_flags |= DISPLAYS_INFOFLAG_MAKE;
-            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME // DRM name is required for EDID
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME; // DRM name is required for EDID
         }
         if format.contains("{model}") {
             info_flags |= DISPLAYS_INFOFLAG_MODEL;
-            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME // DRM name is required for EDID
+            info_flags |= DISPLAYS_INFOFLAG_DRM_NAME; // DRM name is required for EDID
         }
         if format.contains("{width}") {
-            info_flags |= DISPLAYS_INFOFLAG_WIDTH
+            info_flags |= DISPLAYS_INFOFLAG_WIDTH;
         }
         if format.contains("{height}") {
-            info_flags |= DISPLAYS_INFOFLAG_HEIGHT
+            info_flags |= DISPLAYS_INFOFLAG_HEIGHT;
         }
         if format.contains("{refresh_rate}") {
-            info_flags |= DISPLAYS_INFOFLAG_REFRESH_RATE
+            info_flags |= DISPLAYS_INFOFLAG_REFRESH_RATE;
         }
 
         info_flags
@@ -232,7 +232,7 @@ fn fetch_xorg(info_flags: u32) -> Result<Vec<DisplayInfo>, ModuleError> {
             width: mode.width,
             height: mode.height,
             scale: 1,
-            refresh_rate: (mode.dot_clock / (u32::from(mode.htotal) * u32::from(mode.vtotal))) as u16,
+            refresh_rate: u16::try_from(mode.dot_clock / (u32::from(mode.htotal) * u32::from(mode.vtotal))).unwrap_or(0),
             rotation: match crtc.rotation & 0b111 {
                 Rotation::ROTATE90 => 90,
                 Rotation::ROTATE180 => 180,
@@ -384,6 +384,7 @@ impl Dispatch<wl_output::WlOutput, ()> for WaylandState {
                 WEnum::Unknown(_) => 0
             };
         }
+        #[allow(clippy::cast_precision_loss)]
         if let wl_output::Event::Mode { width, height, refresh, .. } = &event {
             display.width = width.to_string().parse::<u16>().unwrap_or(0);
             display.height = height.to_string().parse::<u16>().unwrap_or(0);
@@ -443,7 +444,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
         .map(|x| x.1.clone())
         .collect();
 
-    displays.iter_mut().for_each(|x| {
+    for x in &mut displays {
         x.calc_rotation();
         if config.displays.scale_size {
             x.scale_resolution();
@@ -457,7 +458,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
             } else {
                 (x.make, x.model) = match get_edid_makemodel(&x.name) {
                     Ok(r) => r,
-                    Err(_) => return, // We're in a closure, can't return an error
+                    Err(e) => return Err(ModuleError::new("Display", format!("Cannot parse EDID: {e}")))
                 };
             }
         }
@@ -465,7 +466,7 @@ fn fetch_wayland(config: &Configuration, info_flags: u32) -> Result<Vec<DisplayI
             // WSL also doesn't have any DRM name
             x.name = "N/A".to_string();
         }
-    });
+    }
 
     displays.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     Ok(displays)

@@ -75,6 +75,7 @@ impl Module for MemoryInfo {
             formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
         }
 
+        #[allow(clippy::cast_possible_truncation)]
         formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percentage), dec_places) as f32, config)
             .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
             .replace("{max}", &formatter::auto_format_bytes(self.max_kb, use_ibis, dec_places))
@@ -86,6 +87,9 @@ impl Module for MemoryInfo {
     }
 }
 
+// Clippy had a lot of issues with this function, while it's kinda not possible to improve it
+// without just being a pain in the ass to work with
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation, clippy::cast_precision_loss)]
 pub fn get_memory() -> Result<MemoryInfo, ModuleError> {
     // no info flags here as while it would've had a slight benefit, all the info requires eachother anyway so
     // it's hardly worth it

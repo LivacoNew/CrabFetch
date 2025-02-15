@@ -86,13 +86,11 @@ pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String {
         return str.to_string();
     }
     for s in split {
-        let len: usize = match s.find('}') {
-            Some(r) => r,
-            None => {
-                new_string.push_str(s);
-                continue;
-            },
+        let Some(len) = s.find('}') else {
+            new_string.push_str(s);
+            continue;
         };
+
         let color_str: String = s[..len].to_string();
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
@@ -124,7 +122,8 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
         let split: Vec<&str> = x.split(':').collect();
         
         if let Ok(threshold) = split[0].parse::<u8>() {
-            if (threshold as i8 - percentage as i8) < 0 {
+            #[allow(clippy::cast_possible_truncation)]
+            if (i16::from(threshold) - percentage as i16) < 0 {
                 cur_color = CrabFetchColor::from_str(split[1]).unwrap_or(CrabFetchColor::Clear);
                 color_assigned = true;
             }
@@ -143,6 +142,7 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
     text.replace("{percent}", &percent_str).to_string()
 }
 
+#[allow(clippy::cast_precision_loss)]
 pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String {
     let mut result: f64 = kilobytes as f64;
     let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera 
@@ -185,13 +185,13 @@ pub fn round(number: f64, places: u32) -> f64 {
 // Bar processing 
 // Modifies the bar string in place
 pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progress_char: &str, empty_char: &str, target_percentage: f32, length: u8) {
-    if length < (left_border.chars().count() as u8 + right_border.chars().count() as u8) {
+    if (length as usize) < (left_border.chars().count() + right_border.chars().count()) {
         return; // Will crash otherwise, user's own fault
     }
     bar.push_str(left_border);
     let bar_length: u8 = length - 2;
     for x in 0..(bar_length) {
-        if target_percentage as u8 > ((f32::from(x) / f32::from(bar_length)) * 100.0) as u8 {
+        if target_percentage > (f32::from(x) / f32::from(bar_length)) * 100.0 {
             bar.push_str(progress_char);
         } else {
             bar.push_str(empty_char);

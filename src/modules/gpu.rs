@@ -85,7 +85,7 @@ impl Module for GPUInfo {
             info_flags |= GPU_INFOFLAG_VENDOR;
         }
         if format.contains("{vram}") {
-            info_flags |= GPU_INFOFLAG_VRAM
+            info_flags |= GPU_INFOFLAG_VRAM;
         }
 
         info_flags
@@ -189,14 +189,17 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
                 }
             }
             if gpu.model == "Unknown" {
-                (gpu.vendor, gpu.model) = search_pci_ids(&vendor_id, &device_id)?
+                (gpu.vendor, gpu.model) = search_pci_ids(&vendor_id, &device_id)?;
             }
         }
 
         // Finally, Vram
         if is_flag_set_u32(info_flags, GPU_INFOFLAG_VRAM) {
             if let Ok(r) = util::file_read(&d.path().join("mem_info_vram_total")) {
-                gpu.vram_mb = (r.trim().parse::<u64>().unwrap() / 1024 / 1024) as u32;
+                gpu.vram_mb = match u32::try_from(r.trim().parse::<u64>().unwrap() / 1024 / 1024) {
+                    Ok(r) => r,
+                    Err(e) => return Err(ModuleError::new("GPU", format!("Failed to convert vram to u32: {e}"))),
+                }
             }
         }
 

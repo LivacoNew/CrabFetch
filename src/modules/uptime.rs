@@ -56,17 +56,15 @@ impl Module for UptimeInfo {
     }
 }
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn get_uptime(syscall_cache: &mut SyscallCache) -> Result<UptimeInfo, ModuleError> {
     let mut uptime: UptimeInfo = UptimeInfo::new();
 
     // Grabs from /proc/uptime
-    let contents = match util::file_read(Path::new("/proc/uptime")) {
-        Ok(r) => r,
-        Err(_) => {
-            // Backup to the sysinfo call
-            use_syscall(syscall_cache, &mut uptime);
-            return Ok(uptime);
-        },
+    let Ok(contents) = util::file_read(Path::new("/proc/uptime")) else {
+        // Backup to the sysinfo call
+        use_syscall(syscall_cache, &mut uptime);
+        return Ok(uptime);
     };
     uptime.uptime = match contents.split(' ').collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
@@ -76,6 +74,7 @@ pub fn get_uptime(syscall_cache: &mut SyscallCache) -> Result<UptimeInfo, Module
     Ok(uptime)
 }
 
+#[allow(clippy::cast_sign_loss)]
 fn use_syscall(syscall_cache: &mut SyscallCache, uptime: &mut UptimeInfo) {
     let sysinfo_unwrap: libc::sysinfo = syscall_cache.get_sysinfo_cached();
     uptime.uptime = Duration::new(sysinfo_unwrap.uptime as u64, 0);

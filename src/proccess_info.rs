@@ -11,7 +11,7 @@ pub struct ProcessStatus {
     pub ppid: u32
 }
 impl ProcessStatus {
-    pub fn from_stat_file(contents: String) -> Self {
+    pub fn from_stat_file(contents: &str) -> Self {
         let split_space: Vec<&str> = contents.split(' ').collect();
         
         let lower_comm: usize = contents.find('(').unwrap();
@@ -98,42 +98,42 @@ impl ProcessInfo {
     }
 
     pub fn get_cmdline(&mut self) -> Result<Vec<String>, String> {
-        match &self.cmdline {
-            Some(r) => Ok(r.to_vec()),
-            None => {
-                let mut file: File = match File::open(self.path.join("cmdline")) {
-                    Ok(r) => r,
-                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
-                };
-                let mut contents: String = String::new();
-                match file.read_to_string(&mut contents) {
-                    Ok(_) => {},
-                    Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
-                }
-                
-                self.cmdline = Some(contents.split('\0').map(|x| x.to_string()).collect());
-                Ok(self.cmdline.as_ref().unwrap().to_vec())
+        if let Some(r) = &self.cmdline {
+            Ok(r.clone())
+        } else {
+            let mut file: File = match File::open(self.path.join("cmdline")) {
+                Ok(r) => r,
+                Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
+            };
+            let mut contents: String = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {},
+                Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
             }
+
+            self.cmdline = Some(contents.split('\0')
+                .map(str::to_string)
+                .collect());
+            Ok(self.cmdline.as_ref().unwrap().clone())
         }
     }
 
     pub fn get_stat(&mut self) -> Result<ProcessStatus, String> {
-        match &self.stat {
-            Some(r) => Ok(r.clone()),
-            None => {
-                let mut file: File = match File::open(self.path.join("stat")) {
-                    Ok(r) => r,
-                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
-                };
-                let mut contents: String = String::new();
-                match file.read_to_string(&mut contents) {
-                    Ok(_) => {},
-                    Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
-                }
-                
-                self.stat = Some(ProcessStatus::from_stat_file(contents));
-                Ok(self.stat.as_ref().unwrap().clone())
+        if let Some(r) = &self.stat {
+            Ok(r.clone())
+        } else {
+            let mut file: File = match File::open(self.path.join("stat")) {
+                Ok(r) => r,
+                Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
+            };
+            let mut contents: String = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {},
+                Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
             }
+
+            self.stat = Some(ProcessStatus::from_stat_file(&contents));
+            Ok(self.stat.as_ref().unwrap().clone())
         }
     }
 

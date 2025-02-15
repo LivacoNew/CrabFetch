@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines, clippy::unreadable_literal, clippy::similar_names, clippy::ignored_unit_patterns)]
+
 use std::process::{Command, Output};
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
@@ -50,6 +52,7 @@ mod ascii_art;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
+#[allow(clippy::struct_excessive_bools, clippy::doc_markdown)]
 pub struct Args {
     #[arg(short, long)]
     /// Sets a custom config file. 
@@ -108,6 +111,7 @@ fn print_bench_time(benchmarking: bool, benchmark_warn: Option<u128>, name: &str
     // This is different to module bench times fyi
     let t: Duration = time.unwrap().elapsed();
     let mut t_output: String = format!("{t:2?}");
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
     if let Some(threshold) = benchmark_warn {
         if t.as_micros() > ((threshold as f64 * 1.5) as u128) {
             t_output = t_output.bright_red().to_string();
@@ -287,7 +291,7 @@ fn main() {
     print_bench_time(args.benchmark, args.benchmark_warn, "Parsing Config", bench);
 
     // if config isn't supprsesing errors, make it go down to args
-    let log_errors: bool = { if !config.suppress_errors { !args.suppress_errors } else { !config.suppress_errors } };
+    let log_errors: bool = if config.suppress_errors { !config.suppress_errors } else { !args.suppress_errors } ;
     // Inline values
     let inline_values: bool = config.inline_values || args.inline_values;
 
@@ -424,7 +428,7 @@ fn main() {
                             if mount.is_ignored(&config) {
                                 continue;
                             }
-                            output.push(mount.style(&config))
+                            output.push(mount.style(&config));
                         }
                     },
                     Err(e) => {
@@ -657,11 +661,11 @@ fn main() {
                         .output()
                         .expect("Failed to execute command.");
 
-                    if !command.status.success() {
-                        output.push((String::new(), format!("Command failed: {}", String::from_utf8(command.stderr).unwrap_or("Unknown command.".to_string()))));
-                    } else {
+                    if command.status.success() {
                         let result = String::from_utf8(command.stdout).unwrap_or("Command failed: Unable to parse output.".to_string());
                         output.push((String::new(), result));
+                    } else {
+                        output.push((String::new(), format!("Command failed: {}", String::from_utf8(command.stderr).unwrap_or("Unknown command.".to_string()))));
                     }
                 }
 
@@ -736,7 +740,7 @@ fn main() {
     if config.ascii.display && config.ascii.side == "top" {
         #[allow(clippy::mut_range_bound)]
         for _ in current_line..ascii_length {
-            println!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+            println!("{}", get_ascii_line(current_line, &ascii_split, ascii_target_length, &config));
             current_line += 1;
         }
         // Margin
@@ -747,7 +751,7 @@ fn main() {
     for out in output {
         // left ascii
         if config.ascii.display && config.ascii.side == "left" {
-            print!("{}", get_ascii_line(current_line, &ascii_split, &ascii_target_length, &config));
+            print!("{}", get_ascii_line(current_line, &ascii_split, ascii_target_length, &config));
         }
 
         let title_len: usize = strip_ansi_escapes::strip_str(&out.0).chars().count();
@@ -763,7 +767,7 @@ fn main() {
             // This manually adds the margin to the right, as get_ascii_line only does the left
             let line_length_remainder: usize = max_total_len - (title_len + title_len_inline + strip_ansi_escapes::strip_str(&out.1).chars().count());
             print!("{}", " ".repeat(line_length_remainder + config.ascii.margin as usize));
-            print!("{}", get_ascii_line(current_line, &ascii_split, &(ascii_target_length - config.ascii.margin), &config));
+            print!("{}", get_ascii_line(current_line, &ascii_split, ascii_target_length - config.ascii.margin, &config));
         }
 
         current_line += 1;
@@ -775,7 +779,7 @@ fn main() {
         print!("{}", "\n".repeat(config.ascii.margin as usize));
 
         for x in 0..ascii_length {
-            println!("{}", get_ascii_line(x, &ascii_split, &ascii_target_length, &config));
+            println!("{}", get_ascii_line(x, &ascii_split, ascii_target_length, &config));
         }
     }
 
@@ -786,7 +790,7 @@ fn main() {
             if config.ascii.side == "right" {
                 print!("{}", " ".repeat(max_total_len + config.ascii.margin as usize));
             }
-            print!("{}", get_ascii_line(ascii_line, &ascii_split, &ascii_target_length, &config));
+            print!("{}", get_ascii_line(ascii_line, &ascii_split, ascii_target_length, &config));
             ascii_line += 1;
             println!();
         }

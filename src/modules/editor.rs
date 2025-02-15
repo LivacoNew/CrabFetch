@@ -64,16 +64,16 @@ impl Module for EditorInfo {
 
         if format.contains("{name}") {
             info_flags |= EDITOR_INFOFLAG_NAME;
-            info_flags |= EDITOR_INFOFLAG_PATH // deps on path
+            info_flags |= EDITOR_INFOFLAG_PATH; // deps on path
         }
         if format.contains("{path}") {
-            info_flags |= EDITOR_INFOFLAG_PATH
+            info_flags |= EDITOR_INFOFLAG_PATH;
         }
         if format.contains("{version}") {
             // deps on all 3
             info_flags |= EDITOR_INFOFLAG_NAME;
             info_flags |= EDITOR_INFOFLAG_PATH;
-            info_flags |= EDITOR_INFOFLAG_VERSION
+            info_flags |= EDITOR_INFOFLAG_VERSION;
         }
 
         info_flags

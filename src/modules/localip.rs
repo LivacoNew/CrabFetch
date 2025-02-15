@@ -59,6 +59,7 @@ impl Module for LocalIPInfo {
     }
 }
 
+#[allow(clippy::cast_ptr_alignment)] // i'm really shitty with dealing with pointers, but afaik its fine 
 pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
     // no info flags here as it's all from the same source
     let mut addrs: Vec<LocalIPInfo> = Vec::new();
@@ -110,8 +111,8 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
             // the spooky part, at least for me
             if i32::from((*ifaddrs.ifa_addr).sa_family) == libc::AF_INET {
                 // ipv4
-                let addr: libc::sockaddr_in = *((ifaddrs.ifa_addr) as *mut libc::sockaddr_in);
-                let ipaddr: Ipv4Addr = Ipv4Addr::from((addr).sin_addr.s_addr.to_be());
+                let addr: *mut libc::sockaddr_in = (ifaddrs.ifa_addr).cast::<libc::sockaddr_in>();
+                let ipaddr: Ipv4Addr = Ipv4Addr::from((*addr).sin_addr.s_addr.to_be());
 
                 let data: LocalIPInfo = LocalIPInfo {
                     interface: interface_name,
@@ -120,13 +121,13 @@ pub fn get_local_ips() -> Result<Vec<LocalIPInfo>, ModuleError> {
                 addrs.push(data);
             } else if i32::from((*ifaddrs.ifa_addr).sa_family) == libc::AF_INET6 {
                 // ipv6
-                let addr: libc::sockaddr_in6 = *((ifaddrs.ifa_addr) as *mut libc::sockaddr_in6);
+                let addr: *mut libc::sockaddr_in6 = (ifaddrs.ifa_addr).cast::<libc::sockaddr_in6>();
                 // https://man7.org/linux/man-pages/man7/ipv6.7.html
                 // "Linux supports it only for link-local addresses"
                 // I'm guessing that means if it's not 0, it's not a global IP, and thus not a
                 // "real" ip and should be discarded? Not too sure tbh
-                if addr.sin6_scope_id == 0 {
-                    let ipaddr: Ipv6Addr = Ipv6Addr::from(addr.sin6_addr.s6_addr);
+                if (*addr).sin6_scope_id == 0 {
+                    let ipaddr: Ipv6Addr = Ipv6Addr::from((*addr).sin6_addr.s6_addr);
 
                     let mut interface_name: String = interface_name.clone();
                     interface_name.push_str(" (v6)");

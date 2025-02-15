@@ -64,16 +64,16 @@ impl Module for InitSystemInfo {
 
         if format.contains("{name}") {
             info_flags |= INITSYS_INFOFLAG_NAME;
-            info_flags |= INITSYS_INFOFLAG_PATH // deps on path
+            info_flags |= INITSYS_INFOFLAG_PATH; // deps on path
         }
         if format.contains("{path}") {
-            info_flags |= INITSYS_INFOFLAG_PATH
+            info_flags |= INITSYS_INFOFLAG_PATH;
         }
         if format.contains("{version}") {
             // deps on all 3
             info_flags |= INITSYS_INFOFLAG_NAME;
             info_flags |= INITSYS_INFOFLAG_PATH;
-            info_flags |= INITSYS_INFOFLAG_VERSION
+            info_flags |= INITSYS_INFOFLAG_VERSION;
         }
 
         info_flags

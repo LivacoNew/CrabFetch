@@ -65,16 +65,16 @@ impl Module for ShellInfo {
 
         if format.contains("{name}") {
             info_flags |= SHELL_INFOFLAG_NAME;
-            info_flags |= SHELL_INFOFLAG_PATH // deps on path
+            info_flags |= SHELL_INFOFLAG_PATH; // deps on path
         }
         if format.contains("{path}") {
-            info_flags |= SHELL_INFOFLAG_PATH
+            info_flags |= SHELL_INFOFLAG_PATH;
         }
         if format.contains("{version}") {
             // deps on all 3
             info_flags |= SHELL_INFOFLAG_NAME;
             info_flags |= SHELL_INFOFLAG_PATH;
-            info_flags |= SHELL_INFOFLAG_VERSION
+            info_flags |= SHELL_INFOFLAG_VERSION;
         }
 
         info_flags
@@ -200,11 +200,12 @@ fn get_default_shell(info_flags: u32, package_managers: &ManagerInfo) -> Result<
         };
     }
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_NAME) {
-        shell.name = shell.path.split('/')
+        // apparently this is more efficient than just calling .to_string()
+        // look idk man clippys yelling at me even though its messier
+        shell.name = String::from(*shell.path.split('/')
             .collect::<Vec<&str>>()
             .last()
-            .unwrap()
-            .to_string();
+            .unwrap());
     }
 
     if is_flag_set_u32(info_flags, SHELL_INFOFLAG_VERSION) {

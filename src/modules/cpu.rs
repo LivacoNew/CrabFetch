@@ -89,22 +89,22 @@ impl Module for CPUInfo {
         let mut info_flags: u32 = 0;
 
         if format.contains("{name}") {
-            info_flags |= CPU_INFOFLAG_MODEL_NAME
+            info_flags |= CPU_INFOFLAG_MODEL_NAME;
         }
         if format.contains("{core_count}") {
-            info_flags |= CPU_INFOFLAG_CORES
+            info_flags |= CPU_INFOFLAG_CORES;
         }
         if format.contains("{thread_count}") {
-            info_flags |= CPU_INFOFLAG_THREADS
+            info_flags |= CPU_INFOFLAG_THREADS;
         }
         if format.contains("{current_clock_mhz}") || format.contains("{current_clock_ghz}") {
-            info_flags |= CPU_INFOFLAG_CURRENT_CLOCK
+            info_flags |= CPU_INFOFLAG_CURRENT_CLOCK;
         }
         if format.contains("{max_clock_mhz}") || format.contains("{max_clock_ghz}") {
-            info_flags |= CPU_INFOFLAG_MAX_CLOCK
+            info_flags |= CPU_INFOFLAG_MAX_CLOCK;
         }
         if format.contains("{arch}") || format.contains("{arch}") {
-            info_flags |= CPU_INFOFLAG_ARCH
+            info_flags |= CPU_INFOFLAG_ARCH;
         }
 
         info_flags

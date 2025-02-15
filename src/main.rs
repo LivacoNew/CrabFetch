@@ -665,7 +665,7 @@ fn main() {
                     }
                 }
 
-                print_bench_time(args.benchmark, args.benchmark_warn, &format!("Command: {}", ""), bench);
+                print_bench_time(args.benchmark, args.benchmark_warn, &format!("Command: {}", module_split[1]), bench);
             }
             _ => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 

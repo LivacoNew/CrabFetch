@@ -110,8 +110,9 @@ pub fn get_players(config: &Configuration) -> Result<Vec<PlayerInfo>, ModuleErro
     };
 
     for player in found_players {
-        let name: String = player.split('.').last().unwrap().to_string();
-        if config.player.ignore.contains(&name) {
+        let name: String = player.split('.').skip(3).collect::<Vec<&str>>().join(".");
+        // this looks like a dubious use of inversions, but actually that's only because it is.
+        if !config.player.ignore.iter().all(|x| !name.starts_with(x)) {
             continue // ignored
         }
 

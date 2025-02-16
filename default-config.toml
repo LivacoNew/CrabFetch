@@ -343,6 +343,7 @@ format = "{track} by {track_artists} ({album}) [{status}]"
 
 # Any music players to ignore
 # These must be valid MPRIS player strings. You can find them by running something like `playerctl --list-all`
+# These are case-sensitive, and only need to *start* with what you put in there. This is for programs like Firefox where they have it in formats like "firefox.instance*"
 ignore = []
 
 

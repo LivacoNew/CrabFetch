@@ -54,7 +54,7 @@ impl SyscallCache {
             let buffer_ptr: *mut libc::passwd = getpwuid(user_id);
             // Null pointer, this is a crash as we have no error handling for the time being
             // TODO: Handle this properly
-            assert!(buffer_ptr.is_null(), "passwd buffer pointer is null (No error handling for this is implemented yet)");
+            assert!(!buffer_ptr.is_null(), "passwd buffer pointer is null (No error handling for this is implemented yet)");
             passwd_buffer = *buffer_ptr;
         }
         self.passwd = Some(passwd_buffer);

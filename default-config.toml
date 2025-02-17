@@ -173,7 +173,6 @@ ignore_disabled_gpus = true
 
 # Detect GPU's via the loaded drivers, opposed to scanning every connected PCI device.
 # This is experimental, however could highly speed up the module.
-# Currenty only works on AMD GPU's.
 detect_through_driver = false
 
 

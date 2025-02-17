@@ -134,51 +134,57 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
     };
     for dev_dir in dir {
         // This does the following;
-        // Checks "class" for a HEX value that begins with 0x03
-        // (https://github.com/torvalds/linux/blob/master/include/linux/pci_ids.h#L38)
-        // It then parses from "vendor" "device" and "mem_info_vram_total" to get all the info it
-        // needs
-        let d = match dev_dir {
-            Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("GPU", format!("Failed to open directory: {e}"))),
-        };
-        // println!("{}", d.path().to_str().unwrap());
-
-
-        match util::file_read(&d.path().join("class")) {
-            Ok(r) => {
-                if !r.starts_with("0x03") {
-                    // Not a display device
-                    // And yes, I'm doing this check with a string instead of parsing it w/ a AND fuck you.
-                    continue
-                }
-            },
-            Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
+        // Reads the modalias file, letting us have access to the class/vendor/device all at once
+        // Then checks if the class is 0x03 (https://github.com/torvalds/linux/blob/master/include/linux/pci_ids.h#L38)
+        // Then we know it's a GPU and can go probing for all the rest of the info
+        let Ok(d) = dev_dir else {
+            continue;
         };
 
-        if ignore_disabled {
-            match util::file_read(&d.path().join("enable")) {
-                Ok(r) => {
-                    if r.trim() == "0" {
-                        continue;
-                    }
-                },
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
-            };
+        // Credit: https://wiki.archlinux.org/title/Modalias
+        // v - Vendor ID
+        // d - Device ID
+        // sv/sd - Subsys Vendor/Device, not needed for us (although could posssibly identify gpu vendor info?) 
+        // bc - Base Class 
+        // sc - Sub-class, not needed for us
+        // i - Programming interface, again useless for us
+        // From what I can see, these are all in a fixed length so we can just use substringing to
+        // find our info opposed to any fancy parsing shit
+        // An example from my GPU: v00001002d0000747Esv00001DA2sd0000D475bc03sc00i00
+        let Ok(modalias) = util::file_read(&d.path().join("modalias")) else {
+            continue;
+        };
+        let modalias_contents: String = modalias[4..].to_string(); // strip the prefixing "pci:"
+        
+        // Check the class first things first, checking it's a display device 
+        // Only checking the base class for it being 0x03 
+        // v00001002d0000747Esv00001DA2sd0000D475bc03sc00i00
+        let base_class: &str = &modalias_contents[40..42];
+        // Not a display device
+        // And yes, I'm doing this check with a string instead of parsing it with an AND, fuck you.
+        if base_class != "03" {
+            continue
         }
 
+        // Next, check the GPU isn't disabled
+        if ignore_disabled {
+            let Ok(enabled_str) = util::file_read(&d.path().join("enable")) else {
+                continue;
+            };
+            if enabled_str.trim() == "0" {
+                continue;
+            }
+        }
+
+        // Device info time 
         let mut gpu: GPUInfo = GPUInfo::new();
         // Vendor/Device
         if is_flag_set_u32(info_flags, GPU_INFOFLAG_MODEL) || is_flag_set_u32(info_flags, GPU_INFOFLAG_VENDOR) {
-            let vendor_id: String = match util::file_read(&d.path().join("vendor")) {
-                Ok(r) => r[2..].trim().to_string(),
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
-            };
-            let device_id: String = match util::file_read(&d.path().join("device")) {
-                Ok(r) => r[2..].trim().to_string(),
-                Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from file: {e}"))),
-            };
-            if vendor_id == "1002" && amd_accuracy { // AMD
+            let vendor_id: String = modalias_contents[5..9].to_string();
+            let device_id: String = modalias_contents[14..18].to_string();
+
+            // Being more accurate with AMD
+            if vendor_id == "1002" && amd_accuracy {
                 gpu.vendor = String::from("Advanced Micro Devices, Inc. [AMD/ATI]");
                 let revision_id: String = match util::file_read(&d.path().join("revision")) {
                     Ok(r) => r[2..].trim().to_string(),

@@ -302,7 +302,7 @@ fn main() {
     // Pre-Process any package manager info we may need
     let bench: Option<Instant> = benchmark_point(args.benchmark);
     let mut package_managers: ManagerInfo = ManagerInfo::new();
-    package_managers.probe_and_cache();
+    package_managers.probe_and_cache(&config);
     print_bench_time(args.benchmark, args.benchmark_warn, "Cache Package Managers", bench);
 
     // Setup our syscall cache

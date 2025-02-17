@@ -3,6 +3,8 @@
 
 use std::{collections::HashMap, ffi::OsStr, fs::{read_dir, DirEntry, File, ReadDir}, io::{BufRead, BufReader}, path::PathBuf};
 
+use crate::config_manager::Configuration;
+
 pub struct PackageInfo {
     pub name: String,
     pub version: String,
@@ -30,11 +32,21 @@ impl ManagerInfo {
         }
     }
 
-    pub fn probe_and_cache(&mut self) {
-        self.process_pacman_packages();
-        self.process_dpkg_packages();
-        self.process_xbps_packages();
-        self.process_homebrew_packages();
+    pub fn probe_and_cache(&mut self, config: &Configuration) {
+        // Check if we even need to run this 
+        // TODO optimise this with a key/value arr somewhere so we can check modules without
+        // contains's O(n)?
+        if config.modules.contains(&"packages".to_string()) 
+            || (config.modules.contains(&"terminal".to_string()) && config.terminal.format.contains("{version}")) 
+            || (config.modules.contains(&"shell".to_string()) && config.shell.format.contains("{version}")) 
+            || (config.modules.contains(&"editor".to_string()) && config.editor.format.contains("{version}")) 
+            || (config.modules.contains(&"initsys".to_string()) && config.initsys.format.contains("{version}")) 
+        {
+                self.process_pacman_packages();
+                self.process_dpkg_packages();
+                self.process_xbps_packages();
+                self.process_homebrew_packages();
+        }
     }
 
     pub fn find_all_packages_from(&self, manager: u8) -> HashMap<&String, &PackageInfo> {

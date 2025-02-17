@@ -171,6 +171,11 @@ amd_accuracy = true
 # Ignore any GPU's that are marked as "disabled" by Linux
 ignore_disabled_gpus = true
 
+# Detect GPU's via the loaded drivers, opposed to scanning every connected PCI device.
+# This is experimental, however could highly speed up the module.
+# Currenty only works on AMD GPU's.
+detect_through_driver = false
+
 
 # Placeholders;
 # - {index} -> The index of the GPU, only useful if you have more than one GPU.

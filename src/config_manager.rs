@@ -220,6 +220,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("gpu.amd_accuracy", true).unwrap();
     builder = builder.set_default("gpu.ignore_disabled_gpus", true).unwrap();
+    builder = builder.set_default("gpu.detect_through_driver", false).unwrap();
     builder = builder.set_default("gpu.title", "GPU").unwrap();
     builder = builder.set_default("gpu.format", "{vendor} {model} ({vram})").unwrap();
 

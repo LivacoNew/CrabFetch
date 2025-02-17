@@ -3,7 +3,7 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::localip::LocalIPConfiguration, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::{localip::LocalIPConfiguration, theme::ThemeConfiguration}, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "player")]
 use crate::player::PlayerConfiguration;
 
@@ -60,7 +60,8 @@ pub struct Configuration {
     pub initsys: InitSystemConfiguration,
     pub processes: ProcessesConfiguration,
     pub datetime: DateTimeConfiguration,
-    pub localip: LocalIPConfiguration
+    pub localip: LocalIPConfiguration,
+    pub theme: ThemeConfiguration
 }
 
 // Config Error 
@@ -291,6 +292,9 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 
     builder = builder.set_default("localip.title", "Local IP ({interface})").unwrap();
     builder = builder.set_default("localip.format", "{addr}").unwrap();
+
+    builder = builder.set_default("theme.title", "Theme").unwrap();
+    builder = builder.set_default("theme.format", "Gtk3: {gtk3}  Gtk4: {gtk4}").unwrap();
 
     // Check for any module overrides
     if module_override.is_some() {

@@ -29,6 +29,7 @@ use modules::processes::{self, ProcessesInfo};
 use modules::shell::{self, ShellInfo};
 use modules::swap::{self, SwapInfo};
 use modules::terminal::{self, TerminalInfo};
+use modules::theme::{self, ThemeInfo};
 use modules::uptime::{self, UptimeInfo};
 use modules::hostname::{self, HostnameInfo};
 use config_manager::Configuration;
@@ -199,6 +200,7 @@ struct ModuleOutputs {
     processes: Option<Result<ProcessesInfo, ModuleError>>,
     datetime: Option<DateTimeInfo>,
     localip: Option<Result<Vec<LocalIPInfo>, ModuleError>>,
+    theme: Option<Result<ThemeInfo, ModuleError>>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -223,6 +225,7 @@ impl ModuleOutputs {
             editor: None,
             os: None,
             initsys: None,
+            theme: None,
             processes: None,
             datetime: None,
             localip: None,
@@ -572,6 +575,11 @@ fn main() {
                 run_multiline_module!(localip, LocalIPInfo, get_local_ips, known_outputs.localip, config, log_errors, output, );
                 print_bench_time(args.benchmark, args.benchmark_warn, "Local IP Module", bench);
             }
+            "theme" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                run_generic_module!(theme, ThemeInfo, get_theme, known_outputs.theme, config, log_errors, output, );
+                print_bench_time(args.benchmark, args.benchmark_warn, "Theme Module", bench);
+            },
 
             // i hate what's below as well, don't worry
             "colors" => {

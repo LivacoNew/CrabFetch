@@ -23,6 +23,7 @@ modules = [
     "editor",
     "uptime",
     "locale",
+    "theme",
     "player",
     "initsys",
     "processes",
@@ -333,6 +334,15 @@ title = "Locale"
 format = "{language} ({encoding})"
 
 
+[theme]
+# Placeholders;
+# {gtk2} -> The current GTK2 theme
+# {gtk3} -> The current GTK3 theme
+# {gtk4} -> The current GTK4 theme
+title = "Theme"
+format = "Gtk3: {gtk3}  Gtk4: {gtk4}"
+
+
 [player]
 # This is a multi-line module, each player detected will have it's own line in the output
 # Placeholders;
@@ -386,7 +396,6 @@ format = "%H:%M:%S on %e %B %G"
 # {addr} -> The IP address
 title = "Local IP ({interface})"
 format = "{addr}"
-
 
 
 # You've reached the end! Congrats, have a muffin :)

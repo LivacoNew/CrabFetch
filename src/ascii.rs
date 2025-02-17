@@ -26,17 +26,18 @@ pub enum AsciiMode {
 }
 
 // Return type is the ascii & the maximum length of it
-pub fn find_ascii(os: &str) -> (String, u16) {
+pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
     // Will first confirm if theres a ascii override file
-    let user_override: Option<String> = config_manager::check_for_ascii_override();
-    if user_override.is_some() {
-        let mut length: u16 = 0; // TODO: Use usize for fucks sake
-        user_override.as_ref().unwrap().split('\n').for_each(|x| {
-            let stripped = strip_ansi_escapes::strip_str(x);
-            let len: usize = stripped.chars().count();
-            if len > length as usize { length = u16::try_from(len).expect("Unable to convert length to u16") }
-        });
-        return (user_override.unwrap(), length)
+    if !ignore_custom {
+        if let Some(user_override) = config_manager::check_for_ascii_override() {
+            let mut length: u16 = 0; // TODO: Use usize for fucks sake
+            user_override.split('\n').for_each(|x| {
+                let stripped = strip_ansi_escapes::strip_str(x);
+                let len: usize = stripped.chars().count();
+                if len > length as usize { length = u16::try_from(len).expect("Unable to convert length to u16") }
+            });
+            return (user_override, length)
+        }
     }
     let os: &str = &os.replace('"', "").to_lowercase();
 

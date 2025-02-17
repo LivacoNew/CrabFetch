@@ -67,6 +67,14 @@ pub struct Args {
     /// Overrides the distro ASCII to another distro.
     distro_override: Option<String>,
 
+    #[arg(long)]
+    /// Ignore any custom ASCII file 
+    ignore_custom_ascii: bool,
+
+    #[arg(long)]
+    /// Disable ASCII rendering entirely
+    disable_ascii: bool,
+
     #[arg(short, long, require_equals(true), default_missing_value("false"), default_value("false"), action=ArgAction::Set)]
     /// Whether to suppress any errors or not.
     suppress_errors: bool,
@@ -288,6 +296,8 @@ fn main() {
             exit(-1);
         },
     };
+
+    if args.disable_ascii { config.ascii.display = false }
     print_bench_time(args.benchmark, args.benchmark_warn, "Parsing Config", bench);
 
     // if config isn't supprsesing errors, make it go down to args
@@ -706,9 +716,9 @@ fn main() {
         if known_outputs.os.as_ref().unwrap().is_ok() {
             // Calculate the ASCII stuff while we're here
             let ascii: (String, u16) = if args.distro_override.is_some() {
-                ascii::find_ascii(&args.distro_override.clone().unwrap())
+                ascii::find_ascii(&args.distro_override.clone().unwrap(), args.ignore_custom_ascii)
             } else {
-                ascii::find_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id)
+                ascii::find_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id, args.ignore_custom_ascii)
             };
             fuck_off_borrow_checker = ascii.0;
             ascii_split = fuck_off_borrow_checker.split('\n').filter(|x| x.trim() != "").collect();

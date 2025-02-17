@@ -150,7 +150,6 @@ fn fill_from_drivers(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disable
         }
 
         // Go inside and scan all devices being driven by it 
-
         let driver_dir: ReadDir = match fs::read_dir(d.path()) {
             Ok(r) => r,
             Err(e) => return Err(ModuleError::new("GPU", format!("Can't read from {:?}: {e}", d.path())))

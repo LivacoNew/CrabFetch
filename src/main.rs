@@ -33,8 +33,8 @@ use modules::theme::{self, ThemeInfo};
 use modules::uptime::{self, UptimeInfo};
 use modules::hostname::{self, HostnameInfo};
 use config_manager::Configuration;
-use package_managers::ManagerInfo;
-use syscalls::SyscallCache;
+use common_sources::package_managers::ManagerInfo;
+use common_sources::syscalls::SyscallCache;
 
 use crate::ascii::get_ascii_line;
 use crate::modules::localip::{self, LocalIPInfo};
@@ -45,11 +45,10 @@ mod ascii;
 mod formatter;
 mod proccess_info;
 mod versions;
-mod package_managers;
 mod module;
 mod util;
-mod syscalls;
 mod ascii_art;
+mod common_sources;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]

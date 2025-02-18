@@ -3,7 +3,7 @@ use std::fs;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::package_managers::ManagerInfo, proccess_info::ProcessInfo, util::is_flag_set_u32, versions, ModuleError};
 
 pub struct InitSystemInfo {
     name: String,

@@ -6,7 +6,7 @@ use {android_system_properties::AndroidSystemProperties, std::env};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util::{self, is_flag_set_u32}, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct OSInfo {
     distro: String,

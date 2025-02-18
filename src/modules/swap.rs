@@ -2,7 +2,7 @@ use core::str;
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, syscalls::SyscallCache, ModuleError};
+use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, common_sources::syscalls::SyscallCache, ModuleError};
 
 pub struct SwapInfo {
     used_kb: u64,

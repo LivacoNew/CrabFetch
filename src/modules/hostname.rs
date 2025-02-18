@@ -3,7 +3,7 @@ use std::{env, process::Command};
 
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util::is_flag_set_u32, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util::is_flag_set_u32, ModuleError};
 
 pub struct HostnameInfo {
     username: String,

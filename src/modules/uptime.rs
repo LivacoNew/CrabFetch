@@ -3,7 +3,7 @@ use std::{path::Path, time::Duration};
 use humantime::format_duration;
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, syscalls::SyscallCache, util, ModuleError};
+use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util, ModuleError};
 
 pub struct UptimeInfo {
     uptime: Duration,

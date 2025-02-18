@@ -1,7 +1,7 @@
 // Purely handles version detection
 use std::{env, process::Command};
 
-use crate::{modules::shell::KNOWN_SHELLS, package_managers::ManagerInfo, proccess_info::ProcessInfo};
+use crate::{modules::shell::KNOWN_SHELLS, common_sources::package_managers::ManagerInfo, proccess_info::ProcessInfo};
 
 pub fn find_version(exe_path: &str, name: Option<&str>, package_managers: &ManagerInfo) -> Option<String> {
     // Steps;

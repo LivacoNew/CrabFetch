@@ -382,3 +382,56 @@ fn search_amd_model(device: &str, revision: &str) -> Result<Option<String>, Modu
 
     Ok(Some(device_result.to_string()))
 }
+
+mod tests {
+    #[test]
+    fn test_pci_ids_normal() {
+        use crate::{module::ModuleError, modules::gpu::search_pci_ids};
+        use std::collections::HashMap;
+
+        let tests: HashMap<(&str, &str), (&str, &str)> = HashMap::from([
+            // AMD
+            (("1002", "747e"), ("Advanced Micro Devices, Inc. [AMD/ATI]", "Navi 32 [Radeon RX 7700 XT / 7800 XT]")),
+            (("1002", "73ff"), ("Advanced Micro Devices, Inc. [AMD/ATI]", "Navi 23 [Radeon RX 6600/6600 XT/6600M]")),
+            (("1002", "744c"), ("Advanced Micro Devices, Inc. [AMD/ATI]", "Navi 31 [Radeon RX 7900 XT/7900 XTX/7900 GRE/7900M]")),
+
+            // NVIDIA
+            (("10DE", "2203"), ("NVIDIA Corporation", "GA102 [GeForce RTX 3090 Ti]")),
+            (("10DE", "2184"), ("NVIDIA Corporation", "TU116 [GeForce GTX 1660]")),
+
+            // Intel
+            (("8086", "5690"), ("Intel Corporation", "DG2 [Arc A770M]")),
+            (("8086", "e20b"), ("Intel Corporation", "Battlemage G21 [Arc B580]"))
+        ]);
+
+        for test in tests {
+            let result: Result<(String, String), ModuleError> = search_pci_ids(test.0.0, test.0.1);
+            assert!(result.is_ok());
+            let result: (String, String) = result.unwrap();
+            assert_eq!(result.0, test.1.0);
+            assert_eq!(result.1, test.1.1);
+        }
+    }
+
+    // AMD Accuracy
+    #[test]
+    fn test_pci_ids_amd() {
+        use crate::{module::ModuleError, modules::gpu::search_amd_model};
+        use std::collections::HashMap;
+
+        let tests: HashMap<(&str, &str), &str> = HashMap::from([
+            (("747e", "C8"), "AMD Radeon RX 7800 XT"),
+            (("73ff", "C1"), "AMD Radeon RX 6600 XT"),
+            (("744c", "c8"), "AMD Radeon RX 7900 XTX"),
+        ]);
+
+        for test in tests {
+            let result: Result<Option<String>, ModuleError> = search_amd_model(test.0.0, test.0.1);
+            assert!(result.is_ok());
+            let result: Option<String> = result.unwrap();
+            assert!(result.is_some());
+            let result: String = result.unwrap();
+            assert_eq!(result, test.1);
+        }
+    }
+}

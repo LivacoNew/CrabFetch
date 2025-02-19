@@ -171,9 +171,15 @@ fn fill_from_drivers(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disable
 
             // So, in *theory*, this is a GPU 
             // Let's scan it :)
-            let Ok(Some(gpu)) = scan_pci_dir(&dev, amd_accuracy, ignore_disabled, info_flags) else {
+            let Ok(Some(mut gpu)) = scan_pci_dir(&dev, amd_accuracy, ignore_disabled, info_flags) else {
                 continue;
             };
+            if let Some(start) = gpu.model.find('[') {
+                if let Some(end) = gpu.model.find(']') {
+                    gpu.model = gpu.model[start+1..end].to_string();
+                }
+            }
+
             gpus.push(gpu);
         }
     }
@@ -195,9 +201,15 @@ fn fill_from_pcisysfile(gpus: &mut Vec<GPUInfo>, amd_accuracy: bool, ignore_disa
             continue;
         };
 
-        let Ok(Some(gpu)) = scan_pci_dir(&d, amd_accuracy, ignore_disabled, info_flags) else {
+        let Ok(Some(mut gpu)) = scan_pci_dir(&d, amd_accuracy, ignore_disabled, info_flags) else {
             continue;
         };
+        if let Some(start) = gpu.model.find('[') {
+            if let Some(end) = gpu.model.find(']') {
+                gpu.model = gpu.model[start+1..end].to_string();
+            }
+        }
+
         gpus.push(gpu);
     }
 

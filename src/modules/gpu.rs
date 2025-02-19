@@ -306,8 +306,8 @@ fn search_pci_ids(vendor: &str, device: &str) -> Result<(String, String), Module
     let mut vendor_result: String = String::new();
     let mut device_result: String = String::new();
     // Find the vendor ID + device in the list
-    let vendor_term: String = String::from(vendor);
-    let dev_term: String = String::from('\t') + device;
+    let vendor_term: String = String::from(vendor).to_lowercase();
+    let dev_term: String = (String::from('\t') + device).to_lowercase();
     let mut in_vendor: bool = false;
     for line in buffer.lines() { 
         if line.is_err() {

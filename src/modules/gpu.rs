@@ -274,7 +274,7 @@ fn scan_pci_dir(d: &DirEntry, amd_accuracy: bool, ignore_disabled: bool, info_fl
         }
     }
 
-    return Ok(Some(gpu));
+    Ok(Some(gpu))
 }
 
 // This uses pci.ids inside pciutils to identify devices:

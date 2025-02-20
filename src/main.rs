@@ -5,6 +5,7 @@ use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
 
 use ascii::AsciiMode;
+use common_sources::gtk::GTKSettingsCache;
 use formatter::CrabFetchColor;
 use module::{Module, ModuleError};
 use modules::battery::{self, BatteryInfo};
@@ -320,6 +321,9 @@ fn main() {
     // Setup our syscall cache
     let mut syscall_cache: SyscallCache = SyscallCache::new();
 
+    // GTK Settings
+    let mut gtk_settings_cache: GTKSettingsCache = GTKSettingsCache::default();
+
     // Set the title color if we're usign os colors
     if config.use_os_color || (config.ascii.display && config.ascii.mode == AsciiMode::OS) {
         let id: &str = if let Some(ref x) = args.distro_override {
@@ -576,7 +580,7 @@ fn main() {
             }
             "theme" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
-                run_generic_module!(theme, ThemeInfo, get_theme, known_outputs.theme, config, log_errors, output, );
+                run_generic_module!(theme, ThemeInfo, get_theme, known_outputs.theme, config, log_errors, output, &mut gtk_settings_cache);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Theme Module", bench);
             },
 

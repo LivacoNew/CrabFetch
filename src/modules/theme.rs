@@ -1,8 +1,6 @@
-use std::{env, fs::File, io::{BufRead, BufReader}, path::Path};
-
 use serde::Deserialize;
 
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
+use crate::{common_sources::gtk::GTKSettingsCache, config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
 
 pub struct ThemeInfo {
     gtk2: String,
@@ -59,59 +57,16 @@ impl Module for ThemeInfo {
     }
 }
 
-pub fn get_theme() -> Result<ThemeInfo, ModuleError> {
+pub fn get_theme(gtk_settings: &mut GTKSettingsCache) -> Result<ThemeInfo, ModuleError> {
     let mut theme: ThemeInfo = ThemeInfo::new();
 
-    let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
-        Ok(r) => r,
-        Err(_) => {
-            // Let's try the home directory
-            let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
-            };
-            home_dir.push_str("/.config/");
-            home_dir
-        }
-    };
-    let config_path: &Path = Path::new(&config_path_str);
-
-    if let Some(gtk2) = read_gtk_settings(&config_path.join("gtk-2.0/settings.ini")) {
-        theme.gtk2 = gtk2;
-    }
-    if let Some(gtk3) = read_gtk_settings(&config_path.join("gtk-3.0/settings.ini")) {
-        theme.gtk3 = gtk3;
-    }
-    if let Some(gtk4) = read_gtk_settings(&config_path.join("gtk-4.0/settings.ini")) {
-        theme.gtk4 = gtk4;
+    if let Ok(themes) = gtk_settings.get_themes() {
+        theme.gtk2 = themes.gtk2_theme;
+        theme.gtk3 = themes.gtk3_theme;
+        theme.gtk4 = themes.gtk4_theme;
+    } else {
+        return Err(ModuleError::new("Themes", "Failed to read GTK settings.".to_string()));
     }
 
     Ok(theme)
-}
-
-fn read_gtk_settings(path: &Path) -> Option<String> {
-    if !path.exists() {
-        return None;
-    }
-
-    let file: File = match File::open(path) {
-        Ok(r) => r,
-        Err(_) => return None
-    };
-    let buffer: BufReader<File> = BufReader::new(file);
-    
-    for line in buffer.lines() {
-        if line.is_err() {
-            continue;
-        }
-        let line: String = line.unwrap();
-
-        if !line.starts_with("gtk-theme-name") {
-            continue;
-        }
-
-        return Some(line[15..].to_string());
-    }
-
-    None
 }

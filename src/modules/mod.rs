@@ -22,3 +22,4 @@ pub mod processes;
 pub mod datetime;
 pub mod localip;
 pub mod theme;
+pub mod icon_theme;

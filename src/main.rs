@@ -17,6 +17,7 @@ use modules::desktop::{self, DesktopInfo};
 use modules::displays::{self, DisplayInfo};
 use modules::editor::{self, EditorInfo};
 use modules::host::{self, HostInfo};
+use modules::icon_theme::{self, IconThemeInfo};
 use modules::initsys::{self, InitSystemInfo};
 use modules::locale::{self, LocaleInfo};
 use modules::memory::{self, MemoryInfo};
@@ -201,6 +202,7 @@ struct ModuleOutputs {
     datetime: Option<DateTimeInfo>,
     localip: Option<Result<Vec<LocalIPInfo>, ModuleError>>,
     theme: Option<Result<ThemeInfo, ModuleError>>,
+    icon_theme: Option<Result<IconThemeInfo, ModuleError>>,
 }
 impl ModuleOutputs {
     fn new() -> Self {
@@ -226,6 +228,7 @@ impl ModuleOutputs {
             os: None,
             initsys: None,
             theme: None,
+            icon_theme: None,
             processes: None,
             datetime: None,
             localip: None,
@@ -582,6 +585,11 @@ fn main() {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 run_generic_module!(theme, ThemeInfo, get_theme, known_outputs.theme, config, log_errors, output, &mut gtk_settings_cache);
                 print_bench_time(args.benchmark, args.benchmark_warn, "Theme Module", bench);
+            },
+            "icontheme" => {
+                let bench: Option<Instant> = benchmark_point(args.benchmark); 
+                run_generic_module!(icon_theme, IconThemeInfo, get_icon_theme, known_outputs.icon_theme, config, log_errors, output, &mut gtk_settings_cache);
+                print_bench_time(args.benchmark, args.benchmark_warn, "Icon Theme Module", bench);
             },
 
             // i hate what's below as well, don't worry

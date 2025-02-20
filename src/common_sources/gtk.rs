@@ -43,13 +43,13 @@ impl GTKSettingsCache {
         let config_path: &Path = Path::new(&config_path_str);
 
         let mut themes: GTKThemeCache = GTKThemeCache::default();
-        if let Some(gtk2) = read_gtk_theme(&config_path.join("gtk-2.0/settings.ini")) {
+        if let Some(gtk2) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-2.0/settings.ini")) {
             themes.gtk2_theme = gtk2;
         }
-        if let Some(gtk3) = read_gtk_theme(&config_path.join("gtk-3.0/settings.ini")) {
+        if let Some(gtk3) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-3.0/settings.ini")) {
             themes.gtk3_theme = gtk3;
         }
-        if let Some(gtk4) = read_gtk_theme(&config_path.join("gtk-4.0/settings.ini")) {
+        if let Some(gtk4) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-4.0/settings.ini")) {
             themes.gtk4_theme = gtk4;
         }
 
@@ -59,7 +59,7 @@ impl GTKSettingsCache {
     }
 }
 
-fn read_gtk_theme(path: &Path) -> Option<String> {
+fn read_gtk_property(property: &str, path: &Path) -> Option<String> {
     if !path.exists() {
         return None;
     }
@@ -76,11 +76,11 @@ fn read_gtk_theme(path: &Path) -> Option<String> {
         }
         let line: String = line.unwrap();
 
-        if !line.starts_with("gtk-theme-name") {
+        if !line.starts_with(property) {
             continue;
         }
 
-        return Some(line[15..].to_string());
+        return Some(line[property.len() + 1..].to_string());
     }
 
     None

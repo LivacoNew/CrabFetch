@@ -3,7 +3,7 @@ use std::{env, fmt::{Debug, Display}, fs::{self, File}, io::Write, path::{Path, 
 use config::{builder::DefaultState, Config, ConfigBuilder};
 use serde::Deserialize;
 
-use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::{icon_theme::IconThemeConfiguration, localip::LocalIPConfiguration, theme::ThemeConfiguration}, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
+use crate::{ascii::AsciiConfiguration, battery::BatteryConfiguration, cpu::CPUConfiguration, datetime::DateTimeConfiguration, desktop::DesktopConfiguration, displays::DisplayConfiguration, editor::EditorConfiguration, formatter::CrabFetchColor, gpu::GPUConfiguration, host::HostConfiguration, hostname::HostnameConfiguration, initsys::InitSystemConfiguration, locale::LocaleConfiguration, memory::MemoryConfiguration, modules::{icon_theme::IconThemeConfiguration, localip::LocalIPConfiguration, theme::ThemeConfiguration}, mounts::MountConfiguration, os::OSConfiguration, packages::PackagesConfiguration, preset_configs, processes::ProcessesConfiguration, shell::ShellConfiguration, swap::SwapConfiguration, terminal::TerminalConfiguration, uptime::UptimeConfiguration, util};
 #[cfg(feature = "player")]
 use crate::player::PlayerConfiguration;
 
@@ -96,6 +96,14 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     if location_override.is_some() {
         let location_override: String = location_override.clone().unwrap();
         if location_override != "none" {
+            if let Some(stripped) = location_override.strip_prefix("preset:") {
+                match stripped {
+                    "full" => return Ok(preset_configs::preset_full()),
+                    "neofetch" => return Ok(preset_configs::preset_neofetch()),
+                    _ => {}
+                }
+            }
+
             config_path_str = Some(shellexpand::tilde(&location_override).to_string());
             let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
 
@@ -114,6 +122,151 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
         builder = builder.add_source(config::File::with_name(config_path_str.as_ref().unwrap()).required(false));
     }
 
+    builder = fill_builder_defaults(builder);
+
+    // Check for any module overrides
+    if module_override.is_some() {
+        let module_override: String = module_override.clone().unwrap();
+        builder = builder.set_override("modules", module_override.split(',').collect::<Vec<&str>>()).unwrap();
+    }
+
+    // Now stop.
+    let config: Config = match builder.build() {
+        Ok(r) => r,
+        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
+    };
+
+    let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
+        Ok(r) => r,
+        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
+    };
+
+    Ok(deserialized)
+}
+
+fn find_file_in_config_dir(path: &str) -> Option<PathBuf> {
+    // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+    let mut paths: Vec<PathBuf> = Vec::new();
+    let mut temp_var_to_shut_up_the_borrow_checker: String;
+    if let Ok(config_home) = env::var("XDG_CONFIG_HOME") {
+        temp_var_to_shut_up_the_borrow_checker = config_home;
+        temp_var_to_shut_up_the_borrow_checker.push_str("/CrabFetch/");
+        temp_var_to_shut_up_the_borrow_checker.push_str(path);
+        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    }
+    let mut temp_var_to_shut_up_the_borrow_checker: String;
+    if let Ok(user_home) = env::var("HOME") {
+        temp_var_to_shut_up_the_borrow_checker = user_home;
+        temp_var_to_shut_up_the_borrow_checker.push_str("/.config/CrabFetch/");
+        temp_var_to_shut_up_the_borrow_checker.push_str(path);
+        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    }
+
+    util::find_first_pathbuf_exists(paths)
+}
+
+pub fn check_for_ascii_override() -> Option<String> {
+    let path: PathBuf = find_file_in_config_dir("ascii")?;
+    if !path.exists() {
+        return None;
+    }
+
+    match util::file_read(&path) {
+        Ok(r) => Some(r),
+        Err(_) => None,
+    }
+}
+
+pub fn generate_config_file(location_override: Option<String>) {
+    let path: String;
+    if location_override.is_some() {
+        path = shellexpand::tilde(&location_override.unwrap()).to_string();
+        // Config won't be happy unless it ends with .toml
+        assert!(Path::new(&path).extension().is_some_and(|x| x.eq_ignore_ascii_case("toml")), "Config path must end with '.toml'");
+    } else {
+        // Find the config path
+        // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
+        path = if let Ok(mut r) = env::var("XDG_CONFIG_HOME") {
+            r.push_str("/CrabFetch/config.toml");
+            r
+        } else {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => r,
+                Err(e) => panic!("Unable to find suitable config folder; {e}")
+            };
+            home_dir.push_str("/.config/CrabFetch/config.toml");
+            home_dir
+        }
+    }
+    let config_path: &Path = Path::new(&path);
+
+    assert!(!config_path.exists(), "Path already exists: {}", config_path.display());
+    match fs::create_dir_all(config_path.parent().unwrap()) {
+        Ok(_) => {},
+        Err(e) => panic!("Unable to create directory: {e}"),
+    };
+
+    let mut file: File = match File::create(config_path) {
+        Ok(r) => r,
+        Err(e) => panic!("Unable to create file; {e}"),
+    };
+    match file.write_all(DEFAULT_CONFIG_CONTENTS.as_bytes()) {
+        Ok(_) => {},
+        Err(e) => panic!("Unable to write to file; {e}"),
+    };
+    println!("Created default config file at {path}");
+}
+
+mod tests {
+    // Test configs get created correctly, in the correct place and that the TOML is valid
+    #[test]
+    fn create_config() {
+        use std::{fs, path::Path, io::Error};
+
+        let location: String = "/tmp/crabfetch_test_config.toml".to_string();
+        crate::config_manager::generate_config_file(Some(location.clone()));
+        assert!(Path::new(&location).exists());
+
+        // Attempt to parse it
+        let parse = crate::config_manager::parse(&Some(location.clone()), &None);
+        assert!(crate::config_manager::parse(&Some(location.clone()), &None).is_ok(), "{:?}", parse.err());
+        
+        // Finally, we remove the tmp config file 
+        let removed: Result<(), Error> = fs::remove_file(location);
+        assert!(removed.is_ok()); // Asserting this cus if the file fails to remove it's likely cus it never existed
+    }
+    
+    // Tests that the default-config.toml file is the same as the DEFAULT_CONFIG_CONTENTS string in
+    // here 
+    // In case anyone's wondering why they're separated; it's so that package maintainers or people
+    // who want a copy of the default config without re-genning it can have it without digging in
+    // CrabFetch's source code
+    // This test's just to make sure I keep it up to date and don't forget to update one or the
+    // other
+    #[test]
+    fn config_is_consistent() {
+        use std::{path::{PathBuf, Path}, fs::File, io::Read};
+        let mut cargo_loc = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        cargo_loc.push("default-config.toml");
+        assert!(Path::new(&cargo_loc).exists());
+
+        let mut file: File = File::open(cargo_loc).unwrap();
+        let mut file_contents: String = String::new();
+        let _ = file.read_to_string(&mut file_contents);
+        // File saving will sometimes add new lines in different places than the rust ver, so I
+        // don't bother checking it as it just causes problems
+        file_contents = file_contents.replace('\n', "");
+        let comparing: &str = &crate::config_manager::DEFAULT_CONFIG_CONTENTS.replace('\n', "");
+
+        assert_eq!(file_contents, comparing);
+    }
+}
+
+// The default config, stored so that it can be written
+const DEFAULT_CONFIG_CONTENTS: &str = include_str!("../default-config.toml");
+
+pub fn fill_builder_defaults(mut builder: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
     // Set the defaults here
     // General
     builder = builder.set_default("modules", vec![
@@ -300,144 +453,5 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("icontheme.title", "Icons").unwrap();
     builder = builder.set_default("icontheme.format", "Gtk3: {gtk3}  Gtk4: {gtk4}").unwrap();
 
-    // Check for any module overrides
-    if module_override.is_some() {
-        let module_override: String = module_override.clone().unwrap();
-        builder = builder.set_override("modules", module_override.split(',').collect::<Vec<&str>>()).unwrap();
-    }
-
-    // Now stop.
-    let config: Config = match builder.build() {
-        Ok(r) => r,
-        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
-    };
-
-    let deserialized: Configuration = match config.try_deserialize::<Configuration>() {
-        Ok(r) => r,
-        Err(e) => return Err(ConfigurationError::new(config_path_str, e.to_string())),
-    };
-
-    Ok(deserialized)
+    builder
 }
-
-fn find_file_in_config_dir(path: &str) -> Option<PathBuf> {
-    // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-    let mut paths: Vec<PathBuf> = Vec::new();
-    let mut temp_var_to_shut_up_the_borrow_checker: String;
-    if let Ok(config_home) = env::var("XDG_CONFIG_HOME") {
-        temp_var_to_shut_up_the_borrow_checker = config_home;
-        temp_var_to_shut_up_the_borrow_checker.push_str("/CrabFetch/");
-        temp_var_to_shut_up_the_borrow_checker.push_str(path);
-        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
-    }
-    let mut temp_var_to_shut_up_the_borrow_checker: String;
-    if let Ok(user_home) = env::var("HOME") {
-        temp_var_to_shut_up_the_borrow_checker = user_home;
-        temp_var_to_shut_up_the_borrow_checker.push_str("/.config/CrabFetch/");
-        temp_var_to_shut_up_the_borrow_checker.push_str(path);
-        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
-    }
-
-    util::find_first_pathbuf_exists(paths)
-}
-
-pub fn check_for_ascii_override() -> Option<String> {
-    let path: PathBuf = find_file_in_config_dir("ascii")?;
-    if !path.exists() {
-        return None;
-    }
-
-    match util::file_read(&path) {
-        Ok(r) => Some(r),
-        Err(_) => None,
-    }
-}
-
-pub fn generate_config_file(location_override: Option<String>) {
-    let path: String;
-    if location_override.is_some() {
-        path = shellexpand::tilde(&location_override.unwrap()).to_string();
-        // Config won't be happy unless it ends with .toml
-        assert!(Path::new(&path).extension().is_some_and(|x| x.eq_ignore_ascii_case("toml")), "Config path must end with '.toml'");
-    } else {
-        // Find the config path
-        // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
-        path = if let Ok(mut r) = env::var("XDG_CONFIG_HOME") {
-            r.push_str("/CrabFetch/config.toml");
-            r
-        } else {
-            // Let's try the home directory
-            let mut home_dir: String = match env::var("HOME") {
-                Ok(r) => r,
-                Err(e) => panic!("Unable to find suitable config folder; {e}")
-            };
-            home_dir.push_str("/.config/CrabFetch/config.toml");
-            home_dir
-        }
-    }
-    let config_path: &Path = Path::new(&path);
-
-    assert!(!config_path.exists(), "Path already exists: {}", config_path.display());
-    match fs::create_dir_all(config_path.parent().unwrap()) {
-        Ok(_) => {},
-        Err(e) => panic!("Unable to create directory: {e}"),
-    };
-
-    let mut file: File = match File::create(config_path) {
-        Ok(r) => r,
-        Err(e) => panic!("Unable to create file; {e}"),
-    };
-    match file.write_all(DEFAULT_CONFIG_CONTENTS.as_bytes()) {
-        Ok(_) => {},
-        Err(e) => panic!("Unable to write to file; {e}"),
-    };
-    println!("Created default config file at {path}");
-}
-
-mod tests {
-    // Test configs get created correctly, in the correct place and that the TOML is valid
-    #[test]
-    fn create_config() {
-        use std::{fs, path::Path, io::Error};
-
-        let location: String = "/tmp/crabfetch_test_config.toml".to_string();
-        crate::config_manager::generate_config_file(Some(location.clone()));
-        assert!(Path::new(&location).exists());
-
-        // Attempt to parse it
-        let parse = crate::config_manager::parse(&Some(location.clone()), &None);
-        assert!(crate::config_manager::parse(&Some(location.clone()), &None).is_ok(), "{:?}", parse.err());
-        
-        // Finally, we remove the tmp config file 
-        let removed: Result<(), Error> = fs::remove_file(location);
-        assert!(removed.is_ok()); // Asserting this cus if the file fails to remove it's likely cus it never existed
-    }
-    
-    // Tests that the default-config.toml file is the same as the DEFAULT_CONFIG_CONTENTS string in
-    // here 
-    // In case anyone's wondering why they're separated; it's so that package maintainers or people
-    // who want a copy of the default config without re-genning it can have it without digging in
-    // CrabFetch's source code
-    // This test's just to make sure I keep it up to date and don't forget to update one or the
-    // other
-    #[test]
-    fn config_is_consistent() {
-        use std::{path::{PathBuf, Path}, fs::File, io::Read};
-        let mut cargo_loc = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        cargo_loc.push("default-config.toml");
-        assert!(Path::new(&cargo_loc).exists());
-
-        let mut file: File = File::open(cargo_loc).unwrap();
-        let mut file_contents: String = String::new();
-        let _ = file.read_to_string(&mut file_contents);
-        // File saving will sometimes add new lines in different places than the rust ver, so I
-        // don't bother checking it as it just causes problems
-        file_contents = file_contents.replace('\n', "");
-        let comparing: &str = &crate::config_manager::DEFAULT_CONFIG_CONTENTS.replace('\n', "");
-
-        assert_eq!(file_contents, comparing);
-    }
-}
-
-// The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = include_str!("../default-config.toml");

@@ -51,6 +51,7 @@ mod module;
 mod util;
 mod ascii_art;
 mod common_sources;
+mod preset_configs;
 
 #[derive(Parser)]
 #[command(about, long_about = None)]
@@ -102,7 +103,7 @@ pub struct Args {
 
     #[arg(long, short)]
     /// Displays the version of CrabFetch, as well as the current features enabled in this build.
-    version: bool
+    version: bool,
 }
 
 // This is done here simply to make the main function not as indented of a mess, it's abstracted into here

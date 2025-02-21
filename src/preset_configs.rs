@@ -89,3 +89,46 @@ pub fn preset_neofetch() -> Configuration {
     let deserialized: Configuration = config.try_deserialize::<Configuration>().expect("Failed to deserialize configuration.");
     deserialized
 }
+
+pub fn preset_basic() -> Configuration {
+    let mut builder: ConfigBuilder<DefaultState> = Config::builder();
+    builder = fill_builder_defaults(builder);
+    builder = builder.set_override("modules", vec![
+        "{color-white}┌─────────────────────────────────────{color-title} Software {color-white}─────────────────────────────────────┐".to_string(),
+        "os".to_string(),
+        "packages".to_string(),
+        "shell".to_string(),
+        "terminal".to_string(),
+        "uptime".to_string(),
+        "segment:Hardware".to_string(),
+        "cpu".to_string(),
+        "gpu".to_string(),
+        "memory".to_string(),
+        "host".to_string(),
+        "displays".to_string(),
+        "{color-white}└────────────────────────────────────────────────────────────────────────────────────┘".to_string()
+    ]).expect("Failed to override default config.");
+    builder = builder.set_override("unknown_as_text", true).expect("Failed to override default config.");
+    builder = builder.set_override("separator", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("segment_top", "{color-white}├─────────────────────────────────────{color-title} {name} {color-white}─────────────────────────────────────┤").expect("Failed to override default config.");
+
+
+    builder = builder.set_override("cpu.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("cpu.format", "{name} ({core_count}c/{thread_count}t) @ {max_clock_ghz} GHz").expect("Failed to override default config.");
+
+    builder = builder.set_override("gpu.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("gpu.format", "{model} ({vram})").expect("Failed to override default config.");
+
+    builder = builder.set_override("memory.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("host.title", "  󰍹").expect("Failed to override default config.");
+    builder = builder.set_override("displays.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("os.title", "  󰘳").expect("Failed to override default config.");
+    builder = builder.set_override("packages.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("terminal.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("shell.title", "  ").expect("Failed to override default config.");
+    builder = builder.set_override("uptime.title", "  ").expect("Failed to override default config.");
+
+    let config: Config = builder.build().expect("Failed to build configuration.");
+    let deserialized: Configuration = config.try_deserialize::<Configuration>().expect("Failed to deserialize configuration.");
+    deserialized
+}

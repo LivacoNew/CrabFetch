@@ -100,7 +100,8 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                 match stripped {
                     "full" => return Ok(preset_configs::preset_full()),
                     "neofetch" => return Ok(preset_configs::preset_neofetch()),
-                    _ => {}
+                    "basic" => return Ok(preset_configs::preset_basic()),
+                    _ => return Err(ConfigurationError::new(None, "Unable to find preset.".to_string()))
                 }
             }
 

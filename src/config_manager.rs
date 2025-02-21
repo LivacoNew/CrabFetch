@@ -297,7 +297,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     builder = builder.set_default("theme.title", "Theme").unwrap();
     builder = builder.set_default("theme.format", "Gtk3: {gtk3}  Gtk4: {gtk4}").unwrap();
 
-    builder = builder.set_default("icontheme.title", "Icon").unwrap();
+    builder = builder.set_default("icontheme.title", "Icons").unwrap();
     builder = builder.set_default("icontheme.format", "Gtk3: {gtk3}  Gtk4: {gtk4}").unwrap();
 
     // Check for any module overrides

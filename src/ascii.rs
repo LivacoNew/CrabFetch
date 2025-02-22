@@ -21,6 +21,7 @@ pub struct AsciiConfiguration {
     pub band_colors: Vec<CrabFetchColor>
 }
 #[derive(Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub enum AsciiMode {
     Raw,
     OS,

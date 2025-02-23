@@ -1,0 +1,175 @@
+modules = [
+    "hostname",
+    "underline:16",
+    "cpu",
+    "gpu",
+    "memory",
+    "swap",
+    "mounts",
+    "host",
+    "displays",
+    "os",
+    "packages",
+    "desktop",
+    "terminal",
+    "shell",
+    "battery",
+    "uptime",
+    "locale",
+    "player",
+    "editor",
+    "initsys",
+    "processes",
+    "datetime",
+    "localip",
+    "theme",
+    "icontheme",
+    "space",
+    "colors",
+    "bright_colors"
+]
+unknown_as_text = false
+allow_commands = false
+separator = " > "
+title_color = "bright_magenta"
+title_bold = true
+title_italic = false
+decimal_places = 2
+inline_values = false
+underline_character = '―'
+color_character = "   "  
+color_margin = 0
+color_use_background = true 
+use_os_color = true
+segment_top = "{color-white}[======------{color-brightmagenta} {name} {color-white}------======]"
+segment_bottom = "{color-white}[======------{color-brightmagenta} {name_sized_gap} {color-white}------======]"
+progress_left_border = '['
+progress_right_border = ']'
+progress_progress = '='
+progress_empty = ' '
+progress_target_length = 20
+use_ibis = false
+suppress_errors = true
+percentage_color_thresholds = [
+    "75:brightgreen",
+    "85:brightyellow",
+    "90:brightred"
+]
+
+[ascii]
+display = true
+side = "left"
+margin = 4
+mode = "os"
+solid_color = "bright_magenta"
+band_colors = ["bright_magenta", "bright_cyan", "bright_white", "bright_cyan", "bright_magenta"]
+
+[hostname]
+title = ""
+format = "{color-title}{username}{color-white}@{color-title}{hostname}"
+
+[cpu]
+title = "CPU"
+format = "{name} {arch} ({core_count}c {thread_count}t) @ {max_clock_ghz} GHz"
+remove_trailing_processor = true
+
+[gpu]
+amd_accuracy = true
+ignore_disabled_gpus = true
+detect_through_driver = false
+title = "GPU"
+format = "{vendor} {model} ({vram})"
+
+[memory]
+title = "Memory"
+format = "{used} / {max} ({percent})"
+
+[swap]
+title = "Swap"
+format = "{used} / {total} ({percent})"
+
+[mounts]
+title = "Disk ({mount})"
+format = "{space_used} used of {space_total} ({percent}) [{filesystem}]"
+ignore = []
+
+[host]
+title = "Host"
+format = "{host} ({chassis})"
+newline_chassis = false
+chassis_title = "Chassis"
+chassis_format = "{chassis}"
+
+[displays]
+title = "Display ({make} {model})"
+format = "{width}x{height} @ {refresh_rate}Hz ({name})"
+scale_size = false
+
+[os]
+title = "Operating System"
+format = "{distro} ({kernel})"
+newline_kernel = false
+kernel_title = "Kernel"
+kernel_format = "Linux {kernel}"
+
+[packages]
+title = "Packages"
+format = "{count} ({manager})"
+ignore = []
+
+[desktop]
+title = "Desktop"
+format = "{desktop} ({display_type})"
+
+[terminal]
+title = "Terminal"
+format = "{name} {version}"
+
+[shell]
+title = "Shell"
+format = "{name} {version}"
+show_default_shell = false
+
+[uptime]
+title = "Uptime"
+
+[editor]
+title = "Editor"
+format = "{name} {version}"
+fancy = true
+
+[locale]
+title = "Locale"
+format = "{language} ({encoding})"
+
+[theme]
+title = "Theme"
+format = "Gtk3: {gtk3}  Gtk4: {gtk4}"
+
+[icontheme]
+title = "Icons"
+format = "Gtk3: {gtk3}  Gtk4: {gtk4}"
+
+[player]
+title = "Player ({player})"
+format = "{track} by {track_artists} ({album}) [{status}]"
+ignore = []
+
+[battery]
+title = "Battery {index}"
+format = "{percentage}%"
+
+[initsys]
+title = "Init System"
+format = "{name} {version}"
+
+[processes]
+title = "Total Processes"
+
+[datetime]
+title = "Date Time"
+format = "%H:%M:%S on %e %B %G"
+
+[localip]
+title = "Local IP ({interface})"
+format = "{addr}"

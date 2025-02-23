@@ -271,8 +271,8 @@ mod tests {
     }
 }
 
-// The default config, stored so that it can be written
-const DEFAULT_CONFIG_CONTENTS: &str = include_str!("../default-config.toml");
+// The default configs & presets, stored so that it can be written
+const DEFAULT_CONFIG_CONTENTS: &str = include_str!("../presets/default-config.toml");
 
 pub fn fill_builder_defaults(mut builder: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
     // Set the defaults here

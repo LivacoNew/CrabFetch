@@ -95,23 +95,30 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
     let mut config_path_str: Option<String> = None;
     if location_override.is_some() {
         let location_override: String = location_override.clone().unwrap();
+
         if location_override != "none" {
+            // Presets
             if let Some(stripped) = location_override.strip_prefix("preset:") {
                 match stripped {
                     "full" => return Ok(preset_configs::preset_full()),
                     "neofetch" => return Ok(preset_configs::preset_neofetch()),
                     "basic" => return Ok(preset_configs::preset_basic()),
-                    _ => return Err(ConfigurationError::new(None, "Unable to find preset.".to_string()))
+                    _ => {
+                        config_path_str = find_file_in_config_dir(&format!("presets/{}.toml", stripped)).map(|x| x.display().to_string());
+                        if config_path_str.is_none() {
+                            return Err(ConfigurationError::new(None, "Unable to find preset.".to_string()));
+                        }
+                    }
                 }
-            }
+            } else {
+                config_path_str = Some(shellexpand::tilde(&location_override).to_string());
+                let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
 
-            config_path_str = Some(shellexpand::tilde(&location_override).to_string());
-            let config_path_str: String = config_path_str.as_ref().unwrap().to_string();
-
-            // Verify it exists
-            let path: &Path = Path::new(&config_path_str);
-            if !path.exists() {
-                return Err(ConfigurationError::new(Some(config_path_str), "Unable to find config file.".to_string()));
+                // Verify it exists
+                let path: &Path = Path::new(&config_path_str);
+                if !path.exists() {
+                    return Err(ConfigurationError::new(Some(config_path_str), "Unable to find config file.".to_string()));
+                }
             }
         }
     } else {

@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 #![allow(clippy::too_many_lines, clippy::unreadable_literal, clippy::similar_names, clippy::ignored_unit_patterns)]
 
 use std::process::{Command, Output};

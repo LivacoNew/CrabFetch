@@ -4,32 +4,32 @@ use crate::module::ModuleError;
 
 #[derive(Clone, Debug)]
 pub struct GTKThemeCache {
-    pub gtk2_theme: String,
-    pub gtk3_theme: String,
-    pub gtk4_theme: String
+    pub gtk2: String,
+    pub gtk3: String,
+    pub gtk4: String
 }
 impl Default for GTKThemeCache {
     fn default() -> Self {
         Self {
-            gtk2_theme: "Adwaita".to_string(),
-            gtk3_theme: "Adwaita".to_string(),
-            gtk4_theme: "Adwaita".to_string(),
+            gtk2: "Adwaita".to_string(),
+            gtk3: "Adwaita".to_string(),
+            gtk4: "Adwaita".to_string(),
         }
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct GTKIconCache {
-    pub gtk2_icon_theme: String,
-    pub gtk3_icon_theme: String,
-    pub gtk4_icon_theme: String
+    pub gtk2: String,
+    pub gtk3: String,
+    pub gtk4: String
 }
 impl Default for GTKIconCache {
     fn default() -> Self {
         Self {
-            gtk2_icon_theme: "Adwaita".to_string(),
-            gtk3_icon_theme: "Adwaita".to_string(),
-            gtk4_icon_theme: "Adwaita".to_string(),
+            gtk2: "Adwaita".to_string(),
+            gtk3: "Adwaita".to_string(),
+            gtk4: "Adwaita".to_string(),
         }
     }
 }
@@ -45,29 +45,26 @@ impl GTKSettingsCache {
             return Ok(themes.clone());
         }
 
-        let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
-            Ok(r) => r,
-            Err(_) => {
-                // Let's try the home directory
-                let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
-                };
-                home_dir.push_str("/.config/");
-                home_dir
-            }
+        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") { r } else {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
+            };
+            home_dir.push_str("/.config/");
+            home_dir
         };
         let config_path: &Path = Path::new(&config_path_str);
 
         let mut themes: GTKThemeCache = GTKThemeCache::default();
         if let Some(gtk2) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-2.0/settings.ini")) {
-            themes.gtk2_theme = gtk2;
+            themes.gtk2 = gtk2;
         }
         if let Some(gtk3) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-3.0/settings.ini")) {
-            themes.gtk3_theme = gtk3;
+            themes.gtk3 = gtk3;
         }
         if let Some(gtk4) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-4.0/settings.ini")) {
-            themes.gtk4_theme = gtk4;
+            themes.gtk4 = gtk4;
         }
 
         self.themes = Some(themes.clone());
@@ -79,29 +76,26 @@ impl GTKSettingsCache {
             return Ok(icons.clone());
         }
 
-        let config_path_str: String = match env::var("XDG_CONFIG_HOME") {
-            Ok(r) => r,
-            Err(_) => {
-                // Let's try the home directory
-                let mut home_dir: String = match env::var("HOME") {
-                    Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
-                };
-                home_dir.push_str("/.config/");
-                home_dir
-            }
+        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") { r } else {
+            // Let's try the home directory
+            let mut home_dir: String = match env::var("HOME") {
+                Ok(r) => r,
+                Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
+            };
+            home_dir.push_str("/.config/");
+            home_dir
         };
         let config_path: &Path = Path::new(&config_path_str);
 
         let mut icons: GTKIconCache = GTKIconCache::default();
         if let Some(gtk2) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-2.0/settings.ini")) {
-            icons.gtk2_icon_theme = gtk2;
+            icons.gtk2 = gtk2;
         }
         if let Some(gtk3) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-3.0/settings.ini")) {
-            icons.gtk3_icon_theme = gtk3;
+            icons.gtk3 = gtk3;
         }
         if let Some(gtk4) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-4.0/settings.ini")) {
-            icons.gtk4_icon_theme = gtk4;
+            icons.gtk4 = gtk4;
         }
 
         self.icons = Some(icons.clone());

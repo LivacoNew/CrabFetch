@@ -61,9 +61,9 @@ pub fn get_icon_theme(gtk_settings: &mut GTKSettingsCache) -> Result<IconThemeIn
     let mut icon_theme: IconThemeInfo = IconThemeInfo::new();
 
     if let Ok(icon_themes) = gtk_settings.get_icons() {
-        icon_theme.gtk2 = icon_themes.gtk2_icon_theme;
-        icon_theme.gtk3 = icon_themes.gtk3_icon_theme;
-        icon_theme.gtk4 = icon_themes.gtk4_icon_theme;
+        icon_theme.gtk2 = icon_themes.gtk2;
+        icon_theme.gtk3 = icon_themes.gtk3;
+        icon_theme.gtk4 = icon_themes.gtk4;
     } else {
         return Err(ModuleError::new("Icon Themes", "Failed to read GTK settings.".to_string()));
     }

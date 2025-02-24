@@ -104,7 +104,7 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
                     "neofetch" => return Ok(preset_configs::preset_neofetch()),
                     "basic" => return Ok(preset_configs::preset_basic()),
                     _ => {
-                        config_path_str = find_file_in_config_dir(&format!("presets/{}.toml", stripped)).map(|x| x.display().to_string());
+                        config_path_str = find_file_in_config_dir(&format!("presets/{stripped}.toml")).map(|x| x.display().to_string());
                         if config_path_str.is_none() {
                             return Err(ConfigurationError::new(None, "Unable to find preset.".to_string()));
                         }

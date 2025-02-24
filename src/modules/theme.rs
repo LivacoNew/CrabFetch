@@ -61,9 +61,9 @@ pub fn get_theme(gtk_settings: &mut GTKSettingsCache) -> Result<ThemeInfo, Modul
     let mut theme: ThemeInfo = ThemeInfo::new();
 
     if let Ok(themes) = gtk_settings.get_themes() {
-        theme.gtk2 = themes.gtk2_theme;
-        theme.gtk3 = themes.gtk3_theme;
-        theme.gtk4 = themes.gtk4_theme;
+        theme.gtk2 = themes.gtk2;
+        theme.gtk3 = themes.gtk3;
+        theme.gtk4 = themes.gtk4;
     } else {
         return Err(ModuleError::new("Themes", "Failed to read GTK settings.".to_string()));
     }

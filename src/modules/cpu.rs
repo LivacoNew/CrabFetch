@@ -5,6 +5,8 @@ use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{
 use {android_system_properties::AndroidSystemProperties, std::env};
 #[cfg(target_arch = "x86_64")]
 use raw_cpuid::CpuId;
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -18,6 +20,7 @@ pub struct CPUInfo {
     arch: String
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct CPUConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

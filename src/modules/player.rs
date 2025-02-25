@@ -1,6 +1,8 @@
 use std::time::Duration;
 
 use dbus::{arg, blocking::{stdintf::org_freedesktop_dbus::Properties, Connection, Proxy}};
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError};
@@ -14,6 +16,7 @@ pub struct PlayerInfo {
     status: String,
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct PlayerConfiguration {
     pub title: String,
     pub ignore: Vec<String>,

@@ -5,6 +5,8 @@ use std::mem;
 use std::env;
 
 use libc::statfs;
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
@@ -18,6 +20,7 @@ pub struct MountInfo {
     percent: f32
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct MountConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

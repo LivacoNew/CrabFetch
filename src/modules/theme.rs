@@ -8,6 +8,7 @@ pub struct ThemeInfo {
     gtk4: String
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(schemars::JsonSchema))]
 pub struct ThemeConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

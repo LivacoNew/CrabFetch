@@ -1,5 +1,7 @@
 use std::{fs::{self, DirEntry, ReadDir}, path::PathBuf};
 
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
@@ -9,6 +11,7 @@ pub struct BatteryInfo {
     percentage: f32,
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct BatteryConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

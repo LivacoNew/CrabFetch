@@ -1,11 +1,14 @@
 use std::cmp::min;
 
 use colored::ColoredString;
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFetchColor};
 
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct AsciiConfiguration {
     pub display: bool,
     pub side: String,
@@ -18,6 +21,7 @@ pub struct AsciiConfiguration {
     pub band_colors: Vec<CrabFetchColor>
 }
 #[derive(Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub enum AsciiMode {
     Raw,
     OS,

@@ -1,6 +1,8 @@
 use std::{path::Path, time::Duration};
 
 use humantime::format_duration;
+#[cfg(feature = "jsonschema")]
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util, ModuleError};
@@ -9,6 +11,7 @@ pub struct UptimeInfo {
     uptime: Duration,
 }
 #[derive(Deserialize)]
+#[cfg_attr(feature = "jsonschema", derive(JsonSchema))]
 pub struct UptimeConfiguration {
     pub title: String,
     pub title_color: Option<CrabFetchColor>,

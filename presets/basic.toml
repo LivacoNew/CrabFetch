@@ -47,6 +47,7 @@ percentage_color_thresholds = [
 display = true
 side = "left"
 margin = 4
+bold = true
 mode = "os"
 solid_color = "bright_magenta"
 band_colors = ["bright_magenta", "bright_cyan", "bright_white", "bright_cyan", "bright_magenta"]

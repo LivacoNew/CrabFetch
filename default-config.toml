@@ -111,6 +111,8 @@ display = true
 side = "left"
 # The amount of space to put between the ASCII and the info
 margin = 4
+# Embolen the ASCII
+bold = true
 
 # The coloring mode to use;
 # - "raw" leaves the coloring alone, letting it be uncolored, or lets you use escape codes in the ascii override.

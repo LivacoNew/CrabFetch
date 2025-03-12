@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-use colored::ColoredString;
+use colored::{ColoredString, Colorize};
 use serde::Deserialize;
 
 use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFetchColor};
@@ -10,6 +10,7 @@ pub struct AsciiConfiguration {
     pub display: bool,
     pub side: String,
     pub margin: u16,
+    pub bold: bool,
     pub mode: AsciiMode,
     // Coloring options 
     // Done this way because I kid you not I could not find a way to make an multi-type thing for
@@ -88,7 +89,11 @@ pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: 
         }
     }
 
-    line
+    if config.ascii.bold {
+        line.bold().to_string()
+    } else {
+        line
+    }
 }
 
 fn color_solid(line: &str, config: &Configuration) -> String {

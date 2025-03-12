@@ -369,6 +369,7 @@ pub fn fill_builder_defaults(mut builder: ConfigBuilder<DefaultState>) -> Config
     builder = builder.set_default("ascii.display", true).unwrap();
     builder = builder.set_default("ascii.side", "left").unwrap();
     builder = builder.set_default("ascii.margin", 4).unwrap();
+    builder = builder.set_default("ascii.bold", true).unwrap();
     builder = builder.set_default("ascii.mode", "os").unwrap();
     builder = builder.set_default("ascii.solid_color", "bright_magenta").unwrap();
     builder = builder.set_default("ascii.band_colors", vec!["bright_magenta", "bright_cyan", "bright_white", "bright_cyan", "bright_magenta"]).unwrap();

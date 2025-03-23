@@ -1,12 +1,14 @@
 [package]
-name = "crabfetch"
+name = "crab-fetch"
 version = "0.5.4"
-authors = ["Livaco"]
+authors = ["Livaco <livaco@livaco.dev>"]
 edition = "2021"
 description = "Extremely fast, featureful and customizable command-line fetcher."
 readme = "README.md"
 repository = "https://github.com/LivacoNew/CrabFetch"
 license = "Apache-2.0"
+keywords = ["fetch", "linux", "command-line", "terminal", "system-information"]
+categories = ["command-line-utilities"]
 
 [features]
 player = ["dep:dbus"]

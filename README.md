@@ -40,6 +40,13 @@ CrabFetch is very early in it's life, and may not detect some stuff correctly, t
 
 Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installation) for more detailed instructions on how to install CrabFetch, as well as manually building.
 
+### All Systems 
+The surefire way to install CrabFetch is by using [crates.io](https://crates.io/crates/crab-fetch) and Cargo.
+```sh
+cargo install crab-fetch
+```
+Note this will build CrabFetch from source, if you don't wanna go through that or just want a OS-Specific package:
+
 ### Arch Linux
 You can use either;
 - [crab-fetch](https://aur.archlinux.org/packages/crab-fetch) (AUR)
@@ -52,7 +59,7 @@ sudo apt install ./crabfetch.deb
 ```
 
 ### Other
-Go to the [latest release](https://github.com/LivacoNew/CrabFetch/releases/latest) and download the file for your CPU's architecture. From there, just run;
+At this point just use Cargo, or if your stubborn go to the [latest release](https://github.com/LivacoNew/CrabFetch/releases/latest) and download the file for your CPU's architecture. From there, just run;
 ```sh
 cp crabfetch /usr/local/bin/crabfetch
 ```

@@ -44,8 +44,9 @@ Check out the [Wiki Page](https://github.com/LivacoNew/CrabFetch/wiki/Installati
 The surefire way to install CrabFetch is by using [crates.io](https://crates.io/crates/crab-fetch) and Cargo.
 ```sh
 cargo install crab-fetch
+mv ~/.cargo/bin/crab-fetch ~/.cargo/bin/crabfetch
 ```
-Note this will build CrabFetch from source, if you don't wanna go through that or just want a OS-Specific package:
+Due to `crabfetch` already being taken on crates.io, this will install the binary as `crab-fetch`, so the `mv` command on the second line fixes this until we get the name or until [this](https://github.com/rust-lang/cargo/issues/12366) is implemented.
 
 ### Arch Linux
 You can use either;

@@ -315,6 +315,7 @@ pub fn find_os_color(os_id: &str) -> CrabFetchColor {
 }
 pub const OS_COLOR: &[(&str, CrabFetchColor)] = &[
     ("arch", CrabFetchColor::BrightCyan),
+    ("cachyos", CrabFetchColor::BrightGreen),
     ("debian", CrabFetchColor::BrightRed),
     ("ubuntu", CrabFetchColor::Red),
     ("fedora", CrabFetchColor::BrightBlue),

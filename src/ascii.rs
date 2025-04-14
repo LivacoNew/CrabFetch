@@ -45,6 +45,7 @@ pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
     let ascii: (&str, u16) = match os {
         "arch" => ascii_art::ARCH,
         "debian" => ascii_art::DEBIAN,
+        "cachyos" => ascii_art::CACHYOS,
         "ubuntu" => ascii_art::UBUNTU,
         "fedora" => ascii_art::FEDORA,
         "void" => ascii_art::VOID,

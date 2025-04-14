@@ -324,3 +324,16 @@ pub const ANDROID: (&str, u16) = (
            ^7!!!!.  .!!!!7:  
            ^7!!!!.  .!!!!7: 
            .~!!!^   .^!!!^. ", 38);
+
+pub const CACHYOS: (&str, u16) = (
+"       ............         
+      !JJJJJJJJJJJ~  .:     
+    .!?YJ?JJYYYYJ^   .^     
+   :7??YY7^^^^^^:  .:.      
+  ^?JJYY~         .!7~      
+ :JJJJY!           ..  .:.  
+  :JYYYY~             :???^ 
+   :?YYJJ!^^::::::::^:.:^^. 
+    .7YJ?YYYYJJ??????^      
+      !JJYJJYYYJJ??7.       
+       ............ ", 28);

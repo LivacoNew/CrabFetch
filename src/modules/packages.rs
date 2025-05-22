@@ -1,5 +1,5 @@
 use core::str;
-use std::fs::{read_dir, ReadDir};
+use std::{env, fs::{read_dir, ReadDir}, path::{Path, PathBuf}};
 
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
@@ -17,6 +17,7 @@ pub struct PackagesConfiguration {
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
     pub ignore: Vec<String>,
+    pub flatpak_seperate_user: bool,
     pub format: String
 }
 impl Module for PackagesInfo {
@@ -100,7 +101,7 @@ impl ManagerInfo {
     }
 }
 
-pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> PackagesInfo {
+pub fn get_packages(package_managers: &package_managers::ManagerInfo, config: &Configuration) -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
     packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
@@ -108,8 +109,13 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     packages.packages.push(ManagerInfo::fill("xbps", package_managers.find_all_packages_from(MANAGER_XBPS).values().len() as u64));
     packages.packages.push(ManagerInfo::fill("brew", package_managers.find_all_packages_from(MANAGER_HOMEBREW).values().len() as u64));
 
-    if let Some(r) = process_flatpak_packages() {
-        packages.packages.push(ManagerInfo::fill("flatpak", r));
+    if let (Some(s), Some(u)) = process_flatpak_packages() {
+        if config.packages.flatpak_seperate_user {
+            packages.packages.push(ManagerInfo::fill("flatpak-system", s));
+            packages.packages.push(ManagerInfo::fill("flatpak-user", u));
+        } else {
+            packages.packages.push(ManagerInfo::fill("flatpak", s + u));
+        }
     }
 
     #[cfg(feature = "rpm_packages")]
@@ -147,23 +153,98 @@ fn process_rpm_packages() -> Option<u64> {
     }
 }
 
-pub fn process_flatpak_packages() -> Option<u64> {
+pub fn process_flatpak_packages() -> (Option<u64>, Option<u64>) {
     // This counts everything in /app and /runtime
     // This does NOT get full information, as I don't care enough about flatpak to figure out
     // how to process it. It's simply used in the packages module and nowhere else for now
+
+    // System
+    let system: Option<u64> = match search_flatpak_base(Path::new("/var/lib/flatpak")) {
+        Ok(r) => Some(r as u64),
+        Err(_) => None
+    };
+    // User
+    let home_dir_str: String = match env::var("HOME") {
+        Ok(r) => r,
+        Err(_) => return (system, None)
+    };
+    let flatpak_path: PathBuf = Path::new(&home_dir_str).join(".local/share/flatpak");
+    let user: Option<u64> = match search_flatpak_base(&flatpak_path) {
+        Ok(r) => Some(r as u64),
+        Err(_) => None,
+    };
+
+    (system, user)
+}
+    
+fn search_flatpak_base(base_dir: &Path) -> Result<usize, String>{
+    // Credit to
+    // https://www.reddit.com/r/flatpak/comments/j23lra/comment/g7301ob/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    // for explaining the difference between these two
+
     let mut result: usize = 0;
 
-    let flatpak_apps_dir: ReadDir = match read_dir("/var/lib/flatpak/app") {
+    // System Apps
+    let flatpak_apps_dir: ReadDir = match read_dir(base_dir.join("app")) {
         Ok(r) => r,
-        Err(_) => return None,
+        Err(_) => return Err("Unable to read from flatpak app folder".to_string()),
     };
-    result += flatpak_apps_dir.count();
+    for package in flatpak_apps_dir {
+        if package.is_err() {
+            continue
+        }
+        let package = package.unwrap();
+        if package.path().to_str().unwrap().to_lowercase().contains("locale") { // ignore "locale" packages
+            continue
+        }
+        result += match flatpak_count_package_versions(&package.path()) {
+            Ok(r) => r,
+            Err(_) => return Err("Unable to count flatpak app packages".to_string()),
+        }
+    }
 
-    let flatpak_runtime_dir: ReadDir = match read_dir("/var/lib/flatpak/runtime") {
+    // System Runtime
+    let flatpak_runtime_dir: ReadDir = match read_dir(base_dir.join("runtime")) {
         Ok(r) => r,
-        Err(_) => return None,
+        Err(_) => return Err("Unable to read from flatpak runtime folder".to_string()),
     };
-    result += flatpak_runtime_dir.count();
+    for package in flatpak_runtime_dir {
+        if package.is_err() {
+            continue
+        }
+        let package = package.unwrap();
+        if package.path().to_str().unwrap().to_lowercase().contains("locale") { // ignore "locale" packages
+            continue
+        }
+        result += match flatpak_count_package_versions(&package.path()) {
+            Ok(r) => r,
+            Err(_) => return Err("Unable to count flatpak runtime packages".to_string()),
+        }
+    }
 
-    Some(result as u64)
+    Ok(result)
+}
+fn flatpak_count_package_versions(path: &Path) -> Result<usize, String> {
+    let package_dir: ReadDir = match path.read_dir() {
+        Ok(r) => r,
+        Err(_) => return Err("Unable to read flatpak package directory.".to_string()),
+    };
+    let mut count: usize = 0;
+    for arch in package_dir {
+        if arch.is_err() {
+            continue
+        }
+        let arch: PathBuf = arch.unwrap().path();
+        // ignore mounted stuff, for some reason needs to be .contains 
+        if arch.to_str().unwrap().to_lowercase().contains("current") {
+            continue
+        }
+        let arch_dir: ReadDir = match read_dir(arch) {
+            Ok(r) => r,
+            Err(_) => return Err("Unable to read flatpak arch directory.".to_string()),
+        };
+        count += arch_dir.count();
+    }
+
+    Ok(count)
 }

@@ -282,6 +282,11 @@ format = "{count} ({manager})"
 # List of package managers to ignore, for whatever reason you choose to
 ignore = []
 
+# Whether to seperate flatpak system and user packages
+# If enabled will appear as "10 (flatpak-system), 10 (flatpak-user)"
+# Otherwise will simply appear as "10 (flatpak)"
+flatpak_seperate_user = true
+
 
 [desktop]
 # Placeholders;

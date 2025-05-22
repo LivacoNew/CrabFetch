@@ -418,6 +418,7 @@ pub fn fill_builder_defaults(mut builder: ConfigBuilder<DefaultState>) -> Config
     builder = builder.set_default("packages.title", "Packages").unwrap();
     builder = builder.set_default("packages.format", "{count} ({manager})").unwrap();
     builder = builder.set_default("packages.ignore", Vec::<String>::new()).unwrap();
+    builder = builder.set_default("packages.flatpak_seperate_user", true).unwrap();
 
     builder = builder.set_default("desktop.title", "Desktop").unwrap();
     builder = builder.set_default("desktop.format", "{desktop} ({display_type})").unwrap();

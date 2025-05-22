@@ -159,7 +159,7 @@ pub fn process_flatpak_packages() -> (Option<u64>, Option<u64>) {
     // how to process it. It's simply used in the packages module and nowhere else for now
 
     // System
-    let system = match search_flatpak_base(Path::new("/var/lib/flatpak")) {
+    let system: Option<u64> = match search_flatpak_base(Path::new("/var/lib/flatpak")) {
         Ok(r) => Some(r as u64),
         Err(_) => None
     };
@@ -169,7 +169,7 @@ pub fn process_flatpak_packages() -> (Option<u64>, Option<u64>) {
         Err(_) => return (system, None)
     };
     let flatpak_path: PathBuf = Path::new(&home_dir_str).join(".local/share/flatpak");
-    let user = match search_flatpak_base(&flatpak_path) {
+    let user: Option<u64> = match search_flatpak_base(&flatpak_path) {
         Ok(r) => Some(r as u64),
         Err(_) => None,
     };
@@ -234,7 +234,7 @@ fn flatpak_count_package_versions(path: &Path) -> Result<usize, String> {
         if arch.is_err() {
             continue
         }
-        let arch = arch.unwrap().path();
+        let arch: PathBuf = arch.unwrap().path();
         // ignore mounted stuff, for some reason needs to be .contains 
         if arch.to_str().unwrap().to_lowercase().contains("current") {
             continue

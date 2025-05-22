@@ -17,6 +17,7 @@ pub struct PackagesConfiguration {
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
     pub ignore: Vec<String>,
+    pub flatpak_seperate_user: bool,
     pub format: String
 }
 impl Module for PackagesInfo {
@@ -100,7 +101,7 @@ impl ManagerInfo {
     }
 }
 
-pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> PackagesInfo {
+pub fn get_packages(package_managers: &package_managers::ManagerInfo, config: &Configuration) -> PackagesInfo {
     let mut packages: PackagesInfo = PackagesInfo::new();
 
     packages.packages.push(ManagerInfo::fill("pacman", package_managers.find_all_packages_from(MANAGER_PACMAN).values().len() as u64));
@@ -109,8 +110,12 @@ pub fn get_packages(package_managers: &package_managers::ManagerInfo) -> Package
     packages.packages.push(ManagerInfo::fill("brew", package_managers.find_all_packages_from(MANAGER_HOMEBREW).values().len() as u64));
 
     if let (Some(s), Some(u)) = process_flatpak_packages() {
-        packages.packages.push(ManagerInfo::fill("flatpak-system", s));
-        packages.packages.push(ManagerInfo::fill("flatpak-user", u));
+        if config.packages.flatpak_seperate_user {
+            packages.packages.push(ManagerInfo::fill("flatpak-system", s));
+            packages.packages.push(ManagerInfo::fill("flatpak-user", u));
+        } else {
+            packages.packages.push(ManagerInfo::fill("flatpak", s + u));
+        }
     }
 
     #[cfg(feature = "rpm_packages")]

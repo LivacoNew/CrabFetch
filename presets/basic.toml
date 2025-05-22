@@ -104,6 +104,7 @@ kernel_format = "Linux {kernel}"
 title = "  "
 format = "{count} ({manager})"
 ignore = []
+flatpak_seperate_user = false
 
 [desktop]
 title = "Desktop"

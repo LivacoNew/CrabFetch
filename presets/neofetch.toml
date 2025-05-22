@@ -108,6 +108,7 @@ kernel_format = "{kernel}"
 title = "Packages"
 format = "{count} ({manager})"
 ignore = []
+flatpak_seperate_user = false
 
 [desktop]
 title = "Desktop"

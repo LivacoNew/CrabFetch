@@ -514,7 +514,7 @@ fn main() {
             "packages" => {
                 let bench: Option<Instant> = benchmark_point(args.benchmark); 
                 if known_outputs.packages.is_none() {
-                    known_outputs.packages = Some(packages::get_packages(&package_managers));
+                    known_outputs.packages = Some(packages::get_packages(&package_managers, &config));
                 }
                 output.push(known_outputs.packages.as_ref().unwrap().style(&config));
                 print_bench_time(args.benchmark, args.benchmark_warn, "Packages Module", bench);

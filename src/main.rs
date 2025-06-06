@@ -726,25 +726,28 @@ fn main() {
     let mut ascii_split: Vec<&str> = Vec::new();
     let mut ascii_length: usize = 0;
     let mut ascii_target_length: u16 = 0;
-    // :(
-    let fuck_off_borrow_checker: String;
+    // Prolong the lifetime of the buffer to the end of `main`:
+    // `ascii_split` contains slices that view it.
+    let mut _ascii_buf: ascii::AsciiArtBuf = ascii::AsciiArtBuf::Empty;
+
     if config.ascii.display {
         if known_outputs.os.is_none() {
             let os_bench: Option<Instant> = benchmark_point(args.benchmark); 
             known_outputs.os = Some(os::get_os(&config, &mut syscall_cache));
             print_bench_time(args.benchmark, args.benchmark_warn, "OS (for ASCII)", os_bench);
         }
-        if known_outputs.os.as_ref().unwrap().is_ok() {
+
+        if let Some(Ok(os_outs)) = known_outputs.os.as_ref() {
             // Calculate the ASCII stuff while we're here
-            let ascii: (String, u16) = if args.distro_override.is_some() {
-                ascii::find_ascii(&args.distro_override.clone().unwrap(), args.ignore_custom_ascii)
-            } else {
-                ascii::find_ascii(&known_outputs.os.as_ref().unwrap().as_ref().unwrap().distro_id, args.ignore_custom_ascii)
+            let (ascii_art, ascii_max_len): (ascii::AsciiArtBuf, u16) = match args.distro_override.as_ref() {
+                Some(over) => ascii::find_ascii(over, args.ignore_custom_ascii),
+                None => ascii::find_ascii(&os_outs.distro_id, args.ignore_custom_ascii),
             };
-            fuck_off_borrow_checker = ascii.0;
-            ascii_split = fuck_off_borrow_checker.split('\n').filter(|x| x.trim() != "").collect();
+            _ascii_buf = ascii_art;
+
+            ascii_split = _ascii_buf.as_str().split('\n').filter(|x| x.trim() != "").collect();
             ascii_length = ascii_split.len();
-            ascii_target_length = ascii.1 + config.ascii.margin;
+            ascii_target_length = ascii_max_len + config.ascii.margin;
         }
     }
 

@@ -26,8 +26,25 @@ pub enum AsciiMode {
     Band
 }
 
+#[derive(Debug)]
+pub enum AsciiArtBuf {
+    Empty,
+    User(String),
+    Distro(&'static str),
+}
+
+impl AsciiArtBuf {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Empty => "",
+            Self::User(aa) => &aa,
+            Self::Distro(aa) => aa,
+        }
+    }
+}
+
 // Return type is the ascii & the maximum length of it
-pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
+pub fn find_ascii(os: &str, ignore_custom: bool) -> (AsciiArtBuf, u16) {
     // Will first confirm if theres a ascii override file
     if !ignore_custom {
         if let Some(user_override) = config_manager::check_for_ascii_override() {
@@ -37,12 +54,12 @@ pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
                 let len: usize = stripped.chars().count();
                 if len > length as usize { length = u16::try_from(len).expect("Unable to convert length to u16") }
             });
-            return (user_override, length)
+            return (AsciiArtBuf::User(user_override), length)
         }
     }
     let os: &str = &os.replace('"', "").to_lowercase();
 
-    let ascii: (&str, u16) = match os {
+    let (art, max_len): (&str, u16) = match os {
         "arch" => ascii_art::ARCH,
         "debian" => ascii_art::DEBIAN,
         "cachyos" => ascii_art::CACHYOS,
@@ -65,9 +82,7 @@ pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
         _ => ("", 0)
     };
 
-    // I blame rust not letting me make const strings
-    let ascii_string: String = ascii.0.to_string();
-    (ascii_string, ascii.1)
+    (AsciiArtBuf::Distro(art), max_len)
 }
 
 pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: u16, config: &Configuration) -> String {

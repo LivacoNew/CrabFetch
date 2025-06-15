@@ -4,6 +4,7 @@
 use std::process::{Command, Output};
 use std::time::Duration;
 use std::{cmp::max, env, process::exit, time::Instant};
+use std::borrow::Cow;
 
 use ascii::AsciiMode;
 use common_sources::gtk::GTKSettingsCache;
@@ -728,7 +729,7 @@ fn main() {
     let mut ascii_target_length: u16 = 0;
     // Prolong the lifetime of the buffer to the end of `main`:
     // `ascii_split` contains slices that view it.
-    let mut _ascii_buf: ascii::AsciiArtBuf = ascii::AsciiArtBuf::Empty;
+    let mut _ascii_buf: Cow<'_, str> = Cow::Borrowed("");
 
     if config.ascii.display {
         if known_outputs.os.is_none() {
@@ -739,13 +740,13 @@ fn main() {
 
         if let Some(Ok(os_outs)) = known_outputs.os.as_ref() {
             // Calculate the ASCII stuff while we're here
-            let (ascii_art, ascii_max_len): (ascii::AsciiArtBuf, u16) = match args.distro_override.as_ref() {
+            let (ascii_art, ascii_max_len): (Cow<'_, str>, u16) = match args.distro_override.as_ref() {
                 Some(over) => ascii::find_ascii(over, args.ignore_custom_ascii),
                 None => ascii::find_ascii(&os_outs.distro_id, args.ignore_custom_ascii),
             };
             _ascii_buf = ascii_art;
 
-            ascii_split = _ascii_buf.as_str().split('\n').filter(|x| x.trim() != "").collect();
+            ascii_split = _ascii_buf.split('\n').filter(|x| x.trim() != "").collect();
             ascii_length = ascii_split.len();
             ascii_target_length = ascii_max_len + config.ascii.margin;
         }

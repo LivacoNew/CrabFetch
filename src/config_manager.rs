@@ -155,19 +155,15 @@ pub fn parse(location_override: &Option<String>, module_override: &Option<String
 fn find_file_in_config_dir(path: &str) -> Option<PathBuf> {
     // Tries $XDG_CONFIG_HOME/CrabFetch before backing up to $HOME/.config/CrabFetch
     let mut paths: Vec<PathBuf> = Vec::new();
-    let mut temp_var_to_shut_up_the_borrow_checker: String;
-    if let Ok(config_home) = env::var("XDG_CONFIG_HOME") {
-        temp_var_to_shut_up_the_borrow_checker = config_home;
-        temp_var_to_shut_up_the_borrow_checker.push_str("/CrabFetch/");
-        temp_var_to_shut_up_the_borrow_checker.push_str(path);
-        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    if let Ok(mut config_home) = env::var("XDG_CONFIG_HOME") {
+        config_home.push_str("/CrabFetch/");
+        config_home.push_str(path);
+        paths.push(PathBuf::from(config_home));
     }
-    let mut temp_var_to_shut_up_the_borrow_checker: String;
-    if let Ok(user_home) = env::var("HOME") {
-        temp_var_to_shut_up_the_borrow_checker = user_home;
-        temp_var_to_shut_up_the_borrow_checker.push_str("/.config/CrabFetch/");
-        temp_var_to_shut_up_the_borrow_checker.push_str(path);
-        paths.push(PathBuf::from(temp_var_to_shut_up_the_borrow_checker));
+    if let Ok(mut user_home) = env::var("HOME") {
+        user_home.push_str("/.config/CrabFetch/");
+        user_home.push_str(path);
+        paths.push(PathBuf::from(user_home));
     }
 
     util::find_first_pathbuf_exists(paths)
@@ -179,10 +175,7 @@ pub fn check_for_ascii_override() -> Option<String> {
         return None;
     }
 
-    match util::file_read(&path) {
-        Ok(r) => Some(r),
-        Err(_) => None,
-    }
+    util::file_read(&path).ok()
 }
 
 pub fn generate_config_file(location_override: Option<String>) {

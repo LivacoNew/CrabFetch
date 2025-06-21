@@ -1,6 +1,6 @@
-use std::cmp::min;
+use std::{borrow::Cow, cmp::min};
 
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 use serde::Deserialize;
 
 use crate::{ascii_art, config_manager::{self, Configuration}, formatter::CrabFetchColor};
@@ -12,7 +12,7 @@ pub struct AsciiConfiguration {
     pub margin: u16,
     pub bold: bool,
     pub mode: AsciiMode,
-    // Coloring options 
+    // Coloring options
     // Done this way because I kid you not I could not find a way to make an multi-type thing for
     // the Config crate
     pub solid_color: CrabFetchColor,
@@ -27,7 +27,7 @@ pub enum AsciiMode {
 }
 
 // Return type is the ascii & the maximum length of it
-pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
+pub fn find_ascii(os: &str, ignore_custom: bool) -> (Cow<'_, str>, u16) {
     // Will first confirm if theres a ascii override file
     if !ignore_custom {
         if let Some(user_override) = config_manager::check_for_ascii_override() {
@@ -35,14 +35,16 @@ pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
             user_override.split('\n').for_each(|x| {
                 let stripped = strip_ansi_escapes::strip_str(x);
                 let len: usize = stripped.chars().count();
-                if len > length as usize { length = u16::try_from(len).expect("Unable to convert length to u16") }
+                if len > length as usize {
+                    length = u16::try_from(len).expect("Unable to convert length to u16");
+                }
             });
-            return (user_override, length)
+            return (Cow::Owned(user_override), length);
         }
     }
     let os: &str = &os.replace('"', "").to_lowercase();
 
-    let ascii: (&str, u16) = match os {
+    let (art, max_len): (&str, u16) = match os {
         "arch" => ascii_art::ARCH,
         "debian" => ascii_art::DEBIAN,
         "cachyos" => ascii_art::CACHYOS,
@@ -62,12 +64,10 @@ pub fn find_ascii(os: &str, ignore_custom: bool) -> (String, u16) {
         "almalinux" => ascii_art::ALMA,
         "android" => ascii_art::ANDROID,
         "garuda" => ascii_art::GARUDA,
-        _ => ("", 0)
+        _ => ("", 0),
     };
 
-    // I blame rust not letting me make const strings
-    let ascii_string: String = ascii.0.to_string();
-    (ascii_string, ascii.1)
+    (Cow::Borrowed(art), max_len)
 }
 
 pub fn get_ascii_line(current_line: usize, ascii_split: &[&str], target_length: u16, config: &Configuration) -> String {
@@ -107,6 +107,10 @@ fn color_band_vertical(line: &str, current_line: usize, ascii_length: usize, con
     let total_colors: usize = config.ascii.band_colors.len();
     let index: usize = min((((total_colors - 1) as f32) * percentage).round() as usize, total_colors - 1);
 
-    let colored: ColoredString = config.ascii.band_colors.get(index as usize).unwrap().color_string(line);
-    colored.to_string()
+    config.ascii
+        .band_colors
+        .get(index as usize)
+        .unwrap()
+        .color_string(line)
+        .to_string()
 }

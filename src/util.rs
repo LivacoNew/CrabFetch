@@ -74,5 +74,5 @@ pub fn cstr_from_ptr(ptr: *const c_char) -> Result<String, String> {
 pub fn in_wsl() -> bool {
     // Credit: https://superuser.com/a/1749811
     // Using the first method
-    Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists()
+    Path::new("/usr/bin/wslinfo").exists()
 }

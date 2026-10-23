@@ -1,12 +1,16 @@
+use crate::{
+    common_sources::syscalls::SyscallCache,
+    config_manager::Configuration,
+    formatter::CrabFetchColor,
+    module::Module,
+    util::{self, is_flag_set_u32},
+    ModuleError,
+};
 use core::str;
+use serde::Deserialize;
 use std::path::Path;
-
 #[cfg(feature = "android")]
 use {android_system_properties::AndroidSystemProperties, std::env};
-
-use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util::{self, is_flag_set_u32}, ModuleError};
 
 pub struct OSInfo {
     distro: String,
@@ -23,7 +27,7 @@ pub struct OSConfiguration {
     pub format: String,
     pub newline_kernel: bool,
     pub kernel_title: String,
-    pub kernel_format: String
+    pub kernel_format: String,
 }
 impl Module for OSInfo {
     fn new() -> OSInfo {
@@ -35,27 +39,56 @@ impl Module for OSInfo {
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .os
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.os.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.os.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.os.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .os
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.os.title
+        let title: String = config
+            .os
+            .title
             .replace("{distro}", "Unknown")
             .replace("{kernel}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -67,7 +100,7 @@ impl Module for OSInfo {
         let mut info_flags: u32 = 0;
 
         if format.contains("{distro}") {
-           info_flags |= OS_INFOFLAG_DISTRO;
+            info_flags |= OS_INFOFLAG_DISTRO;
         }
         if format.contains("{kernel}") {
             info_flags |= OS_INFOFLAG_KERNEL;
@@ -77,23 +110,42 @@ impl Module for OSInfo {
     }
 }
 impl OSInfo {
-    // Identical to the regular style method, but placeholder's in the kernel instead
+    // Identical to the regular style method, but placeholder's in the kernel
+    // instead
     pub fn style_kernel(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.os.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .os
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.os.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.os.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.os.separator.as_ref().unwrap_or(&config.separator);
 
-        let value: String = self.replace_color_placeholders(&config.os.kernel_format.replace("{kernel}", &self.kernel), config);
+        let value: String = self.replace_color_placeholders(
+            &config.os.kernel_format.replace("{kernel}", &self.kernel),
+            config,
+        );
 
-        Self::default_style(config, &config.os.kernel_title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &config.os.kernel_title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
 }
 
 const OS_INFOFLAG_DISTRO: u32 = 1;
 const OS_INFOFLAG_KERNEL: u32 = 2;
 
-pub fn get_os(config: &Configuration, syscall_cache: &mut SyscallCache) -> Result<OSInfo, ModuleError> {
+pub fn get_os(
+    config: &Configuration,
+    syscall_cache: &mut SyscallCache,
+) -> Result<OSInfo, ModuleError> {
     let mut os: OSInfo = OSInfo::new();
 
     let mut format: String = config.os.format.to_string();
@@ -107,7 +159,7 @@ pub fn get_os(config: &Configuration, syscall_cache: &mut SyscallCache) -> Resul
 
     // Distro
     if is_flag_set_u32(info_flags, OS_INFOFLAG_DISTRO) || config.ascii.display {
-        // Android 
+        // Android
         #[cfg(feature = "android")]
         if env::consts::OS == "android" {
             let props = AndroidSystemProperties::new();
@@ -137,7 +189,12 @@ pub fn get_os(config: &Configuration, syscall_cache: &mut SyscallCache) -> Resul
 fn parse_os_release(os: &mut OSInfo) -> Result<(), ModuleError> {
     let contents = match util::file_read(Path::new("/etc/os-release")) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("OS", format!("Can't read from /etc/os-release - {e}"))),
+        Err(e) => {
+            return Err(ModuleError::new(
+                "OS",
+                format!("Can't read from /etc/os-release - {e}"),
+            ))
+        }
     };
     for line in contents.lines().collect::<Vec<&str>>() {
         if line.starts_with("PRETTY_NAME=") {

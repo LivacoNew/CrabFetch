@@ -1,13 +1,21 @@
+use crate::{
+    config_manager::Configuration,
+    formatter::{self, CrabFetchColor},
+    module::Module,
+    util::{self, is_flag_set_u32},
+    ModuleError,
+};
 use core::str;
-use std::{fs::{read_dir, File, ReadDir}, io::{BufRead, BufReader, Read}, path::{Component, Path}};
-
-#[cfg(feature = "android")]
-use {android_system_properties::AndroidSystemProperties, std::env};
 #[cfg(target_arch = "x86_64")]
 use raw_cpuid::CpuId;
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
+use std::{
+    fs::{read_dir, File, ReadDir},
+    io::{BufRead, BufReader, Read},
+    path::{Component, Path},
+};
+#[cfg(feature = "android")]
+use {android_system_properties::AndroidSystemProperties, std::env};
 
 pub struct CPUInfo {
     name: String,
@@ -15,7 +23,7 @@ pub struct CPUInfo {
     threads: u16,
     current_clock_mhz: f32,
     max_clock_mhz: f32,
-    arch: String
+    arch: String,
 }
 #[derive(Deserialize)]
 pub struct CPUConfiguration {
@@ -26,7 +34,7 @@ pub struct CPUConfiguration {
     pub separator: Option<String>,
     pub format: String,
     pub decimal_places: Option<u32>,
-    pub remove_trailing_processor: bool
+    pub remove_trailing_processor: bool,
 }
 
 impl Module for CPUInfo {
@@ -37,28 +45,49 @@ impl Module for CPUInfo {
             threads: 0,
             current_clock_mhz: 0.0,
             max_clock_mhz: 0.0,
-            arch: "Unknown".to_string()
+            arch: "Unknown".to_string(),
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.cpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .cpu
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.cpu.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.cpu.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.cpu.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.cpu.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.cpu.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .cpu
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.cpu.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.cpu.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.cpu.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.cpu.title
+        let title: String = config
+            .cpu
+            .title
             .replace("{name}", "Unknown")
             .replace("{core_count}", "Unknown")
             .replace("{thread_count}", "Unknown")
@@ -67,8 +96,16 @@ impl Module for CPUInfo {
             .replace("{max_clock_mhz}", "Unknown")
             .replace("{max_clock_ghz}", "Unknown")
             .replace("{arch}", "Unknown");
-        
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
@@ -77,10 +114,23 @@ impl Module for CPUInfo {
         text.replace("{name}", &self.name)
             .replace("{core_count}", &self.cores.to_string())
             .replace("{thread_count}", &self.threads.to_string())
-            .replace("{current_clock_mhz}", &formatter::round(f64::from(self.current_clock_mhz), dec_places).to_string())
-            .replace("{current_clock_ghz}", &formatter::round(f64::from(self.current_clock_mhz / 1000.0), dec_places).to_string())
-            .replace("{max_clock_mhz}", &formatter::round(f64::from(self.max_clock_mhz), dec_places).to_string())
-            .replace("{max_clock_ghz}", &formatter::round(f64::from(self.max_clock_mhz / 1000.0), dec_places).to_string())
+            .replace(
+                "{current_clock_mhz}",
+                &formatter::round(f64::from(self.current_clock_mhz), dec_places).to_string(),
+            )
+            .replace(
+                "{current_clock_ghz}",
+                &formatter::round(f64::from(self.current_clock_mhz / 1000.0), dec_places)
+                    .to_string(),
+            )
+            .replace(
+                "{max_clock_mhz}",
+                &formatter::round(f64::from(self.max_clock_mhz), dec_places).to_string(),
+            )
+            .replace(
+                "{max_clock_ghz}",
+                &formatter::round(f64::from(self.max_clock_mhz / 1000.0), dec_places).to_string(),
+            )
             .replace("{arch}", &self.arch.to_string())
     }
 
@@ -124,16 +174,17 @@ pub fn get_cpu(config: &Configuration) -> Result<CPUInfo, ModuleError> {
 
     // This ones split into 2 as theres a lot to parse
     match get_basic_info(&mut cpu, info_flags) {
-        Ok(_) => {},
-        Err(e) => return Err(e)
+        Ok(_) => {}
+        Err(e) => return Err(e),
     };
     match get_max_clock(&mut cpu, info_flags) {
-        Ok(_) => {},
-        Err(e) => return Err(e)
+        Ok(_) => {}
+        Err(e) => return Err(e),
     };
 
     if config.cpu.remove_trailing_processor {
-        // Tried doing this with Regex but it added 400 micro secs so fuck that shit
+        // Tried doing this with Regex but it added 400 micro secs so fuck that
+        // shit
         let loc: usize = match cpu.name.find("-Core Processor") {
             Some(r) => r,
             None => return Ok(cpu), // ignore it
@@ -160,13 +211,19 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
     // This gives us the cpu name, cores, threads and current clock
     let file: File = match File::open("/proc/cpuinfo") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /proc/cpuinfo - {e}"))),
+        Err(e) => {
+            return Err(ModuleError::new(
+                "CPU",
+                format!("Can't read from /proc/cpuinfo - {e}"),
+            ))
+        }
     };
 
     let buffer: BufReader<File> = BufReader::new(file);
     let mut cpu_mhz_count: u8 = 0;
     let mut first_entry: bool = true;
-    let mut cores: u16 = 0; // This acts as a backup for the "cpu cores" being missing
+    let mut cores: u16 = 0; // This acts as a backup for the "cpu cores" being
+                            // missing
     #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
     let mut arm_vendor: String = String::new();
     #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
@@ -183,27 +240,42 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         }
 
         if first_entry {
-            if line.starts_with("model name") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
+            if line.starts_with("model name")
+                && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME)
+            {
                 cpu.name = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
             #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            if line.starts_with("CPU part") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
+            if line.starts_with("CPU part") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME)
+            {
                 arm_part = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
             #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            if line.starts_with("CPU implementer") && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
+            if line.starts_with("CPU implementer")
+                && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME)
+            {
                 arm_vendor = line.split(": ").collect::<Vec<&str>>()[1].to_string();
             }
             if line.starts_with("cpu cores") && is_flag_set_u32(info_flags, CPU_INFOFLAG_CORES) {
                 cpu.cores = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu cores: {e}"))),
+                    Err(e) => {
+                        return Err(ModuleError::new(
+                            "CPU",
+                            format!("WARNING: Could not parse cpu cores: {e}"),
+                        ))
+                    }
                 }
             }
             if line.starts_with("siblings") && is_flag_set_u32(info_flags, CPU_INFOFLAG_THREADS) {
                 cpu.threads = match line.split(": ").collect::<Vec<&str>>()[1].parse::<u16>() {
                     Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse cpu threads: {e}"))),
+                    Err(e) => {
+                        return Err(ModuleError::new(
+                            "CPU",
+                            format!("WARNING: Could not parse cpu threads: {e}"),
+                        ))
+                    }
                 }
             }
             if line.starts_with("flags") && is_flag_set_u32(info_flags, CPU_INFOFLAG_ARCH) {
@@ -211,10 +283,10 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
                 for flag in line.split(": ").collect::<Vec<&str>>()[1].split(' ') {
                     // prepare for trouble
                     cpu.arch = match flag {
-                        "ia86" => {"IA86".to_string()}
-                        "arch_capabilities" => {"IA32".to_string()}
-                        "lm" => {"x86_64".to_string()}
-                        _ => {continue} 
+                        "ia86" => "IA86".to_string(),
+                        "arch_capabilities" => "IA32".to_string(),
+                        "lm" => "x86_64".to_string(),
+                        _ => continue,
                     };
                     if !cpu.arch.is_empty() {
                         break;
@@ -222,12 +294,18 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
                 }
             }
         }
-        // This ignore's it's feature flag to prevent issues allow max freq to back up to this on
-        // failure
+        // This ignore's it's feature flag to prevent issues allow max freq to
+        // back up to this on failure
         if line.starts_with("cpu MHz") {
-            cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>() {
+            cpu.current_clock_mhz += match line.split(": ").collect::<Vec<&str>>()[1].parse::<f32>()
+            {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("CPU", format!("WARNING: Could not parse current cpu frequency: {e}"))),
+                Err(e) => {
+                    return Err(ModuleError::new(
+                        "CPU",
+                        format!("WARNING: Could not parse current cpu frequency: {e}"),
+                    ))
+                }
             };
             cpu_mhz_count += 1;
         }
@@ -238,29 +316,48 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         // Thanks to https://stackoverflow.com/a/30150409
         let mut file: File = match File::open("/sys/devices/system/cpu/present") {
             Ok(r) => r,
-            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu/present - {e}"))),
+            Err(e) => {
+                return Err(ModuleError::new(
+                    "CPU",
+                    format!("Can't read from /sys/devices/system/cpu/present - {e}"),
+                ))
+            }
         };
         let mut contents: String = String::new();
         match file.read_to_string(&mut contents) {
-            Ok(_) => {},
-            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu/present - {e}"))),
+            Ok(_) => {}
+            Err(e) => {
+                return Err(ModuleError::new(
+                    "CPU",
+                    format!("Can't read from /sys/devices/system/cpu/present - {e}"),
+                ))
+            }
         }
         cpu.threads = match contents.trim().split('-').last().unwrap().parse::<u16>() {
             Ok(r) => r + 1,
-            Err(e) => return Err(ModuleError::new("CPU", format!("Failed to parse thread count from /sys/devices/system/cpu/present - {e}"))),
+            Err(e) => {
+                return Err(ModuleError::new(
+                    "CPU",
+                    format!(
+                        "Failed to parse thread count from /sys/devices/system/cpu/present - {e}"
+                    ),
+                ))
+            }
         };
     }
 
-    // Android 
+    // Android
     #[cfg(feature = "android")]
     if env::consts::OS == "android" {
         // This property was a fucking nightmare to find, only being able to find out about it here https://github.com/ArrowOS-Devices/android_device_xiaomi_daisy/blob/arrow-12.1/vendor.prop#L185
-        // I have no idea how standard that property is, especially since I couldn't find it after
-        // a couple hours of scowering Android's docs but oh well
+        // I have no idea how standard that property is, especially since I
+        // couldn't find it after a couple hours of scowering Android's
+        // docs but oh well
         let props = AndroidSystemProperties::new();
         // https://github.com/termux/termux-api/issues/448#issuecomment-927345222
         if let Some(soc_manu) = props.get("ro.soc.manufacturer") {
-            // chaining these let statements is only in the unstable branch so egypt it is
+            // chaining these let statements is only in the unstable branch so
+            // egypt it is
             if let Some(soc_model) = props.get("ro.soc.model") {
                 cpu.name = format!("{} {}", soc_manu, soc_model);
             }
@@ -269,8 +366,8 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
 
     #[cfg(target_arch = "x86_64")]
     if cpu.name == "Unknown" && is_flag_set_u32(info_flags, CPU_INFOFLAG_MODEL_NAME) {
-        // This **seems** to be the only thing that can be missing, mostly on ARM
-        // So, we'll use cpuid to grab it
+        // This **seems** to be the only thing that can be missing, mostly on
+        // ARM So, we'll use cpuid to grab it
         // Credit to Emma lol https://mastodon.social/@Livaco/113027370696819081
         backup_to_cpuid(cpu);
     }
@@ -282,7 +379,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
         let key: String = format!("{}-{}", arm_vendor, arm_part);
         for x in ARM_LOOKUP {
             if x.0 != key {
-                continue
+                continue;
             }
             cpu.name = x.1.to_string();
         }
@@ -296,7 +393,7 @@ fn get_basic_info(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError>
 }
 fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> {
     if !is_flag_set_u32(info_flags, CPU_INFOFLAG_MAX_CLOCK) {
-        return Ok(())
+        return Ok(());
     }
     // All of this is relative to /sys/devices/system/cpu/X/cpufreq
     // There's 3 possible places to get the frequency in here;
@@ -311,40 +408,56 @@ fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> 
     let freq_path: Option<&Path> = util::find_first_path_exists(vec![
         Path::new("/sys/devices/system/cpu/cpu0/cpufreq/bios_limit"),
         Path::new("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"),
-        Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
+        Path::new("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"),
     ]);
 
     if freq_path.is_none() {
         // Back up to the repoted value in /proc/cpuinfo
-        // At this point all I can assume is your in a VM, which doesn't have any of the above
-        // paths and seems to keep a steady CPU frequency in here instead
-        // Not the most elegant thing but I can't seem to find anything else to do
+        // At this point all I can assume is your in a VM, which doesn't have
+        // any of the above paths and seems to keep a steady CPU
+        // frequency in here instead Not the most elegant thing but I
+        // can't seem to find anything else to do
         cpu.max_clock_mhz = cpu.current_clock_mhz;
-        return Ok(())
+        return Ok(());
     }
     let freq_path: &Path = freq_path.unwrap();
     let mut freq_path_str: String = String::new();
     // sheesh
-    for comp in freq_path.components().rev().take(2).collect::<Vec<Component<>>>().iter().rev() {
+    for comp in freq_path
+        .components()
+        .rev()
+        .take(2)
+        .collect::<Vec<Component>>()
+        .iter()
+        .rev()
+    {
         freq_path_str.push('/');
         freq_path_str.push_str(comp.as_os_str().to_str().unwrap());
     }
     let freq_path: &str = &freq_path_str[1..];
-    
+
     let dir: ReadDir = match read_dir("/sys/devices/system/cpu/") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from /sys/devices/system/cpu - {e}")))
+        Err(e) => {
+            return Err(ModuleError::new(
+                "CPU",
+                format!("Can't read from /sys/devices/system/cpu - {e}"),
+            ))
+        }
     };
     for entry in dir {
         let freq_path = match entry {
             Ok(r) => {
                 let file_name = r.file_name();
                 let file_name = file_name.to_str().unwrap();
-                if !file_name.starts_with("cpu") || file_name == "cpuidle" || file_name.starts_with("cpufreq") {
-                    continue
+                if !file_name.starts_with("cpu")
+                    || file_name == "cpuidle"
+                    || file_name.starts_with("cpufreq")
+                {
+                    continue;
                 }
                 r.path().join(freq_path)
-            },
+            }
             Err(_) => continue, // ?
         };
         let freq_path = freq_path.as_path();
@@ -353,10 +466,23 @@ fn get_max_clock(cpu: &mut CPUInfo, info_flags: u32) -> Result<(), ModuleError> 
             Ok(r) => {
                 match r.trim().parse::<f32>() {
                     Ok(r) => cpu.max_clock_mhz = f32::max(r / 1000.0, cpu.max_clock_mhz),
-                    Err(e) => return Err(ModuleError::new("CPU", format!("Unable to parse f32 from {} - {e}", freq_path.to_str().unwrap())))
+                    Err(e) => {
+                        return Err(ModuleError::new(
+                            "CPU",
+                            format!(
+                                "Unable to parse f32 from {} - {e}",
+                                freq_path.to_str().unwrap()
+                            ),
+                        ))
+                    }
                 };
-            },
-            Err(e) => return Err(ModuleError::new("CPU", format!("Can't read from {} - {e}", freq_path.to_str().unwrap()))),
+            }
+            Err(e) => {
+                return Err(ModuleError::new(
+                    "CPU",
+                    format!("Can't read from {} - {e}", freq_path.to_str().unwrap()),
+                ))
+            }
         };
     }
 
@@ -371,8 +497,6 @@ fn backup_to_cpuid(cpu: &mut CPUInfo) {
     }
 }
 
-
-
 // ARM CPU part IDs
 // Credit to
 // https://github.com/util-linux/util-linux/blob/d1917754c633f8eed141ff1b1dbde6bcfe1f8098/sys-utils/lscpu-arm.c#L25
@@ -381,11 +505,11 @@ fn backup_to_cpuid(cpu: &mut CPUInfo) {
 //
 // Index by {vendor}-{part} and you should get your name :)
 //
-// I love how Rust can't tell the array length itself at compile time... when it could just count
-// the elements lmfao
+// I love how Rust can't tell the array length itself at compile time... when it
+// could just count the elements lmfao
 #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
 const ARM_LOOKUP: &[(&str, &str)] = &[
-    // ARM 
+    // ARM
     ("0x41-0x810", "ARM810"),
     ("0x41-0x920", "ARM920"),
     ("0x41-0x922", "ARM922"),
@@ -461,12 +585,10 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x41-0xd85", "ARM Cortex-X925"),
     ("0x41-0xd87", "ARM Cortex-A725"),
     ("0x41-0xd8e", "ARM Neoverse-N3"),
-
     // Broadcom
     ("0x42-0x0f", "Broadcom Brahma-B15"),
     ("0x42-0x100", "Broadcom Brahma-B53"),
     ("0x42-0x0516", "Broadcom ThunderX2"),
-
     // Cavium
     ("0x43-0x0a0", "Cavium ThunderX"),
     ("0x43-0x0a1", "Cavium ThunderX-88XX"),
@@ -481,14 +603,11 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x43-0x0b5", "Cavium OcteonTX2-95XXMM"),
     ("0x43-0x0b6", "Cavium OcteonTX2-95XXO"),
     ("0x43-0x0b8", "Cavium ThunderX3-T110"),
-
     // DEC
     ("0x44-0xa10", "DEC SA110"),
     ("0x44-0xa11", "DEC SA1100"),
-
     // APM
     ("0x50-0x000", "APM X-Gene"),
-
     // Qualcomm
     ("0x51-0x001", "Qualcomm Oryon"),
     ("0x51-0x00f", "Qualcomm Scorpion"),
@@ -506,23 +625,19 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x51-0x805", "Qualcomm Kryo-4XX-Silver"),
     ("0x51-0xc00", "Qualcomm Falkor"),
     ("0x51-0xc01", "Qualcomm Saphira"),
-
     // Samsung
     ("0x53-0x001", "Samsung Exynos-M1"),
     ("0x53-0x002", "Samsung Exynos-M3"),
     ("0x53-0x003", "Samsung Exynos-M4"),
     ("0x53-0x004", "Samsung Exynos-M5"),
-
     // NVIDIA
     ("0x4e-0x000", "NVIDIA Denver"),
     ("0x4e-0x003", "NVIDIA Denver 2"),
     ("0x4e-0x004", "NVIDIA Carmel"),
-
     // Marvell
     ("0x56-0x131", "Marvell Feroceon-88FR131"),
     ("0x56-0x581", "Marvell PJ4/PJ4b"),
     ("0x56-0x584", "Marvell PJ4B-MP"),
-
     // Apple (yuck)
     ("0x61-0x000", "Apple Swift"),
     ("0x61-0x001", "Apple Cyclone"),
@@ -560,11 +675,9 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x61-0x037", "Apple Everest-A16"),
     ("0x61-0x038", "Apple Blizzard-M2-Max"),
     ("0x61-0x039", "Apple Avalanche-M2-Max"),
-
     // Faraday
     ("0x66-0x526", "Faraday FA526"),
     ("0x66-0x626", "Faraday FA626"),
-
     // Intel
     ("0x69-0x200", "Intel i80200"),
     ("0x69-0x210", "Intel PXA250A"),
@@ -587,21 +700,17 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x69-0x689", "Intel PXA31x"),
     ("0x69-0xb11", "Intel SA1110"),
     ("0x69-0xc12", "Intel IPX1200"),
-
     // Fujitsu
     ("0x46-0x001", "FUJITSU A64FX"),
-
     // HISI
     ("0x48-0xd01", "HiSilicon TaiShan-v110"),
     ("0x48-0xd02", "HiSilicon TaiShan-v120"),
     // TODO: Should this be credited to hisilicon or arm??
     ("0x48-0xd40", "HiSilicon Cortex-A76"),
     ("0x48-0xd41", "HiSilicon Cortex-A77"),
-
     // Ampere
     ("0xc0-0xac3", "Ampere-1"),
     ("0xc0-0xac4", "Ampere-1a"),
-
     // Phytium
     ("0x70-0x303", "Phytilum FTC310"),
     ("0x70-0x660", "Phytilum FTC660"),
@@ -610,7 +719,6 @@ const ARM_LOOKUP: &[(&str, &str)] = &[
     ("0x70-0x663", "Phytilum FTC663"),
     ("0x70-0x664", "Phytilum FTC664"),
     ("0x70-0x862", "Phytilum FTC862"),
-
     // Microsoft
-    ("0x6d-0xd49", "Microsoft Azure-Cobalt-100")
+    ("0x6d-0xd49", "Microsoft Azure-Cobalt-100"),
 ];

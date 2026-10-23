@@ -1,8 +1,8 @@
-use std::env;
-
+use crate::{
+    config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError,
+};
 use serde::Deserialize;
-
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
+use std::env;
 
 pub struct LocaleInfo {
     language: String,
@@ -15,38 +15,75 @@ pub struct LocaleConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
-    pub format: String
+    pub format: String,
 }
 impl Module for LocaleInfo {
     fn new() -> LocaleInfo {
         LocaleInfo {
             language: "Unknown".to_string(),
-            encoding: "Unknown".to_string()
+            encoding: "Unknown".to_string(),
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.locale.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .locale
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.locale.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.locale.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.locale.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .locale
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.locale.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.locale.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.locale.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.locale.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .locale
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.locale.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.locale.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.locale.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .locale
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let title: String = config.locale.title
+        let title: String = config
+            .locale
+            .title
             .replace("{language}", "Unknown")
             .replace("{encoding}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -65,7 +102,12 @@ pub fn get_locale() -> Result<LocaleInfo, ModuleError> {
 
     let raw: String = match env::var("LANG") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Locale", format!("Could not parse $LANG env variable: {e}")))
+        Err(e) => {
+            return Err(ModuleError::new(
+                "Locale",
+                format!("Could not parse $LANG env variable: {e}"),
+            ))
+        }
     };
     let raw_split: Vec<&str> = raw.split('.').collect();
     locale.language = String::from(*raw_split.first().unwrap_or(&locale.language.as_ref()));

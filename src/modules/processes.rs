@@ -1,11 +1,11 @@
+use crate::{
+    config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError,
+};
+use serde::Deserialize;
 use std::fs::{read_dir, ReadDir};
 
-use serde::Deserialize;
-
-use crate::{formatter::CrabFetchColor, config_manager::Configuration, module::Module, ModuleError};
-
 pub struct ProcessesInfo {
-    count: u32 // god forbid someone manages to hit this limit
+    count: u32, // god forbid someone manages to hit this limit
 }
 #[derive(Deserialize)]
 pub struct ProcessesConfiguration {
@@ -18,32 +18,67 @@ pub struct ProcessesConfiguration {
 }
 impl Module for ProcessesInfo {
     fn new() -> ProcessesInfo {
-        ProcessesInfo {
-            count: 0
-        }
+        ProcessesInfo { count: 0 }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.processes.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .processes
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.processes.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.processes.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.processes.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .processes
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.processes.title, config);
-        let format: String = config.processes.format.clone().unwrap_or("{count}".to_string());
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
+        let format: String = config
+            .processes
+            .format
+            .clone()
+            .unwrap_or("{count}".to_string());
+        let value: String =
+            self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.processes.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .processes
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.processes.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.processes.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.processes.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .processes
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = config.processes.title.replace("{count}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -58,10 +93,15 @@ impl Module for ProcessesInfo {
 pub fn get_process_count() -> Result<ProcessesInfo, ModuleError> {
     let mut process_info: ProcessesInfo = ProcessesInfo::new();
 
-    // Scans /proc and simply checks if it's a number 
+    // Scans /proc and simply checks if it's a number
     let dir: ReadDir = match read_dir("/proc") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Processes", format!("Failed to read /proc: {e}")))
+        Err(e) => {
+            return Err(ModuleError::new(
+                "Processes",
+                format!("Failed to read /proc: {e}"),
+            ))
+        }
     };
 
     for x in dir {

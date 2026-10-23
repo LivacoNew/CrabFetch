@@ -1,61 +1,72 @@
-// Queries and caches package manager entries to prevent duplicate work between Packages module and
-// Version detection 
-
-use std::{collections::HashMap, ffi::OsStr, fs::{read_dir, DirEntry, File, ReadDir}, io::{BufRead, BufReader}, path::PathBuf};
+// Queries and caches package manager entries to prevent duplicate work between
+// Packages module and Version detection
 
 use crate::config_manager::Configuration;
+use std::{
+    collections::HashMap,
+    ffi::OsStr,
+    fs::{read_dir, DirEntry, File, ReadDir},
+    io::{BufRead, BufReader},
+    path::PathBuf,
+};
 
 pub struct PackageInfo {
     pub name: String,
     pub version: String,
-    pub manager: u8
+    pub manager: u8,
 }
 impl PackageInfo {
     fn new(name: &str, version: &str, manager: u8) -> Self {
         Self {
             name: name.to_string(),
             version: version.to_string(),
-            manager
+            manager,
         }
     }
 }
 
 pub struct ManagerInfo {
     pub available_managers: u8,
-    pub packages: HashMap<String, PackageInfo>
+    pub packages: HashMap<String, PackageInfo>,
 }
 impl ManagerInfo {
     pub fn new() -> Self {
         Self {
             available_managers: 0,
-            packages: HashMap::new()
+            packages: HashMap::new(),
         }
     }
 
     pub fn probe_and_cache(&mut self, config: &Configuration) {
-        // Check if we even need to run this 
-        // TODO optimise this with a key/value arr somewhere so we can check modules without
-        // contains's O(n)?
-        if config.modules.contains(&"packages".to_string()) 
-            || (config.modules.contains(&"terminal".to_string()) && config.terminal.format.contains("{version}")) 
-            || (config.modules.contains(&"shell".to_string()) && config.shell.format.contains("{version}")) 
-            || (config.modules.contains(&"editor".to_string()) && config.editor.format.contains("{version}")) 
-            || (config.modules.contains(&"initsys".to_string()) && config.initsys.format.contains("{version}")) 
+        // Check if we even need to run this
+        // TODO optimise this with a key/value arr somewhere so we can check
+        // modules without contains's O(n)?
+        if config.modules.contains(&"packages".to_string())
+            || (config.modules.contains(&"terminal".to_string())
+                && config.terminal.format.contains("{version}"))
+            || (config.modules.contains(&"shell".to_string())
+                && config.shell.format.contains("{version}"))
+            || (config.modules.contains(&"editor".to_string())
+                && config.editor.format.contains("{version}"))
+            || (config.modules.contains(&"initsys".to_string())
+                && config.initsys.format.contains("{version}"))
         {
-                self.process_pacman_packages();
-                self.process_dpkg_packages();
-                self.process_xbps_packages();
-                self.process_homebrew_packages();
+            self.process_pacman_packages();
+            self.process_dpkg_packages();
+            self.process_xbps_packages();
+            self.process_homebrew_packages();
         }
     }
 
     pub fn find_all_packages_from(&self, manager: u8) -> HashMap<&String, &PackageInfo> {
-        self.packages.iter()
+        self.packages
+            .iter()
             .filter(|x| x.1.manager & manager > 0)
             .collect()
     }
 
-    // Credit for Pacman, Flatpak and DPKG detection goes to FastFetch, they were big brain while I was running pacman -Q like a dummy
+    // Credit for Pacman, Flatpak and DPKG detection goes to FastFetch, they
+    // were big brain while I was running pacman -Q like a dummy
     fn process_pacman_packages(&mut self) {
         let dir: ReadDir = match read_dir("/var/lib/pacman/local") {
             Ok(r) => r,
@@ -65,12 +76,12 @@ impl ManagerInfo {
         for x in dir {
             // Bit messy
             if x.is_err() {
-                continue
+                continue;
             }
             let x: DirEntry = x.unwrap();
             if let Ok(filetype) = x.file_type() {
                 if !filetype.is_dir() {
-                    continue
+                    continue;
                 }
 
                 let raw_name: &OsStr = &x.file_name();
@@ -87,14 +98,18 @@ impl ManagerInfo {
                     None => package_name,
                 };
                 let package_version: &str = package_split[package_split.len() - 2];
-                self.add_package_to_cache(PackageInfo::new(package_name, package_version, MANAGER_PACMAN));
+                self.add_package_to_cache(PackageInfo::new(
+                    package_name,
+                    package_version,
+                    MANAGER_PACMAN,
+                ));
             }
         }
 
         self.available_managers += MANAGER_PACMAN;
     }
     fn process_dpkg_packages(&mut self) {
-        let file_path: &str = if cfg!(not(feature = "android")) { 
+        let file_path: &str = if cfg!(not(feature = "android")) {
             "/var/lib/dpkg/status"
         } else {
             "/data/data/com.termux/files/usr/var/lib/dpkg/status"
@@ -132,7 +147,7 @@ impl ManagerInfo {
                     let split: Vec<&str> = version.split(':').collect();
                     let version = match split.get(1) {
                         Some(r) => String::from(*r),
-                        None => split[0].to_string()
+                        None => split[0].to_string(),
                     };
                     let final_version: String = version.split('-').next().unwrap().to_string();
 
@@ -178,18 +193,18 @@ impl ManagerInfo {
                     None => continue, // Nvm, move on
                 };
                 // Nothing else useful here
-                continue
+                continue;
             }
 
-            if line == "<dict>" { 
+            if line == "<dict>" {
                 dict_level += 1;
                 if dict_level == 1 {
-                    // Start of file 
+                    // Start of file
                     next_line_is_key = true;
-                    continue
+                    continue;
                 }
             }
-            if line == "</dict>" { 
+            if line == "</dict>" {
                 dict_level -= 1;
                 if dict_level == 1 {
                     // Exiting package
@@ -204,7 +219,7 @@ impl ManagerInfo {
                 if dict_level == 0 {
                     break;
                 }
-                continue
+                continue;
             }
 
             if !cur_package.is_empty() {
@@ -216,7 +231,7 @@ impl ManagerInfo {
                 }
                 if next_line_is_version_str {
                     let string: String = line[8..line.len() - 9].to_string();
-                    // {package-name}-{ver}_{rev} 
+                    // {package-name}-{ver}_{rev}
                     let no_rev: &str = string.split('_').next().unwrap();
                     let version: &str = no_rev.split('-').last().unwrap();
 
@@ -231,17 +246,21 @@ impl ManagerInfo {
 
     pub fn process_homebrew_packages(&mut self) {
         let homebrew_dirs = vec![
-            PathBuf::from("/home/linuxbrew/.linuxbrew/Cellar"), 
-            PathBuf::from("/home/linuxbrew/.linuxbrew/Caskroom")
+            PathBuf::from("/home/linuxbrew/.linuxbrew/Cellar"),
+            PathBuf::from("/home/linuxbrew/.linuxbrew/Caskroom"),
         ];
 
-        let homebrew_dirs: Vec<PathBuf> = homebrew_dirs.into_iter().filter(|it| it.exists() && it.is_dir()).collect();
+        let homebrew_dirs: Vec<PathBuf> = homebrew_dirs
+            .into_iter()
+            .filter(|it| it.exists() && it.is_dir())
+            .collect();
         if homebrew_dirs.is_empty() {
             return;
         }
 
         for homebrew_package_dir in homebrew_dirs {
-            homebrew_package_dir.read_dir()
+            homebrew_package_dir
+                .read_dir()
                 .expect("Already checked")
                 .filter_map(Result::ok)
                 .filter_map(|package_dir| {
@@ -263,24 +282,26 @@ impl ManagerInfo {
                         version,
                         manager: MANAGER_HOMEBREW,
                     })
-                }).for_each(|package| {
+                })
+                .for_each(|package| {
                     self.add_package_to_cache(package);
                 });
-        };
-        
+        }
+
         self.available_managers += MANAGER_HOMEBREW;
     }
 
-    /// Add a package to cache, or if it already exists add the manager to the list
-    /// If it adds the manager to the list, it will **not** account for differing versions and will
-    /// simply leave it as is.
+    /// Add a package to cache, or if it already exists add the manager to the
+    /// list If it adds the manager to the list, it will **not** account for
+    /// differing versions and will simply leave it as is.
     fn add_package_to_cache(&mut self, package_info: PackageInfo) {
         if let Some(x) = self.packages.get_mut(&package_info.name) {
             x.manager |= package_info.manager;
             return;
         }
 
-        self.packages.insert(package_info.name.to_string(), package_info);
+        self.packages
+            .insert(package_info.name.to_string(), package_info);
     }
 }
 

@@ -1,6 +1,11 @@
-// Fetch info from a process from /proc 
+// Fetch info from a process from /proc
 
-use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::parent_id};
+use std::{
+    fs::{self, File},
+    io::Read,
+    os::unix::process::parent_id,
+    path::{Path, PathBuf},
+};
 
 // https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html
 #[derive(Clone)]
@@ -8,21 +13,27 @@ use std::{fs::{self, File}, io::Read, path::{Path, PathBuf}, os::unix::process::
 pub struct ProcessStatus {
     pub pid: u32,
     pub comm: String,
-    pub ppid: u32
+    pub ppid: u32,
 }
 impl ProcessStatus {
     pub fn from_stat_file(contents: &str) -> Self {
         let split_space: Vec<&str> = contents.split(' ').collect();
-        
+
         let lower_comm: usize = contents.find('(').unwrap();
         let upper_comm: usize = contents.find(')').unwrap() + 1;
 
-        let ppid: u32 = contents[upper_comm..].split(' ').collect::<Vec<&str>>().get(2).unwrap().parse().unwrap();
-        
+        let ppid: u32 = contents[upper_comm..]
+            .split(' ')
+            .collect::<Vec<&str>>()
+            .get(2)
+            .unwrap()
+            .parse()
+            .unwrap();
+
         Self {
             pid: split_space[0].parse().unwrap(),
             comm: contents[lower_comm..upper_comm].to_string(),
-            ppid
+            ppid,
         }
     }
 }
@@ -36,7 +47,7 @@ pub struct ProcessInfo {
     cmdline: Option<Vec<String>>,
     stat: Option<ProcessStatus>,
 
-    path: PathBuf
+    path: PathBuf,
 }
 impl ProcessInfo {
     pub fn new(pid: u32) -> Self {
@@ -47,7 +58,7 @@ impl ProcessInfo {
             cmdline: None,
             stat: None,
 
-            path: Path::new(&format!("/proc/{pid}")).to_owned()
+            path: Path::new(&format!("/proc/{pid}")).to_owned(),
         }
     }
     pub fn new_from_parent() -> Self {
@@ -66,7 +77,7 @@ impl ProcessInfo {
                     Ok(r) => {
                         self.exe = Some(r.display().to_string());
                         if work_around_python && self.exe.as_ref().unwrap().contains("python") {
-                            // I hate python 
+                            // I hate python
                             // Parse cmdline and use the second argument instead
                             let cmdline: Vec<String> = self.get_cmdline()?;
                             self.exe = match cmdline.get(1) {
@@ -76,8 +87,10 @@ impl ProcessInfo {
                         }
 
                         Ok(self.exe.as_ref().unwrap().to_string())
-                    },
-                    Err(e) => Err(format!("Unable to canonicalize /exe, is this process still valid? ({e})"))
+                    }
+                    Err(e) => Err(format!(
+                        "Unable to canonicalize /exe, is this process still valid? ({e})"
+                    )),
                 }
             }
         }
@@ -85,15 +98,13 @@ impl ProcessInfo {
     pub fn get_process_name(&mut self) -> Result<String, String> {
         match &self.process_name {
             Some(r) => Ok(r.to_string()),
-            None => {
-                match self.get_exe(true) {
-                    Ok(r) => {
-                        self.process_name = Some(r.split('/').last().unwrap().to_string());
-                        Ok(self.process_name.as_ref().unwrap().to_string())
-                    },
-                    Err(e) => Err(format!("Unable to get exe path: {e}"))
+            None => match self.get_exe(true) {
+                Ok(r) => {
+                    self.process_name = Some(r.split('/').last().unwrap().to_string());
+                    Ok(self.process_name.as_ref().unwrap().to_string())
                 }
-            }
+                Err(e) => Err(format!("Unable to get exe path: {e}")),
+            },
         }
     }
 
@@ -103,17 +114,23 @@ impl ProcessInfo {
         } else {
             let mut file: File = match File::open(self.path.join("cmdline")) {
                 Ok(r) => r,
-                Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
+                Err(e) => {
+                    return Err(format!(
+                        "Unable to open /cmdline, is this process still valid? ({e})"
+                    ))
+                }
             };
             let mut contents: String = String::new();
             match file.read_to_string(&mut contents) {
-                Ok(_) => {},
-                Err(e) => return Err(format!("Unable to open /cmdline, is this process still valid? ({e})"))
+                Ok(_) => {}
+                Err(e) => {
+                    return Err(format!(
+                        "Unable to open /cmdline, is this process still valid? ({e})"
+                    ))
+                }
             }
 
-            self.cmdline = Some(contents.split('\0')
-                .map(str::to_string)
-                .collect());
+            self.cmdline = Some(contents.split('\0').map(str::to_string).collect());
             Ok(self.cmdline.as_ref().unwrap().clone())
         }
     }
@@ -124,12 +141,20 @@ impl ProcessInfo {
         } else {
             let mut file: File = match File::open(self.path.join("stat")) {
                 Ok(r) => r,
-                Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
+                Err(e) => {
+                    return Err(format!(
+                        "Unable to open /stat, is this process still valid? ({e})"
+                    ))
+                }
             };
             let mut contents: String = String::new();
             match file.read_to_string(&mut contents) {
-                Ok(_) => {},
-                Err(e) => return Err(format!("Unable to open /stat, is this process still valid? ({e})"))
+                Ok(_) => {}
+                Err(e) => {
+                    return Err(format!(
+                        "Unable to open /stat, is this process still valid? ({e})"
+                    ))
+                }
             }
 
             self.stat = Some(ProcessStatus::from_stat_file(&contents));

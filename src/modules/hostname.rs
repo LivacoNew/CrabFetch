@@ -1,9 +1,10 @@
+use crate::{
+    common_sources::syscalls::SyscallCache, config_manager::Configuration,
+    formatter::CrabFetchColor, module::Module, util::is_flag_set_u32, ModuleError,
+};
 use core::str;
-use std::{env, process::Command};
-
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util::is_flag_set_u32, ModuleError};
+use std::{env, process::Command};
 
 pub struct HostnameInfo {
     username: String,
@@ -16,7 +17,7 @@ pub struct HostnameConfiguration {
     pub title_bold: Option<bool>,
     pub title_italic: Option<bool>,
     pub separator: Option<String>,
-    pub format: String
+    pub format: String,
 }
 impl Module for HostnameInfo {
     fn new() -> HostnameInfo {
@@ -26,27 +27,64 @@ impl Module for HostnameInfo {
         }
     }
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.hostname.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .hostname
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.hostname.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.hostname.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.hostname.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .hostname
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.hostname.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.hostname.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.hostname.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.hostname.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .hostname
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.hostname.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.hostname.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.hostname.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .hostname
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let title: String = config.hostname.title
+        let title: String = config
+            .hostname
+            .title
             .replace("{username}", "Unknown")
             .replace("{hostname}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -74,7 +112,10 @@ const HOSTNAME_INFOFLAG_HOSTNAME: u32 = 1;
 const HOSTNAME_INFOFLAG_USERNAME: u32 = 2;
 
 #[allow(clippy::unnecessary_wraps)]
-pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) -> Result<HostnameInfo, ModuleError> {
+pub fn get_hostname(
+    config: &Configuration,
+    syscall_cache: &mut SyscallCache,
+) -> Result<HostnameInfo, ModuleError> {
     let mut hostname: HostnameInfo = HostnameInfo::new();
     let info_flags: u32 = HostnameInfo::gen_info_flags(&config.hostname.format);
 
@@ -83,13 +124,13 @@ pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) ->
     if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_USERNAME) {
         hostname.username = match env::var("USER") {
             Ok(r) => r,
-            Err(_) => syscall_cache.get_passwd_cached().name
+            Err(_) => syscall_cache.get_passwd_cached().name,
         };
     }
 
-
     // Hostname
-    // Unlike username, reading the hostname data as a syscall is faster than the file
+    // Unlike username, reading the hostname data as a syscall is faster than
+    // the file
     if is_flag_set_u32(info_flags, HOSTNAME_INFOFLAG_HOSTNAME) {
         hostname.hostname = syscall_cache.get_uname_cached().nodename;
     }
@@ -99,15 +140,24 @@ pub fn get_hostname(config: &Configuration, syscall_cache: &mut SyscallCache) ->
 
 fn _backup_to_hostname_command(hostname: &mut HostnameInfo) -> Result<(), ModuleError> {
     // If all else is fucked, it'll come here
-    let output: Vec<u8> = match Command::new("hostname")
-        .output() {
-            Ok(r) => r.stdout,
-            Err(_) => return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string())),
-        };
+    let output: Vec<u8> = match Command::new("hostname").output() {
+        Ok(r) => r.stdout,
+        Err(_) => {
+            return Err(ModuleError::new(
+                "Hostname",
+                "Can't find hostname source.".to_string(),
+            ))
+        }
+    };
 
     hostname.hostname = match String::from_utf8(output) {
         Ok(r) => r.trim().to_string(),
-        Err(_) => return Err(ModuleError::new("Hostname", "Can't find hostname source.".to_string())),
+        Err(_) => {
+            return Err(ModuleError::new(
+                "Hostname",
+                "Can't find hostname source.".to_string(),
+            ))
+        }
     };
 
     Ok(())

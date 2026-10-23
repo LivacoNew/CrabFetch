@@ -1,12 +1,16 @@
-use std::{env, fs::File, io::{BufRead, BufReader}, path::Path};
-
 use crate::module::ModuleError;
+use std::{
+    env,
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
 #[derive(Clone, Debug)]
 pub struct GTKThemeCache {
     pub gtk2: String,
     pub gtk3: String,
-    pub gtk4: String
+    pub gtk4: String,
 }
 impl Default for GTKThemeCache {
     fn default() -> Self {
@@ -22,7 +26,7 @@ impl Default for GTKThemeCache {
 pub struct GTKIconCache {
     pub gtk2: String,
     pub gtk3: String,
-    pub gtk4: String
+    pub gtk4: String,
 }
 impl Default for GTKIconCache {
     fn default() -> Self {
@@ -37,7 +41,7 @@ impl Default for GTKIconCache {
 #[derive(Default, Debug)]
 pub struct GTKSettingsCache {
     themes: Option<GTKThemeCache>,
-    icons: Option<GTKIconCache>
+    icons: Option<GTKIconCache>,
 }
 impl GTKSettingsCache {
     pub fn get_themes(&mut self) -> Result<GTKThemeCache, ModuleError> {
@@ -45,11 +49,18 @@ impl GTKSettingsCache {
             return Ok(themes.clone());
         }
 
-        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") { r } else {
+        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") {
+            r
+        } else {
             // Let's try the home directory
             let mut home_dir: String = match env::var("HOME") {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
+                Err(e) => {
+                    return Err(ModuleError::new(
+                        "Theme",
+                        format!("Unable to find suitable config folder; {e}"),
+                    ))
+                }
             };
             home_dir.push_str("/.config/");
             home_dir
@@ -57,13 +68,19 @@ impl GTKSettingsCache {
         let config_path: &Path = Path::new(&config_path_str);
 
         let mut themes: GTKThemeCache = GTKThemeCache::default();
-        if let Some(gtk2) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-2.0/settings.ini")) {
+        if let Some(gtk2) =
+            read_gtk_property("gtk-theme-name", &config_path.join("gtk-2.0/settings.ini"))
+        {
             themes.gtk2 = gtk2;
         }
-        if let Some(gtk3) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-3.0/settings.ini")) {
+        if let Some(gtk3) =
+            read_gtk_property("gtk-theme-name", &config_path.join("gtk-3.0/settings.ini"))
+        {
             themes.gtk3 = gtk3;
         }
-        if let Some(gtk4) = read_gtk_property("gtk-theme-name", &config_path.join("gtk-4.0/settings.ini")) {
+        if let Some(gtk4) =
+            read_gtk_property("gtk-theme-name", &config_path.join("gtk-4.0/settings.ini"))
+        {
             themes.gtk4 = gtk4;
         }
 
@@ -76,11 +93,18 @@ impl GTKSettingsCache {
             return Ok(icons.clone());
         }
 
-        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") { r } else {
+        let config_path_str: String = if let Ok(r) = env::var("XDG_CONFIG_HOME") {
+            r
+        } else {
             // Let's try the home directory
             let mut home_dir: String = match env::var("HOME") {
                 Ok(r) => r,
-                Err(e) => return Err(ModuleError::new("Theme", format!("Unable to find suitable config folder; {e}")))
+                Err(e) => {
+                    return Err(ModuleError::new(
+                        "Theme",
+                        format!("Unable to find suitable config folder; {e}"),
+                    ))
+                }
             };
             home_dir.push_str("/.config/");
             home_dir
@@ -88,13 +112,22 @@ impl GTKSettingsCache {
         let config_path: &Path = Path::new(&config_path_str);
 
         let mut icons: GTKIconCache = GTKIconCache::default();
-        if let Some(gtk2) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-2.0/settings.ini")) {
+        if let Some(gtk2) = read_gtk_property(
+            "gtk-icon-theme-name",
+            &config_path.join("gtk-2.0/settings.ini"),
+        ) {
             icons.gtk2 = gtk2;
         }
-        if let Some(gtk3) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-3.0/settings.ini")) {
+        if let Some(gtk3) = read_gtk_property(
+            "gtk-icon-theme-name",
+            &config_path.join("gtk-3.0/settings.ini"),
+        ) {
             icons.gtk3 = gtk3;
         }
-        if let Some(gtk4) = read_gtk_property("gtk-icon-theme-name", &config_path.join("gtk-4.0/settings.ini")) {
+        if let Some(gtk4) = read_gtk_property(
+            "gtk-icon-theme-name",
+            &config_path.join("gtk-4.0/settings.ini"),
+        ) {
             icons.gtk4 = gtk4;
         }
 
@@ -111,10 +144,10 @@ fn read_gtk_property(property: &str, path: &Path) -> Option<String> {
 
     let file: File = match File::open(path) {
         Ok(r) => r,
-        Err(_) => return None
+        Err(_) => return None,
     };
     let buffer: BufReader<File> = BufReader::new(file);
-    
+
     for line in buffer.lines() {
         if line.is_err() {
             continue;

@@ -1,21 +1,28 @@
-use std::{fs::{self, File}, io::{BufRead, BufReader, Error}, path::{Path, PathBuf}};
-use std::mem;
-
-#[cfg(feature = "android")]
-use std::env;
-
+use crate::{
+    config_manager::Configuration,
+    formatter::{self, CrabFetchColor},
+    module::Module,
+    util::{self, is_flag_set_u32},
+    ModuleError,
+};
 use libc::statfs;
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util::{self, is_flag_set_u32}, ModuleError};
+#[cfg(feature = "android")]
+use std::env;
+use std::{
+    fs::{self, File},
+    io::{BufRead, BufReader, Error},
+    mem,
+    path::{Path, PathBuf},
+};
 
 pub struct MountInfo {
-    device: String,     // /dev/sda
-    mount: String,      // /hdd
+    device: String, // /dev/sda
+    mount: String,  // /hdd
     filesystem: String,
     space_avail_kb: u64,
     space_total_kb: u64,
-    percent: f32
+    percent: f32,
 }
 #[derive(Deserialize)]
 pub struct MountConfiguration {
@@ -32,7 +39,7 @@ pub struct MountConfiguration {
     pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>,
     pub use_ibis: Option<bool>,
-    pub ignore: Vec<String>
+    pub ignore: Vec<String>,
 }
 impl Module for MountInfo {
     fn new() -> MountInfo {
@@ -42,28 +49,57 @@ impl Module for MountInfo {
             filesystem: "Unknown".to_string(),
             space_avail_kb: 0,
             space_total_kb: 0,
-            percent: 0.0
+            percent: 0.0,
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .mounts
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.mounts.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .mounts
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.mounts.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.mounts.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.mounts.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.mounts.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .mounts
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.mounts.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.mounts.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.mounts.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .mounts
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let title: String = config.mounts.title
+        let title: String = config
+            .mounts
+            .title
             .replace("{device}", "Unknown")
             .replace("{mount}", "Unknown")
             .replace("{filesystem}", "Unknown")
@@ -72,32 +108,87 @@ impl Module for MountInfo {
             .replace("{space_total}", "Unknown")
             .replace("{bar}", " ");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
-        let dec_places: u32 = config.mounts.decimal_places.unwrap_or(config.decimal_places);
+        let dec_places: u32 = config
+            .mounts
+            .decimal_places
+            .unwrap_or(config.decimal_places);
         let use_ibis: bool = config.mounts.use_ibis.unwrap_or(config.use_ibis);
 
         let mut bar: String = String::new();
         if text.contains("{bar}") {
-            let left_border: &str = config.mounts.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
-            let right_border: &str = config.mounts.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
-            let progress: &str = config.mounts.progress_progress.as_ref().unwrap_or(&config.progress_progress);
-            let empty: &str = config.mounts.progress_empty.as_ref().unwrap_or(&config.progress_empty);
-            let length: u8 = config.mounts.progress_target_length.unwrap_or(config.progress_target_length);
-            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
+            let left_border: &str = config
+                .mounts
+                .progress_left_border
+                .as_ref()
+                .unwrap_or(&config.progress_left_border);
+            let right_border: &str = config
+                .mounts
+                .progress_right_border
+                .as_ref()
+                .unwrap_or(&config.progress_right_border);
+            let progress: &str = config
+                .mounts
+                .progress_progress
+                .as_ref()
+                .unwrap_or(&config.progress_progress);
+            let empty: &str = config
+                .mounts
+                .progress_empty
+                .as_ref()
+                .unwrap_or(&config.progress_empty);
+            let length: u8 = config
+                .mounts
+                .progress_target_length
+                .unwrap_or(config.progress_target_length);
+            formatter::make_bar(
+                &mut bar,
+                left_border,
+                right_border,
+                progress,
+                empty,
+                self.percent,
+                length,
+            );
         }
 
         #[allow(clippy::cast_possible_truncation)]
-        formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percent), dec_places) as f32, config)
-            .replace("{device}", &self.device)
-            .replace("{mount}", &self.mount)
-            .replace("{filesystem}", &self.filesystem)
-            .replace("{space_used}", &formatter::auto_format_bytes(self.space_total_kb - self.space_avail_kb, use_ibis, dec_places))
-            .replace("{space_avail}", &formatter::auto_format_bytes(self.space_avail_kb, use_ibis, dec_places))
-            .replace("{space_total}", &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places))
-            .replace("{bar}", &bar.to_string())
+        formatter::process_percentage_placeholder(
+            text,
+            formatter::round(f64::from(self.percent), dec_places) as f32,
+            config,
+        )
+        .replace("{device}", &self.device)
+        .replace("{mount}", &self.mount)
+        .replace("{filesystem}", &self.filesystem)
+        .replace(
+            "{space_used}",
+            &formatter::auto_format_bytes(
+                self.space_total_kb - self.space_avail_kb,
+                use_ibis,
+                dec_places,
+            ),
+        )
+        .replace(
+            "{space_avail}",
+            &formatter::auto_format_bytes(self.space_avail_kb, use_ibis, dec_places),
+        )
+        .replace(
+            "{space_total}",
+            &formatter::auto_format_bytes(self.space_total_kb, use_ibis, dec_places),
+        )
+        .replace("{bar}", &bar.to_string())
     }
 
     fn gen_info_flags(format: &str) -> u32 {
@@ -126,7 +217,7 @@ impl MountInfo {
                 continue;
             }
             if self.mount.starts_with(x) || self.filesystem.starts_with(x) {
-                return true
+                return true;
             }
         }
 
@@ -142,13 +233,14 @@ const MOUNTS_INFOFLAG_SPACE_AVAIL: u32 = 16;
 pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, ModuleError> {
     let mut mounts: Vec<MountInfo> = Vec::new();
     // title is tagged onto the end here to account for the title placeholders
-    let info_flags: u32 = MountInfo::gen_info_flags(&format!("{}{}", config.mounts.format, config.mounts.title));
+    let info_flags: u32 =
+        MountInfo::gen_info_flags(&format!("{}{}", config.mounts.format, config.mounts.title));
 
     #[cfg(not(feature = "android"))]
     let path: &str = "/etc/mtab";
     #[cfg(feature = "android")]
     let mut path: &str = "/etc/mtab";
-    // Android 
+    // Android
     #[cfg(feature = "android")]
     if env::consts::OS == "android" {
         path = "/proc/mounts";
@@ -156,24 +248,30 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
     let file: File = match File::open(path) {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Mounts", format!("Unable to read from /etc/mtab: {e}"))),
+        Err(e) => {
+            return Err(ModuleError::new(
+                "Mounts",
+                format!("Unable to read from /etc/mtab: {e}"),
+            ))
+        }
     };
     let buffer: BufReader<File> = BufReader::new(file);
     let mut device_cache: Vec<String> = Vec::new();
     for line in buffer.lines() {
         if line.is_err() {
-            continue
+            continue;
         }
         let line: String = line.unwrap();
         if line.starts_with('#') || line.trim().is_empty() {
-            continue
+            continue;
         }
 
-        let entries: Vec<&str> = line.split([' ', '\t'])
+        let entries: Vec<&str> = line
+            .split([' ', '\t'])
             .map(str::trim)
             .filter(|x| !x.is_empty())
             .collect();
-    
+
         let mut mount: MountInfo = MountInfo::new();
         let device_name: &str = entries[0];
         mount.device = match get_device_name(device_name) {
@@ -193,13 +291,14 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
 
         let mount_point: String = entries[1].replace("\\040", " ");
         if mount_point == "none" || mount_point == "swap" {
-            continue
+            continue;
         }
-        // Android is a odd-ball with a *whitelist* instead as it has way too many weird and
-        // wonderful mounts, and as far as I can tell is overall an exception
+        // Android is a odd-ball with a *whitelist* instead as it has way too
+        // many weird and wonderful mounts, and as far as I can tell is
+        // overall an exception
         #[cfg(feature = "android")]
         if mount_point != "/" && !mount_point.starts_with("/storage") {
-            continue
+            continue;
         }
 
         mount.mount = mount_point.to_string();
@@ -209,7 +308,10 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
         }
 
         // statfs to get space data
-        if is_flag_set_u32(info_flags, MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL) {
+        if is_flag_set_u32(
+            info_flags,
+            MOUNTS_INFOFLAG_SPACE_AVAIL | MOUNTS_INFOFLAG_SPACE_USED | MOUNTS_INFOFLAG_SPACE_TOTAL,
+        ) {
             call_statfs(&mount_point, &mut mount)?;
         }
 
@@ -219,14 +321,19 @@ pub fn get_mounted_drives(config: &Configuration) -> Result<Vec<MountInfo>, Modu
     Ok(mounts)
 }
 
-// Credit to sysinfo crate for letting me see how to impl this in Rust (and no it's not just copy
-// pasted i swear)
+// Credit to sysinfo crate for letting me see how to impl this in Rust (and no
+// it's not just copy pasted i swear)
 // https://github.com/GuillaumeGomez/sysinfo/blob/master/src/unix/linux/disk.rs#L96
-#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+#[allow(
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss
+)]
 fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
     let mut bytes: Vec<u8> = path.as_bytes().to_vec();
     bytes.push(0);
-    unsafe { // spooky
+    unsafe {
+        // spooky
         let mut buffer: statfs = mem::zeroed();
         let x: i32 = statfs(bytes.as_ptr().cast(), &mut buffer);
         if x != 0 {
@@ -234,18 +341,24 @@ fn call_statfs(path: &str, mount: &mut MountInfo) -> Result<(), ModuleError> {
                 Some(r) => r.to_string(),
                 None => "N/A".to_string(),
             };
-            return Err(ModuleError::new("Mounts", format!("'statfs' syscall failed for mount point {path} (code {c})")))
+            return Err(ModuleError::new(
+                "Mounts",
+                format!("'statfs' syscall failed for mount point {path} (code {c})"),
+            ));
         }
 
         mount.space_total_kb = (buffer.f_blocks * buffer.f_bsize as u64) / 1000;
         mount.space_avail_kb = (buffer.f_bfree * buffer.f_bsize as u64) / 1000;
-        mount.percent = ((((mount.space_total_kb - mount.space_avail_kb) as f64) / mount.space_total_kb as f64) * 100.0) as f32;
+        mount.percent = ((((mount.space_total_kb - mount.space_avail_kb) as f64)
+            / mount.space_total_kb as f64)
+            * 100.0) as f32;
     }
     Ok(())
 }
 
 fn get_device_name(device_name: &str) -> Option<String> {
-    // This method is also responsible for filtering out any devices we don't want
+    // This method is also responsible for filtering out any devices we don't
+    // want
     let dev: String;
     if let Some(uuid) = device_name.strip_prefix("UUID=") {
         // UUID
@@ -253,21 +366,27 @@ fn get_device_name(device_name: &str) -> Option<String> {
         if !uuid_path.is_symlink() {
             return None; // ???
         }
-        let Ok(device) = fs::canonicalize(uuid_path) else { return None };
+        let Ok(device) = fs::canonicalize(uuid_path) else {
+            return None;
+        };
         dev = device.to_str().unwrap().to_string();
     } else if let Some(label) = device_name.strip_prefix("LABEL=") {
         let label_path: PathBuf = Path::new("/dev/disk/by-label/").join(label);
         if !label_path.is_symlink() {
             return None; // ???
         }
-        let Ok(device) = fs::canonicalize(label_path) else { return None };
+        let Ok(device) = fs::canonicalize(label_path) else {
+            return None;
+        };
         dev = device.to_str().unwrap().to_string();
     } else if let Some(partlabel) = device_name.strip_prefix("PARTLABEL=") {
         let label_path: PathBuf = Path::new("/dev/disk/by-partlabel/").join(partlabel);
         if !label_path.is_symlink() {
             return None; // ???
         }
-        let Ok(device) = fs::canonicalize(label_path) else { return None };
+        let Ok(device) = fs::canonicalize(label_path) else {
+            return None;
+        };
         dev = device.to_str().unwrap().to_string();
     } else {
         // regular old devices
@@ -284,8 +403,8 @@ fn is_device_wanted(device_name: &str) -> bool {
         return true;
     }
 
-    // This starts_with is a very primative check for if a device is virtual or physical, aka
-    // whether we care about it or not
+    // This starts_with is a very primative check for if a device is virtual or
+    // physical, aka whether we care about it or not
     #[cfg(not(feature = "android"))]
     if !device_name.starts_with('/') {
         return false;
@@ -296,6 +415,6 @@ fn is_device_wanted(device_name: &str) -> bool {
     if !device_name.starts_with('/') && device_name != "fuse" {
         return false;
     }
-    
+
     true
 }

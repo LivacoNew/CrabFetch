@@ -1,8 +1,14 @@
-use std::{fs::{self, DirEntry, ReadDir}, path::PathBuf};
-
+use crate::{
+    config_manager::Configuration,
+    formatter::{self, CrabFetchColor},
+    module::Module,
+    util, ModuleError,
+};
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, util, ModuleError};
+use std::{
+    fs::{self, DirEntry, ReadDir},
+    path::PathBuf,
+};
 
 pub struct BatteryInfo {
     index: String,
@@ -27,53 +33,127 @@ impl Module for BatteryInfo {
     fn new() -> BatteryInfo {
         BatteryInfo {
             index: "Unknown".to_string(),
-            percentage: 0.0
+            percentage: 0.0,
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.battery.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .battery
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.battery.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .battery
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.battery.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.battery.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.battery.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.battery.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .battery
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.battery.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.battery.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.battery.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .battery
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let title: String = config.battery.title
-            .replace("{index}", "0").to_string()
-            .replace("{percentage}", "Unknown").to_string()
-            .replace("{bar}", "").to_string();
+        let title: String = config
+            .battery
+            .title
+            .replace("{index}", "0")
+            .to_string()
+            .replace("{percentage}", "Unknown")
+            .to_string()
+            .replace("{bar}", "")
+            .to_string();
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
-        let dec_places: u32 = config.battery.decimal_places.unwrap_or(config.decimal_places);
+        let dec_places: u32 = config
+            .battery
+            .decimal_places
+            .unwrap_or(config.decimal_places);
 
         let mut bar: String = String::new();
         if text.contains("{bar}") {
-            let left_border: &str = config.battery.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
-            let right_border: &str = config.battery.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
-            let progress: &str = config.battery.progress_progress.as_ref().unwrap_or(&config.progress_progress);
-            let empty: &str = config.battery.progress_empty.as_ref().unwrap_or(&config.progress_empty);
-            let length: u8 = config.battery.progress_target_length.unwrap_or(config.progress_target_length);
-            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percentage, length);
+            let left_border: &str = config
+                .battery
+                .progress_left_border
+                .as_ref()
+                .unwrap_or(&config.progress_left_border);
+            let right_border: &str = config
+                .battery
+                .progress_right_border
+                .as_ref()
+                .unwrap_or(&config.progress_right_border);
+            let progress: &str = config
+                .battery
+                .progress_progress
+                .as_ref()
+                .unwrap_or(&config.progress_progress);
+            let empty: &str = config
+                .battery
+                .progress_empty
+                .as_ref()
+                .unwrap_or(&config.progress_empty);
+            let length: u8 = config
+                .battery
+                .progress_target_length
+                .unwrap_or(config.progress_target_length);
+            formatter::make_bar(
+                &mut bar,
+                left_border,
+                right_border,
+                progress,
+                empty,
+                self.percentage,
+                length,
+            );
         }
 
         #[allow(clippy::cast_possible_truncation)]
-        formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percentage), dec_places) as f32, config)
-            .replace("{index}", &self.index)
-            .replace("{percentage}", &self.percentage.to_string())
-            .replace("{bar}", &bar)
+        formatter::process_percentage_placeholder(
+            text,
+            formatter::round(f64::from(self.percentage), dec_places) as f32,
+            config,
+        )
+        .replace("{index}", &self.index)
+        .replace("{percentage}", &self.percentage.to_string())
+        .replace("{bar}", &bar)
     }
 
     fn gen_info_flags(_: &str) -> u32 {
@@ -86,7 +166,12 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
 
     let dir: ReadDir = match fs::read_dir("/sys/class/power_supply/") {
         Ok(r) => r,
-        Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from /sys/class/power_supply: {e}"))),
+        Err(e) => {
+            return Err(ModuleError::new(
+                "Battery",
+                format!("Can't read from /sys/class/power_supply: {e}"),
+            ))
+        }
     };
     for d in dir {
         if d.is_err() {
@@ -99,10 +184,9 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
             Ok(r) => {
                 match r.trim().parse() {
                     Ok(r) => r,
-                    Err(_) => continue,
-                    // Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
+                    Err(_) => continue, // Err(e) => return Err(ModuleError::new("Battery", format!("Can't parse value from {} - {}", path, e))),
                 }
-            },
+            }
             // Err(e) => return Err(ModuleError::new("Battery", format!("Can't read from {} - {}", path, e))),
             Err(_) => continue,
         };
@@ -116,10 +200,9 @@ pub fn get_batteries() -> Result<Vec<BatteryInfo>, ModuleError> {
 
         batteries.push(BatteryInfo {
             index: id,
-            percentage
+            percentage,
         });
     }
-
 
     Ok(batteries)
 }

@@ -1,12 +1,10 @@
 // Handles and caches all syscalls used between module
-// This is to prevent duplicate work being done as well as leaving most of our unsafe options in a
-// single place
-
-use std::mem;
-
-use libc::{geteuid, getpwuid};
+// This is to prevent duplicate work being done as well as leaving most of our
+// unsafe options in a single place
 
 use crate::util;
+use libc::{geteuid, getpwuid};
+use std::mem;
 
 pub struct SyscallCache {
     // https://man7.org/linux/man-pages/man2/sysinfo.2.html
@@ -49,12 +47,15 @@ impl SyscallCache {
     }
     fn cache_passwd(&mut self) {
         let passwd_buffer: libc::passwd;
-        unsafe { 
+        unsafe {
             let user_id: u32 = self.get_euid_cached();
             let buffer_ptr: *mut libc::passwd = getpwuid(user_id);
-            // Null pointer, this is a crash as we have no error handling for the time being
-            // TODO: Handle this properly
-            assert!(!buffer_ptr.is_null(), "passwd buffer pointer is null (No error handling for this is implemented yet)");
+            // Null pointer, this is a crash as we have no error handling for
+            // the time being TODO: Handle this properly
+            assert!(
+                !buffer_ptr.is_null(),
+                "passwd buffer pointer is null (No error handling for this is implemented yet)"
+            );
             passwd_buffer = *buffer_ptr;
         }
         self.passwd = Some(passwd_buffer);
@@ -92,28 +93,33 @@ impl SyscallCache {
 
 // Better syscall structures than the built in libc ones
 // These handle all the parsing from C to Rust stuff for us
-// Anything that doesn't need complex parsing (e.g sysinfo) just returns the original structure
-// Dead code is allowed in structs, as they may be able to be used for future things
+// Anything that doesn't need complex parsing (e.g sysinfo) just returns the
+// original structure Dead code is allowed in structs, as they may be able to be
+// used for future things
 #[allow(dead_code)]
 pub struct Utsname {
     pub sysname: String,
     pub nodename: String,
     pub release: String,
     pub version: String,
-    pub machine: String
+    pub machine: String,
 }
 impl Utsname {
     pub fn from_libc(utsname: &libc::utsname) -> Self {
         Self {
-            sysname: util::cstr_from_ptr(utsname.sysname.as_ptr()).expect("Unable to convert CStr to Rust String"),
-            nodename: util::cstr_from_ptr(utsname.nodename.as_ptr()).expect("Unable to convert CStr to Rust String"),
-            release: util::cstr_from_ptr(utsname.release.as_ptr()).expect("Unable to convert CStr to Rust String"),
-            version: util::cstr_from_ptr(utsname.version.as_ptr()).expect("Unable to convert CStr to Rust String"),
-            machine: util::cstr_from_ptr(utsname.machine.as_ptr()).expect("Unable to convert CStr to Rust String"),
+            sysname: util::cstr_from_ptr(utsname.sysname.as_ptr())
+                .expect("Unable to convert CStr to Rust String"),
+            nodename: util::cstr_from_ptr(utsname.nodename.as_ptr())
+                .expect("Unable to convert CStr to Rust String"),
+            release: util::cstr_from_ptr(utsname.release.as_ptr())
+                .expect("Unable to convert CStr to Rust String"),
+            version: util::cstr_from_ptr(utsname.version.as_ptr())
+                .expect("Unable to convert CStr to Rust String"),
+            machine: util::cstr_from_ptr(utsname.machine.as_ptr())
+                .expect("Unable to convert CStr to Rust String"),
         }
     }
 }
-
 
 #[allow(dead_code)]
 pub struct Passwd {
@@ -121,16 +127,18 @@ pub struct Passwd {
     pub uid: u32,
     pub gid: u32,
     pub dir: String,
-    pub shell: String
+    pub shell: String,
 }
 impl Passwd {
     pub fn from_libc(passwd: libc::passwd) -> Self {
         Self {
-            name: util::cstr_from_ptr(passwd.pw_name).expect("Unable to convert CStr to Rust String"),
+            name: util::cstr_from_ptr(passwd.pw_name)
+                .expect("Unable to convert CStr to Rust String"),
             uid: passwd.pw_uid,
             gid: passwd.pw_gid,
             dir: util::cstr_from_ptr(passwd.pw_dir).expect("Unable to convert CStr to Rust String"),
-            shell: util::cstr_from_ptr(passwd.pw_shell).expect("Unable to convert CStr to Rust String"),
+            shell: util::cstr_from_ptr(passwd.pw_shell)
+                .expect("Unable to convert CStr to Rust String"),
         }
     }
 }

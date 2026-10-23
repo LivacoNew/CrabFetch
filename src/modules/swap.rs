@@ -1,13 +1,17 @@
+use crate::{
+    common_sources::syscalls::SyscallCache,
+    config_manager::Configuration,
+    formatter::{self, CrabFetchColor},
+    module::Module,
+    ModuleError,
+};
 use core::str;
-
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}, module::Module, common_sources::syscalls::SyscallCache, ModuleError};
 
 pub struct SwapInfo {
     used_kb: u64,
     total_kb: u64,
-    percent: f32
+    percent: f32,
 }
 #[derive(Deserialize)]
 pub struct SwapConfiguration {
@@ -23,40 +27,69 @@ pub struct SwapConfiguration {
     pub progress_target_length: Option<u8>,
     pub decimal_places: Option<u32>,
     pub use_ibis: Option<bool>,
-    pub format: String
+    pub format: String,
 }
 impl Module for SwapInfo {
     fn new() -> SwapInfo {
         SwapInfo {
             used_kb: 0,
             total_kb: 0,
-            percent: 0.0
+            percent: 0.0,
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.swap.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .swap
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.swap.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.swap.separator.as_ref().unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.swap.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.swap.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.swap.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
-    fn unknown_output(config: &Configuration) -> (String, String) { 
-        let title_color: &CrabFetchColor = config.swap.title_color.as_ref().unwrap_or(&config.title_color);
+    fn unknown_output(config: &Configuration) -> (String, String) {
+        let title_color: &CrabFetchColor = config
+            .swap
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.swap.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.swap.title_italic.unwrap_or(config.title_italic);
         let separator: &str = config.swap.separator.as_ref().unwrap_or(&config.separator);
 
-        let title: String = config.uptime.title
+        let title: String = config
+            .uptime
+            .title
             .replace("{used}", "Unknown")
             .replace("{total}", "Unknown")
             .replace("{bar}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String {
@@ -65,19 +98,56 @@ impl Module for SwapInfo {
 
         let mut bar: String = String::new();
         if text.contains("{bar}") {
-            let left_border: &str = config.swap.progress_left_border.as_ref().unwrap_or(&config.progress_left_border);
-            let right_border: &str = config.swap.progress_right_border.as_ref().unwrap_or(&config.progress_right_border);
-            let progress: &str = config.swap.progress_progress.as_ref().unwrap_or(&config.progress_progress);
-            let empty: &str = config.swap.progress_empty.as_ref().unwrap_or(&config.progress_empty);
-            let length: u8 = config.swap.progress_target_length.unwrap_or(config.progress_target_length);
-            formatter::make_bar(&mut bar, left_border, right_border, progress, empty, self.percent, length);
+            let left_border: &str = config
+                .swap
+                .progress_left_border
+                .as_ref()
+                .unwrap_or(&config.progress_left_border);
+            let right_border: &str = config
+                .swap
+                .progress_right_border
+                .as_ref()
+                .unwrap_or(&config.progress_right_border);
+            let progress: &str = config
+                .swap
+                .progress_progress
+                .as_ref()
+                .unwrap_or(&config.progress_progress);
+            let empty: &str = config
+                .swap
+                .progress_empty
+                .as_ref()
+                .unwrap_or(&config.progress_empty);
+            let length: u8 = config
+                .swap
+                .progress_target_length
+                .unwrap_or(config.progress_target_length);
+            formatter::make_bar(
+                &mut bar,
+                left_border,
+                right_border,
+                progress,
+                empty,
+                self.percent,
+                length,
+            );
         }
 
         #[allow(clippy::cast_possible_truncation)]
-        formatter::process_percentage_placeholder(text, formatter::round(f64::from(self.percent), dec_places) as f32, config)
-            .replace("{used}", &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places))
-            .replace("{total}", &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places))
-            .replace("{bar}", &bar)
+        formatter::process_percentage_placeholder(
+            text,
+            formatter::round(f64::from(self.percent), dec_places) as f32,
+            config,
+        )
+        .replace(
+            "{used}",
+            &formatter::auto_format_bytes(self.used_kb, use_ibis, dec_places),
+        )
+        .replace(
+            "{total}",
+            &formatter::auto_format_bytes(self.total_kb, use_ibis, dec_places),
+        )
+        .replace("{bar}", &bar)
     }
 
     fn gen_info_flags(_: &str) -> u32 {

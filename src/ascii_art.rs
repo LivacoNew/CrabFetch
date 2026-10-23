@@ -1,6 +1,7 @@
 // Define art down below here
 // All distro ASCII's are generated from here; https://www.text-image.com/convert/ascii.html
-// I suck at ASCII art, and want to use smaller ones than the other fetch defaults.
+// I suck at ASCII art, and want to use smaller ones than the other fetch
+// defaults.
 pub const ARCH: (&str, u16) = (include_str!("../logo/arch.txt"), 28);
 pub const DEBIAN: (&str, u16) = (include_str!("../logo/debian.txt"), 28);
 pub const UBUNTU: (&str, u16) = (include_str!("../logo/ubuntu.txt"), 40);

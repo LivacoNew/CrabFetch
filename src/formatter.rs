@@ -1,13 +1,12 @@
 // Works in conjunction with ColoredString crate, for now...
-use std::str::FromStr;
-
+use crate::config_manager::Configuration;
 use colored::{ColoredString, Colorize};
 use serde::Deserialize;
-
-use crate::config_manager::Configuration;
+use std::str::FromStr;
 
 // This is a hack to get the color deserializaton working
-// Essentially it uses my own enum, and to print it you need to call color_string
+// Essentially it uses my own enum, and to print it you need to call
+// color_string
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum CrabFetchColor {
@@ -27,7 +26,7 @@ pub enum CrabFetchColor {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
-    Clear
+    Clear,
 }
 impl FromStr for CrabFetchColor {
     type Err = ();
@@ -51,7 +50,7 @@ impl FromStr for CrabFetchColor {
             "brightcyan" => Ok(CrabFetchColor::BrightCyan),
             "brightwhite" => Ok(CrabFetchColor::BrightWhite),
             "clear" => Ok(CrabFetchColor::Clear),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -79,7 +78,7 @@ impl CrabFetchColor {
     }
 }
 
-pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String { 
+pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String {
     let mut new_string = String::new();
     let split: Vec<&str> = str.split("{color-").collect();
     if split.len() <= 1 {
@@ -94,9 +93,13 @@ pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String {
         let color_str: String = s[..len].to_string();
         let color: CrabFetchColor = match CrabFetchColor::from_str(&color_str) {
             Ok(r) => r,
-            Err(_) => if color_str == "title" {
-                config.title_color.clone()
-            } else {continue},
+            Err(_) => {
+                if color_str == "title" {
+                    config.title_color.clone()
+                } else {
+                    continue;
+                }
+            }
         };
         new_string.push_str(&color.color_string(&s[len + 1..]).to_string());
     }
@@ -104,23 +107,27 @@ pub fn replace_color_placeholders(str: &str, config: &Configuration) -> String {
     new_string
 }
 
-pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Configuration) -> String {
+pub fn process_percentage_placeholder(
+    text: &str,
+    percentage: f32,
+    config: &Configuration,
+) -> String {
     let mut percent_str: String = percentage.to_string();
     percent_str.push('%');
     if config.percentage_color_thresholds.is_empty() {
         return text.replace("{percent}", &percent_str).to_string();
     }
 
-
-    // This is done in a bit of a shit way but idc to improve it, im writing this after being awake
-    // for 30 hours so I'm happy to push some shit to the repo for later me to deal with lol
+    // This is done in a bit of a shit way but idc to improve it, im writing
+    // this after being awake for 30 hours so I'm happy to push some shit to
+    // the repo for later me to deal with lol
     let mut color_assigned: bool = false;
     let mut cur_color: CrabFetchColor = CrabFetchColor::Clear;
     let mut min_thres: u8 = 100;
     let mut min_color: CrabFetchColor = CrabFetchColor::Clear;
     for x in &config.percentage_color_thresholds {
         let split: Vec<&str> = x.split(':').collect();
-        
+
         if let Ok(threshold) = split[0].parse::<u8>() {
             #[allow(clippy::cast_possible_truncation)]
             if (i16::from(threshold) - percentage as i16) < 0 {
@@ -145,8 +152,8 @@ pub fn process_percentage_placeholder(text: &str, percentage: f32, config: &Conf
 #[allow(clippy::cast_precision_loss)]
 pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String {
     let mut result: f64 = kilobytes as f64;
-    let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera 
-    let divider = if ibis {1024} else {1000};
+    let mut steps: u8 = 0; // 0 - Kilo, 1 - Mega, 2 - Giga, 3 - Tera
+    let divider = if ibis { 1024 } else { 1000 };
     if ibis {
         result /= 1.024;
     }
@@ -154,7 +161,7 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     for _ in 0..3 {
         let cur_step: f64 = result / f64::from(divider);
         if cur_step <= 1.0 {
-            break; // Use current 
+            break; // Use current
         }
 
         result = cur_step;
@@ -165,26 +172,59 @@ pub fn auto_format_bytes(kilobytes: u64, ibis: bool, dec_places: u32) -> String 
     let dec_places: usize = dec_places as usize;
     let mut res: String = format!("{result:.dec_places$}").to_string();
     res.push_str(match steps {
-        0 => if ibis {" KiB"} else {" KB"},
-        1 => if ibis {" MiB"} else {" MB"},
-        2 => if ibis {" GiB"} else {" GB"},
-        3 => if ibis {" TiB"} else {" TB"},
-        _ => " ?"
+        0 => {
+            if ibis {
+                " KiB"
+            } else {
+                " KB"
+            }
+        }
+        1 => {
+            if ibis {
+                " MiB"
+            } else {
+                " MB"
+            }
+        }
+        2 => {
+            if ibis {
+                " GiB"
+            } else {
+                " GB"
+            }
+        }
+        3 => {
+            if ibis {
+                " TiB"
+            } else {
+                " TB"
+            }
+        }
+        _ => " ?",
     });
 
     res
 }
 
-// Rust is a great language, but when I need to start re-implementing the most basic of functions
-// into your language, you know you've fucked up specing your language... badly.
+// Rust is a great language, but when I need to start re-implementing the most
+// basic of functions into your language, you know you've fucked up specing your
+// language... badly.
 pub fn round(number: f64, places: u32) -> f64 {
     let power: f64 = f64::from(10_u32.pow(places));
     (number * power).round() / power
 }
 
-// Bar processing 
+// Bar processing
 // Modifies the bar string in place
-pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progress_char: &str, empty_char: &str, target_percentage: f32, length: u8) {
+pub fn make_bar(
+    bar: &mut String,
+    left_border: &str,
+    right_border: &str,
+    progress_char: &str,
+    empty_char: &str,
+    target_percentage: f32,
+    length: u8,
+) {
     if (length as usize) < (left_border.chars().count() + right_border.chars().count()) {
         return; // Will crash otherwise, user's own fault
     }
@@ -200,30 +240,68 @@ pub fn make_bar(bar: &mut String, left_border: &str, right_border: &str, progres
     bar.push_str(right_border);
 }
 
-
 mod tests {
     // Test bytes format correctly
     #[test]
     fn format_bytes() {
         assert_eq!(crate::formatter::auto_format_bytes(15, false, 0), "15 KB");
         assert_eq!(crate::formatter::auto_format_bytes(15, false, 1), "15.0 KB");
-        assert_eq!(crate::formatter::auto_format_bytes(15, false, 2), "15.00 KB");
-        assert_eq!(crate::formatter::auto_format_bytes(15, false, 3), "15.000 KB");
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15, false, 2),
+            "15.00 KB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15, false, 3),
+            "15.000 KB"
+        );
 
         assert_eq!(crate::formatter::auto_format_bytes(1526, false, 0), "2 MB");
-        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 1), "1.5 MB");
-        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 2), "1.53 MB");
-        assert_eq!(crate::formatter::auto_format_bytes(1526, false, 3), "1.526 MB");
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1526, false, 1),
+            "1.5 MB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1526, false, 2),
+            "1.53 MB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1526, false, 3),
+            "1.526 MB"
+        );
 
-        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 0), "2 GB");
-        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 1), "1.6 GB");
-        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 2), "1.56 GB");
-        assert_eq!(crate::formatter::auto_format_bytes(1562600, false, 3), "1.563 GB");
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1562600, false, 0),
+            "2 GB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1562600, false, 1),
+            "1.6 GB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1562600, false, 2),
+            "1.56 GB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(1562600, false, 3),
+            "1.563 GB"
+        );
 
-        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 0), "16 TB");
-        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 1), "15.6 TB");
-        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 2), "15.63 TB");
-        assert_eq!(crate::formatter::auto_format_bytes(15626234632, false, 3), "15.626 TB");
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15626234632, false, 0),
+            "16 TB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15626234632, false, 1),
+            "15.6 TB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15626234632, false, 2),
+            "15.63 TB"
+        );
+        assert_eq!(
+            crate::formatter::auto_format_bytes(15626234632, false, 3),
+            "15.626 TB"
+        );
     }
     // Test 'ibibytes format correctly
     #[test]
@@ -280,7 +358,8 @@ mod tests {
         bar_str = String::new();
 
         // Check we can use multiple chars per bar thing
-        // This voilates the length but is by design as to let people do wtf they want with it
+        // This voilates the length but is by design as to let people do wtf
+        // they want with it
         super::make_bar(&mut bar_str, "[|", "|]", "!!", "--", 39.0, 16);
         assert_eq!(bar_str, "[|!!!!!!!!!!!!----------------|]");
         bar_str = String::new();
@@ -300,14 +379,14 @@ mod tests {
     }
 }
 
-// A list of OS ID's + Their recommended colors for use_os_color 
+// A list of OS ID's + Their recommended colors for use_os_color
 // TODO: Backup to ANSI_COLOR in os-release?
 pub fn find_os_color(os_id: &str) -> CrabFetchColor {
     for x in OS_COLOR {
         if x.0 != os_id {
             continue;
         }
-        
+
         return x.1.clone();
     }
 

@@ -1,8 +1,9 @@
-use std::fmt::{Debug, Display};
-
+use crate::{
+    config_manager::Configuration,
+    formatter::{self, CrabFetchColor},
+};
 use colored::{ColoredString, Colorize};
-
-use crate::{config_manager::Configuration, formatter::{self, CrabFetchColor}};
+use std::fmt::{Debug, Display};
 
 pub trait Module {
     fn new() -> Self;
@@ -11,8 +12,17 @@ pub trait Module {
     fn replace_placeholders(&self, text: &str, config: &Configuration) -> String;
     fn gen_info_flags(format: &str) -> u32;
 
-    // TODO: Move these params into some kinda struct or some shit idk, cus it just sucks
-    fn default_style(_: &Configuration, title: &str, title_color: &CrabFetchColor, title_bold: bool, title_italic: bool, separator: &str, value: &str) -> (String, String) {
+    // TODO: Move these params into some kinda struct or some shit idk, cus it
+    // just sucks
+    fn default_style(
+        _: &Configuration,
+        title: &str,
+        title_color: &CrabFetchColor,
+        title_bold: bool,
+        title_italic: bool,
+        separator: &str,
+        value: &str,
+    ) -> (String, String) {
         let mut title_final: String = String::new();
         let mut value_final: String = String::new();
 
@@ -42,13 +52,13 @@ pub trait Module {
 // A generic module error
 pub struct ModuleError {
     module_name: String,
-    message: String
+    message: String,
 }
 impl ModuleError {
     pub fn new(module: &str, message: String) -> ModuleError {
         ModuleError {
             module_name: module.to_string(),
-            message
+            message,
         }
     }
 }

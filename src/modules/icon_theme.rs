@@ -1,11 +1,13 @@
+use crate::{
+    common_sources::gtk::GTKSettingsCache, config_manager::Configuration,
+    formatter::CrabFetchColor, module::Module, ModuleError,
+};
 use serde::Deserialize;
-
-use crate::{common_sources::gtk::GTKSettingsCache, config_manager::Configuration, formatter::CrabFetchColor, module::Module, ModuleError};
 
 pub struct IconThemeInfo {
     gtk2: String,
     gtk3: String,
-    gtk4: String
+    gtk4: String,
 }
 #[derive(Deserialize)]
 pub struct IconThemeConfiguration {
@@ -21,29 +23,66 @@ impl Module for IconThemeInfo {
         IconThemeInfo {
             gtk2: "Adwaita".to_string(),
             gtk3: "Adwaita".to_string(),
-            gtk4: "Adwaita".to_string()
+            gtk4: "Adwaita".to_string(),
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.icontheme.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .icontheme
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.icontheme.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.icontheme.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.icontheme.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .icontheme
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let format: String = config.icontheme.format.clone().unwrap_or("{time}".to_string());
+        let format: String = config
+            .icontheme
+            .format
+            .clone()
+            .unwrap_or("{time}".to_string());
         let title: String = self.replace_placeholders(&config.icontheme.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
+        let value: String =
+            self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
-    fn unknown_output(config: &Configuration) -> (String, String) { 
-        let title_color: &CrabFetchColor = config.icontheme.title_color.as_ref().unwrap_or(&config.title_color);
+    fn unknown_output(config: &Configuration) -> (String, String) {
+        let title_color: &CrabFetchColor = config
+            .icontheme
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.icontheme.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.icontheme.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.icontheme.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .icontheme
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        Self::default_style(config, &config.icontheme.title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &config.icontheme.title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -65,7 +104,10 @@ pub fn get_icon_theme(gtk_settings: &mut GTKSettingsCache) -> Result<IconThemeIn
         icon_theme.gtk3 = icon_themes.gtk3;
         icon_theme.gtk4 = icon_themes.gtk4;
     } else {
-        return Err(ModuleError::new("Icon Themes", "Failed to read GTK settings.".to_string()));
+        return Err(ModuleError::new(
+            "Icon Themes",
+            "Failed to read GTK settings.".to_string(),
+        ));
     }
 
     Ok(icon_theme)

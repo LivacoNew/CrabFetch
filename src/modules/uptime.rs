@@ -1,9 +1,10 @@
-use std::{path::Path, time::Duration};
-
+use crate::{
+    common_sources::syscalls::SyscallCache, config_manager::Configuration,
+    formatter::CrabFetchColor, module::Module, util, ModuleError,
+};
 use humantime::format_duration;
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, common_sources::syscalls::SyscallCache, util, ModuleError};
+use std::{path::Path, time::Duration};
 
 pub struct UptimeInfo {
     uptime: Duration,
@@ -25,26 +26,59 @@ impl Module for UptimeInfo {
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .uptime
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.uptime.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .uptime
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let format: String = config.uptime.format.clone().unwrap_or("{time}".to_string());
         let title: String = self.replace_placeholders(&config.uptime.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
+        let value: String =
+            self.replace_color_placeholders(&self.replace_placeholders(&format, config), config);
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
-    fn unknown_output(config: &Configuration) -> (String, String) { 
-        let title_color: &CrabFetchColor = config.uptime.title_color.as_ref().unwrap_or(&config.title_color);
+    fn unknown_output(config: &Configuration) -> (String, String) {
+        let title_color: &CrabFetchColor = config
+            .uptime
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.uptime.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.uptime.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.uptime.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .uptime
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = config.uptime.title.replace("{time}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -68,7 +102,12 @@ pub fn get_uptime(syscall_cache: &mut SyscallCache) -> Result<UptimeInfo, Module
     };
     uptime.uptime = match contents.split(' ').collect::<Vec<&str>>()[0].parse::<f64>() {
         Ok(r) => Duration::new(r.floor() as u64, 0),
-        Err(e) => return Err(ModuleError::new("Uptime", format!("Could not parse /proc/uptime: {e}"))),
+        Err(e) => {
+            return Err(ModuleError::new(
+                "Uptime",
+                format!("Could not parse /proc/uptime: {e}"),
+            ))
+        }
     };
 
     Ok(uptime)

@@ -1,12 +1,16 @@
-use std::env;
-
+use crate::{
+    config_manager::Configuration,
+    formatter::CrabFetchColor,
+    module::Module,
+    util::{self, is_flag_set_u32},
+    ModuleError,
+};
 use serde::Deserialize;
-
-use crate::{config_manager::Configuration, formatter::CrabFetchColor, module::Module, util::{self, is_flag_set_u32}, ModuleError};
+use std::env;
 
 pub struct DesktopInfo {
     desktop: String,
-    display_type: String
+    display_type: String,
 }
 #[derive(Deserialize)]
 pub struct DesktopConfiguration {
@@ -21,32 +25,69 @@ impl Module for DesktopInfo {
     fn new() -> DesktopInfo {
         DesktopInfo {
             desktop: "Unknown".to_string(),
-            display_type: "Unknown".to_string()
+            display_type: "Unknown".to_string(),
         }
     }
 
     fn style(&self, config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.desktop.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .desktop
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.desktop.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .desktop
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
         let title: String = self.replace_placeholders(&config.desktop.title, config);
-        let value: String = self.replace_color_placeholders(&self.replace_placeholders(&config.desktop.format, config), config);
+        let value: String = self.replace_color_placeholders(
+            &self.replace_placeholders(&config.desktop.format, config),
+            config,
+        );
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, &value)
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            &value,
+        )
     }
     fn unknown_output(config: &Configuration) -> (String, String) {
-        let title_color: &CrabFetchColor = config.desktop.title_color.as_ref().unwrap_or(&config.title_color);
+        let title_color: &CrabFetchColor = config
+            .desktop
+            .title_color
+            .as_ref()
+            .unwrap_or(&config.title_color);
         let title_bold: bool = config.desktop.title_bold.unwrap_or(config.title_bold);
         let title_italic: bool = config.desktop.title_italic.unwrap_or(config.title_italic);
-        let separator: &str = config.desktop.separator.as_ref().unwrap_or(&config.separator);
+        let separator: &str = config
+            .desktop
+            .separator
+            .as_ref()
+            .unwrap_or(&config.separator);
 
-        let title: String = config.desktop.title
+        let title: String = config
+            .desktop
+            .title
             .replace("{desktop}", "Unknown")
             .replace("{display_type}", "Unknown");
 
-        Self::default_style(config, &title, title_color, title_bold, title_italic, separator, "Unknown")
+        Self::default_style(
+            config,
+            &title,
+            title_color,
+            title_bold,
+            title_italic,
+            separator,
+            "Unknown",
+        )
     }
 
     fn replace_placeholders(&self, text: &str, _: &Configuration) -> String {
@@ -85,9 +126,11 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
     if is_flag_set_u32(info_flags, DESKTOP_INFOFLAG_DESKTOP) {
         desktop.desktop = match env::var("XDG_CURRENT_DESKTOP") {
             Ok(r) => r,
-                Err(_) => match env::var("DESKTOP_SESSION") {
-                    Ok(r) => r,
-                    Err(e) => return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP or $DESKTOP_SESSION env variable: {e}")))
+            Err(_) => match env::var("DESKTOP_SESSION") {
+                Ok(r) => r,
+                Err(e) => {
+                    return Err(ModuleError::new("Desktop", format!("Could not parse $XDG_CURRENT_DESKTOP or $DESKTOP_SESSION env variable: {e}")))
+                },
             }
         };
     }
@@ -100,7 +143,12 @@ pub fn get_desktop(config: &Configuration) -> Result<DesktopInfo, ModuleError> {
         } else {
             match env::var("XDG_SESSION_TYPE") {
                 Ok(r) => r,
-                Err(_) => return Err(ModuleError::new("Desktop", "Could not identify desktop session type.".to_string()))
+                Err(_) => {
+                    return Err(ModuleError::new(
+                        "Desktop",
+                        "Could not identify desktop session type.".to_string(),
+                    ))
+                }
             }
         }
     }
